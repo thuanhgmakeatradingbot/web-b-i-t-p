@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Đề Số 3 - KHTN 8 Cuối Kì 2</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background: #f8f9fa; }
+        
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 12px; margin-bottom: 50px; margin-top: 20px; }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+        .teacher-tag { display: flex; justify-content: space-between; font-size: 11pt; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #333; }
+        .exam-title { font-size: 20pt; font-weight: bold; margin: 15px 0; color: #1a1a1a; }
+        .timer { position: fixed; top: 20px; right: 20px; background: #1a1a1a; color: white; padding: 15px 25px; border-radius: 10px; font-size: 18pt; font-weight: bold; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .section-title { font-size: 13pt; font-weight: bold; margin: 30px 0 20px 0; padding: 12px 15px; background: #f0f0f0; border-left: 4px solid #1a1a1a; color: #1a1a1a; }
+        .question { margin: 25px 0; padding: 20px; background: #fafafa; border-radius: 8px; border-left: 4px solid #ddd; border: 1px solid #e0e0e0; }
+        .question.answered { border-left-color: #4CAF50; background: #f1f8f4; }
+        .question-header { font-weight: bold; margin-bottom: 12px; color: #1a1a1a; font-size: 12pt; }
+        .question-content { margin: 12px 0; line-height: 1.8; color: #333; }
+        .options { margin: 20px 0; }
+        .option { display: block; margin: 12px 0; padding: 15px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .option:hover { background: #f5f5f5; border-color: #1a1a1a; }
+        .option input[type="radio"] { margin-right: 12px; }
+        .option.selected { background: #e8e8e8; border-color: #1a1a1a; font-weight: bold; }
+        .submit-section { text-align: center; margin: 50px 0; padding: 40px; background: #f8f9fa; border-radius: 10px; }
+        .submit-btn { padding: 18px 60px; font-size: 16pt; background: #1a1a1a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .submit-btn:hover { background: #333; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .result-content { background: white; padding: 50px; border-radius: 15px; text-align: center; max-width: 500px; }
+        .result-score { font-size: 48pt; font-weight: bold; color: #4CAF50; margin: 20px 0; }
+        .back-btn { display: inline-block; margin: 15px 10px; padding: 15px 35px; background: #1a1a1a; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: all 0.3s; }
+        .back-btn:hover { background: #333; }
+        
+        .start-modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .start-modal-content {
+            background: white;
+            padding: 50px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 600px;
+        }
+        
+        .start-modal-content h1 {
+            color: #1a1a1a;
+            font-size: 28pt;
+            margin-bottom: 20px;
+        }
+        
+        .start-modal-content p {
+            color: #666;
+            font-size: 13pt;
+            margin: 15px 0;
+        }
+        
+        .start-modal-content ul {
+            text-align: left;
+            margin: 25px auto;
+            padding-left: 30px;
+            max-width: 400px;
+        }
+        
+        .start-modal-content li {
+            margin: 12px 0;
+            color: #333;
+            font-size: 12pt;
+        }
+        
+        .start-modal-buttons {
+            margin-top: 35px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .start-modal-btn {
+            padding: 18px 50px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14pt;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .start-modal-btn.confirm {
+            background: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .start-modal-btn.confirm:hover {
+            background: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+        
+        .start-modal-btn.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .start-modal-btn.cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+    </style>
+</head>
+<body>
+    <div class="start-modal" id="startModal">
+        <div class="start-modal-content">
+            <h1>🎯 Sẵn sàng làm bài?</h1>
+            <p><strong>Đề thi: KHTN 8 - Cuối Kì 2 (Mã đề 001)</strong></p>
+            <p>Thời gian: <strong>45 phút</strong> | Số câu: <strong>28 câu trắc nghiệm</strong></p>
+            
+            <ul>
+                <li>✅ Hệ thống sẽ chuyển sang chế độ toàn màn hình</li>
+                <li>🚫 Không được thoát khỏi màn hình làm bài</li>
+                <li>🚫 Không được sao chép hoặc chụp màn hình</li>
+                <li>⏰ Thời gian đếm ngược tự động khi bắt đầu</li>
+            </ul>
+            
+            <div class="start-modal-buttons">
+                <button class="start-modal-btn cancel" onclick="cancelExam()">← Quay lại</button>
+                <button class="start-modal-btn confirm" onclick="confirmStartExam()">🚀 Bắt đầu ngay</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="timer" id="timer">45:00</div>
+    <div class="container">
+        <div class="header">
+            <div class="teacher-tag">
+                <div>TOÁN-HÓA-SINH-KHTN | Nguyễn Phú Thuận</div>
+                <div>Zalo: 0944316329</div>
+            </div>
+            <div class="exam-title">ĐỀ KIỂM TRA CUỐI KÌ II – KHTN 8<br>MÃ ĐỀ: 001</div>
+            <div style="font-size: 11pt; font-style: italic; margin-top: 10px;">
+                Môn: Khoa học tự nhiên 8 | Thời gian: 45 phút<br>
+                Họ và tên: <input type="text" id="studentName" style="border:none; border-bottom:1px solid #333; width:200px; margin: 5px;" required>
+                Lớp: <input type="text" id="studentClass" style="border:none; border-bottom:1px solid #333; width:80px;" required>
+            </div>
+        </div>
+        <form id="examForm">
+
+<div class="section-title">PHẦN I: TRẮC NGHIỆM KHÁCH QUAN (28 câu × 0,25 điểm = 7,0 điểm)</div>
+<div class="section-title">I. MỨC NHẬN BIẾT</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 1. [Bài 20 – Nhận biết]</div>
+    <div class="question-content">Đơn vị đo cường độ dòng điện là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q1" value="A"> A. Vôn (V)</label>
+        <label class="option"><input type="radio" name="q1" value="B"> B. Ampe (A)</label>
+        <label class="option"><input type="radio" name="q1" value="C"> C. Ôm (Ω)</label>
+        <label class="option"><input type="radio" name="q1" value="D"> D. Oát (W)</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 2. [Bài 20 – Nhận biết]</div>
+    <div class="question-content">Vật nào sau đây là vật cách điện?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q2" value="A"> A. Thanh đồng</label>
+        <label class="option"><input type="radio" name="q2" value="B"> B. Dây nhôm</label>
+        <label class="option"><input type="radio" name="q2" value="C"> C. Miếng sứ</label>
+        <label class="option"><input type="radio" name="q2" value="D"> D. Thanh sắt</label>
+    </div>
+</div>
+
+<div class="question" data-answer="D">
+    <div class="question-header">Câu 3. [Bài 21 – Nhận biết]</div>
+    <div class="question-content">Dụng cụ dùng để đo cường độ dòng điện trong mạch điện là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q3" value="A"> A. Vôn kế</label>
+        <label class="option"><input type="radio" name="q3" value="B"> B. Nhiệt kế</label>
+        <label class="option"><input type="radio" name="q3" value="C"> C. Lực kế</label>
+        <label class="option"><input type="radio" name="q3" value="D"> D. Ampe kế</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 4. [Bài 21 – Nhận biết]</div>
+    <div class="question-content">Dụng cụ dùng để đo hiệu điện thế giữa hai đầu đoạn mạch là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q4" value="A"> A. Ampe kế</label>
+        <label class="option"><input type="radio" name="q4" value="B"> B. Nhiệt kế</label>
+        <label class="option"><input type="radio" name="q4" value="C"> C. Vôn kế</label>
+        <label class="option"><input type="radio" name="q4" value="D"> D. Đồng hồ đo điện vạn năng mắc nối tiếp</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 5. [Bài 23 – Nhận biết]</div>
+    <div class="question-content">Nhiệt lượng là phần năng lượng nhiệt mà vật nhận thêm hoặc mất đi trong quá trình truyền nhiệt. Đơn vị đo nhiệt lượng là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q5" value="A"> A. Niutơn (N)</label>
+        <label class="option"><input type="radio" name="q5" value="B"> B. Vôn (V)</label>
+        <label class="option"><input type="radio" name="q5" value="C"> C. Jun (J)</label>
+        <label class="option"><input type="radio" name="q5" value="D"> D. Oát (W)</label>
+    </div>
+</div>
+
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 6. [Bài 24 – Nhận biết]</div>
+    <div class="question-content">Hình thức truyền nhiệt chủ yếu của chất lỏng và chất khí là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q6" value="A"> A. Dẫn nhiệt</label>
+        <label class="option"><input type="radio" name="q6" value="B"> B. Bức xạ nhiệt</label>
+        <label class="option"><input type="radio" name="q6" value="C"> C. Đối lưu</label>
+        <label class="option"><input type="radio" name="q6" value="D"> D. Dẫn nhiệt và bức xạ nhiệt</label>
+    </div>
+</div>
+
+<div class="question" data-answer="D">
+    <div class="question-header">Câu 7. [Bài 26 – Nhận biết]</div>
+    <div class="question-content">Bộ phận kết nối các xương trong cơ thể với nhau và hỗ trợ các chuyển động được gọi là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q7" value="A"> A. Cơ vân</label>
+        <label class="option"><input type="radio" name="q7" value="B"> B. Gân</label>
+        <label class="option"><input type="radio" name="q7" value="C"> C. Tủy xương</label>
+        <label class="option"><input type="radio" name="q7" value="D"> D. Khớp</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 8. [Bài 29 – Nhận biết]</div>
+    <div class="question-content">Theo hệ nhóm máu ABO, máu người được chia thành bao nhiêu nhóm?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q8" value="A"> A. 2 nhóm</label>
+        <label class="option"><input type="radio" name="q8" value="B"> B. 3 nhóm</label>
+        <label class="option"><input type="radio" name="q8" value="C"> C. 4 nhóm</label>
+        <label class="option"><input type="radio" name="q8" value="D"> D. 5 nhóm</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 9. [Bài 30 – Nhận biết]</div>
+    <div class="question-content">Hệ tuần hoàn có chức năng chính là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q9" value="A"> A. Trao đổi khí với môi trường</label>
+        <label class="option"><input type="radio" name="q9" value="B"> B. Vận chuyển các chất trong cơ thể</label>
+        <label class="option"><input type="radio" name="q9" value="C"> C. Tiêu hóa và hấp thụ chất dinh dưỡng</label>
+        <label class="option"><input type="radio" name="q9" value="D"> D. Điều khiển hoạt động của cơ quan</label>
+    </div>
+</div>
+
+<div class="question" data-answer="D">
+    <div class="question-header">Câu 10. [Bài 32 – Nhận biết]</div>
+    <div class="question-content">Trao đổi khí giữa máu và không khí bên ngoài diễn ra ở:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q10" value="A"> A. Khí quản</label>
+        <label class="option"><input type="radio" name="q10" value="B"> B. Phế quản</label>
+        <label class="option"><input type="radio" name="q10" value="C"> C. Thanh quản</label>
+        <label class="option"><input type="radio" name="q10" value="D"> D. Phế nang</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 11. [Bài 34 – Nhận biết]</div>
+    <div class="question-content">Bộ phận trung ương của hệ thần kinh gồm:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q11" value="A"> A. Các dây thần kinh và hạch thần kinh</label>
+        <label class="option"><input type="radio" name="q11" value="B"> B. Não và tủy sống</label>
+        <label class="option"><input type="radio" name="q11" value="C"> C. Não và dây thần kinh ngoại biên</label>
+        <label class="option"><input type="radio" name="q11" value="D"> D. Tủy sống và hạch thần kinh</label>
+    </div>
+</div>
+
+<div class="section-title">II. MỨC THÔNG HIỂU</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 12. [Bài 20 – Thông hiểu]</div>
+    <div class="question-content">Hiệu điện thế giữa hai cực của nguồn điện cho biết điều gì?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q12" value="A"> A. Mức độ mạnh yếu của dòng điện chạy qua mạch</label>
+        <label class="option"><input type="radio" name="q12" value="B"> B. Điện trở trong của nguồn điện</label>
+        <label class="option"><input type="radio" name="q12" value="C"> C. Khả năng sinh ra dòng điện của nguồn điện</label>
+        <label class="option"><input type="radio" name="q12" value="D"> D. Nhiệt lượng tỏa ra trên nguồn điện</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 13. [Bài 21 – Thông hiểu]</div>
+    <div class="question-content">Để đo cường độ dòng điện chạy qua một điện trở, ampe kế phải được mắc như thế nào?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q13" value="A"> A. Song song với điện trở cần đo</label>
+        <label class="option"><input type="radio" name="q13" value="B"> B. Song song với nguồn điện</label>
+        <label class="option"><input type="radio" name="q13" value="C"> C. Nối tiếp trong mạch điện, cùng dòng điện qua điện trở</label>
+        <label class="option"><input type="radio" name="q13" value="D"> D. Có thể mắc song song hoặc nối tiếp đều được</label>
+    </div>
+</div>
+
+<div class="question" data-answer="A">
+    <div class="question-header">Câu 14. [Bài 24 – Thông hiểu]</div>
+    <div class="question-content">Bức xạ nhiệt khác với đối lưu ở điểm cơ bản nào?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q14" value="A"> A. Bức xạ nhiệt có thể truyền qua chân không, đối lưu không truyền được qua chân không</label>
+        <label class="option"><input type="radio" name="q14" value="B"> B. Bức xạ nhiệt chỉ xảy ra trong chất khí, đối lưu chỉ xảy ra trong chất lỏng</label>
+        <label class="option"><input type="radio" name="q14" value="C"> C. Bức xạ nhiệt cần vật trung gian để truyền, đối lưu thì không</label>
+        <label class="option"><input type="radio" name="q14" value="D"> D. Bức xạ nhiệt chỉ xảy ra ở nhiệt độ cao, đối lưu xảy ra ở mọi nhiệt độ</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 15. [Bài 29 – Thông hiểu]</div>
+    <div class="question-content">Nhóm máu O có đặc điểm gì về kháng nguyên và kháng thể?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q15" value="A"> A. Có cả kháng nguyên A và B trên hồng cầu; không có kháng thể trong huyết tương</label>
+        <label class="option"><input type="radio" name="q15" value="B"> B. Không có kháng nguyên trên hồng cầu; có cả kháng thể anti-A và anti-B trong huyết tương</label>
+        <label class="option"><input type="radio" name="q15" value="C"> C. Chỉ có kháng nguyên A; có kháng thể anti-B trong huyết tương</label>
+        <label class="option"><input type="radio" name="q15" value="D"> D. Không có kháng nguyên và không có kháng thể</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 16. [Bài 29 – Thông hiểu]</div>
+    <div class="question-content">Kháng thể trong cơ thể được tạo ra bởi tế bào nào và có vai trò gì?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q16" value="A"> A. Do hồng cầu tạo ra; vận chuyển oxy trong máu</label>
+        <label class="option"><input type="radio" name="q16" value="B"> B. Do bạch cầu tiết ra; liên kết đặc hiệu với kháng nguyên để tiêu diệt mầm bệnh</label>
+        <label class="option"><input type="radio" name="q16" value="C"> C. Do tiểu cầu tiết ra; tham gia vào quá trình đông máu</label>
+        <label class="option"><input type="radio" name="q16" value="D"> D. Do tế bào thần kinh tạo ra; truyền tín hiệu miễn dịch đến não</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 17. [Bài 30 – Thông hiểu]</div>
+    <div class="question-content">Trong vòng tuần hoàn nhỏ, máu đi từ tim lên phổi để thực hiện quá trình nào?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q17" value="A"> A. Nhận chất dinh dưỡng từ phổi để nuôi cơ thể</label>
+        <label class="option"><input type="radio" name="q17" value="B"> B. Trao đổi khí: nhả CO₂ và nhận O₂ qua các mao mạch phổi</label>
+        <label class="option"><input type="radio" name="q17" value="C"> C. Lọc các chất thải và độc tố ra khỏi máu</label>
+        <label class="option"><input type="radio" name="q17" value="D"> D. Nhận thêm các tế bào bạch cầu mới được tạo ra ở phổi</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 18. [Bài 32 – Thông hiểu]</div>
+    <div class="question-content">Trong quá trình hít vào, sự trao đổi khí tại phế nang diễn ra như thế nào?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q18" value="A"> A. O₂ từ mao mạch phổi đi vào phế nang; CO₂ từ phế nang đi vào mao mạch phổi</label>
+        <label class="option"><input type="radio" name="q18" value="B"> B. O₂ từ phế nang đi vào mao mạch phổi; CO₂ từ mao mạch phổi đi ra phế nang</label>
+        <label class="option"><input type="radio" name="q18" value="C"> C. O₂ và CO₂ cùng đi từ phế nang vào mao mạch phổi</label>
+        <label class="option"><input type="radio" name="q18" value="D"> D. O₂ từ khí quản đi thẳng vào máu không qua phế nang</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 19. [Bài 34 – Thông hiểu]</div>
+    <div class="question-content">Điều nào sau đây MÔ TẢ ĐÚNG tác hại của chất gây nghiện đối với hệ thần kinh khi sử dụng lâu dài?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q19" value="A"> A. Tăng cường trí nhớ và khả năng tập trung nhờ kích thích thần kinh</label>
+        <label class="option"><input type="radio" name="q19" value="B"> B. Giúp điều hòa giấc ngủ và giảm căng thẳng bền vững lâu dài</label>
+        <label class="option"><input type="radio" name="q19" value="C"> C. Gây rối loạn trí nhớ, trầm cảm, hoang tưởng và hủy hoại tế bào thần kinh</label>
+        <label class="option"><input type="radio" name="q19" value="D"> D. Làm tăng tốc độ phục hồi của hệ thần kinh sau chấn thương</label>
+    </div>
+</div>
+
+<div class="section-title">III. MỨC VẬN DỤNG</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 20. [Bài 20 – Vận dụng]</div>
+    <div class="question-content">Đổi đơn vị: 0,025 A bằng bao nhiêu mA?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q20" value="A"> A. 0,025 mA</label>
+        <label class="option"><input type="radio" name="q20" value="B"> B. 2,5 mA</label>
+        <label class="option"><input type="radio" name="q20" value="C"> C. 25 mA</label>
+        <label class="option"><input type="radio" name="q20" value="D"> D. 250 mA</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 21. [Bài 21 – Vận dụng]</div>
+    <div class="question-content">Một bóng đèn có ghi "6V". Nếu mắc bóng đèn này vào nguồn điện có hiệu điện thế 12V thì điều gì xảy ra?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q21" value="A"> A. Đèn sáng bình thường vì hiệu điện thế đủ lớn để thắp sáng</label>
+        <label class="option"><input type="radio" name="q21" value="B"> B. Đèn có thể bị cháy do hiệu điện thế vượt quá mức thiết kế cho phép</label>
+        <label class="option"><input type="radio" name="q21" value="C"> C. Đèn sẽ sáng yếu hơn vì nguồn điện quá mạnh làm giảm hiệu suất</label>
+        <label class="option"><input type="radio" name="q21" value="D"> D. Đèn không sáng vì hiệu điện thế quá cao làm đứt mạch tự động</label>
+    </div>
+</div>
+
+<div class="question" data-answer="D">
+    <div class="question-header">Câu 22. [Bài 26 – Vận dụng]</div>
+    <div class="question-content">Bạn An bị bong gân khi chơi bóng đá. Bộ phận cụ thể nào của hệ vận động bị tổn thương?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q22" value="A"> A. Tế bào cơ vân bị rách</label>
+        <label class="option"><input type="radio" name="q22" value="B"> B. Mô xương bị nứt vỡ</label>
+        <label class="option"><input type="radio" name="q22" value="C"> C. Tủy xương bị tổn thương</label>
+        <label class="option"><input type="radio" name="q22" value="D"> D. Khớp bị tổn thương (dây chằng, bao hoạt dịch)</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 23. [Bài 29 – Vận dụng]</div>
+    <div class="question-content">Bệnh nhân sốt xuất huyết thường có tiểu cầu giảm mạnh. Hậu quả trực tiếp nào có thể xảy ra đối với cơ thể?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q23" value="A"> A. Mất khả năng vận chuyển oxy trong máu do thiếu hồng cầu</label>
+        <label class="option"><input type="radio" name="q23" value="B"> B. Giảm khả năng đông máu dẫn đến xuất huyết kéo dài, khó cầm máu</label>
+        <label class="option"><input type="radio" name="q23" value="C"> C. Hệ miễn dịch mất hoàn toàn khả năng sản sinh kháng thể</label>
+        <label class="option"><input type="radio" name="q23" value="D"> D. Tim không co bóp được do thiếu năng lượng từ tiểu cầu</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 24. [Bài 32 – Vận dụng]</div>
+    <div class="question-content">Vì sao khi vừa ăn vừa nói chúng ta có thể bị sặc? Bộ phận nào trong hệ hô hấp liên quan trực tiếp?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q24" value="A"> A. Vì thanh quản không đủ rộng để đồng thời dẫn thức ăn và không khí cùng lúc</label>
+        <label class="option"><input type="radio" name="q24" value="B"> B. Vì nắp thanh quản đậy lại khi phát âm làm thức ăn bị tắc ở hầu họng</label>
+        <label class="option"><input type="radio" name="q24" value="C"> C. Vì khi nói, nắp thanh quản mở ra để phát âm, thức ăn có thể rơi vào đường hô hấp</label>
+        <label class="option"><input type="radio" name="q24" value="D"> D. Vì màng nhĩ rung động khi nói làm mất phản xạ nuốt bình thường</label>
+    </div>
+</div>
+
+<div class="section-title">IV. MỨC VẬN DỤNG CAO</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 25. [Bài 23–24 – Vận dụng cao]</div>
+    <div class="question-content">Vào mùa đông, em An nhìn thấy khói bay lên từ bát phở nóng và giải thích: "Đây là bức xạ nhiệt vì các tia nhiệt đi thẳng lên trên". Bạn Bình nói: "Không đúng, đây là đối lưu". Phân tích nào sau đây là CHÍNH XÁC NHẤT?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q25" value="A"> A. An đúng: bức xạ nhiệt là các tia đi thẳng, khói bay lên thẳng chứng tỏ là bức xạ nhiệt</label>
+        <label class="option"><input type="radio" name="q25" value="B"> B. Bình đúng: đối lưu là sự truyền nhiệt bằng các dòng chất lỏng và khí; không khí nóng mang hơi nước bốc lên tạo thành khói là biểu hiện của đối lưu</label>
+        <label class="option"><input type="radio" name="q25" value="C"> C. Cả hai đều sai; đây là hiện tượng dẫn nhiệt từ nước nóng ra không khí xung quanh</label>
+        <label class="option"><input type="radio" name="q25" value="D"> D. Cả hai đều đúng một phần; đối lưu và bức xạ nhiệt xảy ra đồng thời với vai trò như nhau</label>
+    </div>
+</div>
+
+<div class="question" data-answer="A">
+    <div class="question-header">Câu 26. [Bài 30–32–Bài 34 (da) – Vận dụng cao]</div>
+    <div class="question-content">Một vận động viên đang chạy marathon dưới trời nóng 35°C. Cơ thể phản ứng: nhịp tim tăng mạnh, thở nhanh hơn và đổ nhiều mồ hôi. Giải thích nào sau đây là ĐẦY ĐỦ và CHÍNH XÁC nhất về ba phản ứng trên?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q26" value="A"> A. Tim đập nhanh để vận chuyển thêm O₂ và dinh dưỡng cho cơ đang hoạt động; thở nhanh để lấy thêm O₂ và thải CO₂; đổ mồ hôi để điều hòa thân nhiệt qua chức năng bài tiết của da</label>
+        <label class="option"><input type="radio" name="q26" value="B"> B. Tim đập nhanh do căng thẳng tâm lý; thở nhanh vì không khí nóng làm giảm nồng độ O₂; mồ hôi tiết ra để cung cấp nước làm mát cơ bắp trực tiếp</label>
+        <label class="option"><input type="radio" name="q26" value="C"> C. Tim đập nhanh để lọc máu nhanh hơn qua thận; thở nhanh để hạ nhiệt trực tiếp cho phổi; mồ hôi giúp tăng nhiệt độ cơ thể để đốt cháy calo</label>
+        <label class="option"><input type="radio" name="q26" value="D"> D. Tim đập nhanh để bơm thêm máu lên não tránh say nắng; thở nhanh để giải phóng CO₂ tích lũy trong cơ; mồ hôi giúp tăng độ bám dính của bàn chân khi chạy</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 27. [Bài 29 – Vận dụng cao]</div>
+    <div class="question-content">Bệnh nhân P. cần truyền máu khẩn cấp. Xét nghiệm nhanh cho thấy: hồng cầu của P. BỊ NGƯNG KẾT khi trộn với huyết thanh chứa anti-A, nhưng KHÔNG bị ngưng kết khi trộn với huyết thanh chứa anti-B. Bệnh nhân P. có nhóm máu gì và có thể nhận máu an toàn từ người nào dưới đây?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q27" value="A"> A. Nhóm máu B; có thể nhận từ người nhóm máu B hoặc AB</label>
+        <label class="option"><input type="radio" name="q27" value="B"> B. Nhóm máu A; có thể nhận máu từ người nhóm máu A hoặc O</label>
+        <label class="option"><input type="radio" name="q27" value="C"> C. Nhóm máu AB; có thể nhận từ tất cả các nhóm máu</label>
+        <label class="option"><input type="radio" name="q27" value="D"> D. Nhóm máu O; có thể cho tất cả các nhóm nhưng chỉ nhận từ nhóm O</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 28. [Bài 34 – Vận dụng cao]</div>
+    <div class="question-content">Bạn H. vô tình chạm tay vào vật nóng và ngay lập tức rụt tay lại TRƯỚC KHI kịp nhận thức được cảm giác đau. Sau đó mới cảm thấy đau và nhìn thấy vết bỏng. Điều này thể hiện điều gì về cơ chế hoạt động của hệ thần kinh?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q28" value="A"> A. Phản xạ rụt tay là phản xạ có điều kiện do não điều khiển trực tiếp; cảm giác đau xuất hiện sau do não phải xử lý thêm thông tin</label>
+        <label class="option"><input type="radio" name="q28" value="B"> B. Não bộ xử lý tín hiệu đau trước và ra lệnh rụt tay; cảm giác đau chủ quan chỉ xuất hiện sau khi não hoàn tất phân tích</label>
+        <label class="option"><input type="radio" name="q28" value="C"> C. Phản xạ rụt tay là phản xạ không điều kiện qua tủy sống (nhanh); cảm giác đau và nhận biết vết bỏng được xử lý bởi não sau đó (chậm hơn)</label>
+        <label class="option"><input type="radio" name="q28" value="D"> D. Tủy sống không tham gia; đây là phản xạ do dây thần kinh ngoại biên tự điều khiển độc lập với não và tủy sống</label>
+    </div>
+</div>
+
+
+<div class="section-title">PHẦN II: TỰ LUẬN (3,0 điểm)</div>
+
+<div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+    <p style="color: #856404; font-weight: bold; margin-bottom: 10px;">📝 LƯU Ý QUAN TRỌNG:</p>
+    <p style="color: #856404;">Phần tự luận này sẽ được giáo viên chấm riêng. Học sinh vui lòng viết câu trả lời vào giấy thi hoặc gửi qua email/Zalo cho giáo viên.</p>
+</div>
+
+<div style="background: white; padding: 30px; border-radius: 8px; border: 2px solid #e0e0e0; margin: 20px 0;">
+    <div style="font-weight: bold; font-size: 13pt; margin-bottom: 15px; color: #1a1a1a;">
+        Câu 1 (0,75 điểm): [Bài 30 – Vận dụng]
+    </div>
+    <div style="line-height: 1.8; color: #333; margin-bottom: 15px;">
+        Mô tả hành trình của máu trong vòng tuần hoàn lớn bắt đầu từ tâm thất trái. Chỉ ra đặc điểm của máu ở điểm bắt đầu và điểm kết thúc của vòng tuần hoàn này.
+    </div>
+    <textarea name="essay1" placeholder="Nhập câu trả lời của bạn..." style="width: 100%; min-height: 120px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Segoe UI', sans-serif; font-size: 11pt; resize: vertical;"></textarea>
+</div>
+
+<div style="background: white; padding: 30px; border-radius: 8px; border: 2px solid #e0e0e0; margin: 20px 0;">
+    <div style="font-weight: bold; font-size: 13pt; margin-bottom: 15px; color: #1a1a1a;">
+        Câu 2 (0,75 điểm): [Bài 32 – Thông hiểu / Vận dụng]
+    </div>
+    <div style="line-height: 1.8; color: #333; margin-bottom: 15px;">
+        Vì sao khi vừa ăn vừa nói chúng ta có thể bị sặc? Giải thích vai trò của nắp thanh quản trong tình huống này. Chúng ta cần làm gì để phòng tránh sặc khi ăn?
+    </div>
+    <textarea name="essay2" placeholder="Nhập câu trả lời của bạn..." style="width: 100%; min-height: 120px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Segoe UI', sans-serif; font-size: 11pt; resize: vertical;"></textarea>
+</div>
+
+<div style="background: white; padding: 30px; border-radius: 8px; border: 2px solid #e0e0e0; margin: 20px 0;">
+    <div style="font-weight: bold; font-size: 13pt; margin-bottom: 15px; color: #1a1a1a;">
+        Câu 3 (0,75 điểm): [Bài 29 – Vận dụng cao]
+    </div>
+    <div style="line-height: 1.8; color: #333; margin-bottom: 15px;">
+        Người bị sốt xuất huyết có thể bị giảm tiểu cầu nghiêm trọng (dưới 20.000/mm³, bình thường 150.000–400.000/mm³). Nêu các biểu hiện nguy hiểm có thể xảy ra và giải thích tại sao bác sĩ theo dõi chỉ số tiểu cầu là bước bắt buộc trong điều trị sốt xuất huyết.
+    </div>
+    <textarea name="essay3" placeholder="Nhập câu trả lời của bạn..." style="width: 100%; min-height: 120px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Segoe UI', sans-serif; font-size: 11pt; resize: vertical;"></textarea>
+</div>
+
+<div style="background: white; padding: 30px; border-radius: 8px; border: 2px solid #e0e0e0; margin: 20px 0;">
+    <div style="font-weight: bold; font-size: 13pt; margin-bottom: 15px; color: #1a1a1a;">
+        Câu 4 (0,75 điểm): [Bài 20–21 – Vận dụng]
+    </div>
+    <div style="line-height: 1.8; color: #333; margin-bottom: 15px;">
+        Bạn An muốn mắc mạch điện gồm: nguồn điện (2 pin nối tiếp), công tắc, đèn LED, ampe kế và vôn kế để: ampe kế đo cường độ dòng điện qua đèn LED và vôn kế đo hiệu điện thế giữa hai đầu đèn LED.
+        <br><br>
+        <strong>a)</strong> Ampe kế phải mắc như thế nào trong mạch: nối tiếp hay song song với đèn LED? Vì sao?
+        <br>
+        <strong>b)</strong> Vôn kế phải mắc như thế nào: nối tiếp hay song song với đèn LED? Vì sao?
+    </div>
+    <textarea name="essay4" placeholder="Nhập câu trả lời của bạn..." style="width: 100%; min-height: 150px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Segoe UI', sans-serif; font-size: 11pt; resize: vertical;"></textarea>
+</div>
+
+<div class="submit-section">
+<p style="margin-bottom: 20px; font-size: 14pt;">Đã hoàn thành phần trắc nghiệm: <strong><span id="count">0</span>/28</strong> câu</p>
+<p style="margin-bottom: 20px; font-size: 12pt; color: #666;">⚠️ Phần tự luận (3 điểm) sẽ được chấm riêng bởi giáo viên</p>
+<button type="button" class="submit-btn" onclick="submitExam()">NỘP BÀI TRẮC NGHIỆM</button><br><br>
+<a href="../../index.html" style="color: #666; text-decoration: none;">← Quay lại</a>
+</div>
+</form>
+</div>
+
+<div class="result-modal" id="resultModal">
+<div class="result-content">
+<h2>🎉 KẾT QUẢ</h2>
+<div class="result-score" id="score">0/28</div>
+<p>Đúng: <strong id="correct">0</strong> | Sai: <strong id="wrong">0</strong></p>
+<p>Điểm: <strong id="finalScore">0</strong>/7</p>
+<p style="font-size: 10pt; color: #666; margin-top: 15px;">✅ Kết quả đã được lưu</p>
+<a href="../../index.html" class="back-btn">← Quay về Menu</a>
+<button onclick="location.reload()" class="back-btn" style="background: #4CAF50;">Làm lại</button>
+</div>
+</div>
+
+<script>
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiAQ96NX5ZNIhZNVOrRXzXP_9xZAHa09zVCz8iw_iC0OapfvE00yKcQ2jxzUFvHsh3/exec';
+
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || e.key === 's' || e.key === 'p')) {
+        e.preventDefault();
+        return false;
+    }
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I') || (e.ctrlKey && e.shiftKey && e.key === 'C') || (e.ctrlKey && e.key === 'u')) {
+        e.preventDefault();
+        return false;
+    }
+    if (e.key === 'PrintScreen') {
+        navigator.clipboard.writeText('');
+        return false;
+    }
+});
+
+function enterFullscreen() {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+    }
+}
+
+function cancelExam() {
+    window.location.href = '../../index.html';
+}
+
+function confirmStartExam() {
+    document.getElementById('startModal').style.display = 'none';
+    enterFullscreen();
+    startTimer();
+}
+
+let timerStarted = false;
+let timerInterval;
+let time = 45 * 60;
+const timer = document.getElementById('timer');
+
+function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
+    
+    timerInterval = setInterval(() => {
+        const m = Math.floor(time / 60);
+        const s = time % 60;
+        timer.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+        if (time <= 0) {
+            clearInterval(timerInterval);
+            submitExam();
+        }
+        time--;
+    }, 1000);
+}
+
+document.getElementById('examForm').addEventListener('change',(e)=>{
+    if(e.target.type==='radio'){
+        const q=e.target.closest('.question');
+        q.classList.add('answered');
+        q.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+        e.target.closest('.option').classList.add('selected');
+        document.getElementById('count').textContent=document.querySelectorAll('.question.answered').length;
+    }
+});
+
+function submitExam(){
+    const studentName = document.getElementById('studentName').value.trim();
+    const studentClass = document.getElementById('studentClass').value.trim();
+    
+    if (!studentName || !studentClass) {
+        alert('⚠️ Vui lòng điền đầy đủ Họ tên và Lớp trước khi nộp bài!');
+        return;
+    }
+    
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.cursor = 'not-allowed';
+    
+    const qs=document.querySelectorAll('.question');
+    let c=0,w=0;
+    const answers = {};
+    
+    qs.forEach((q, index)=>{
+        const ans=q.dataset.answer;
+        const sel=q.querySelector('input:checked');
+        const questionNum = index + 1;
+        
+        if(sel){
+            answers[`q${questionNum}`] = sel.value;
+            if(sel.value===ans){
+                c++;
+                q.style.borderLeftColor='#4CAF50';
+            }else{
+                w++;
+                q.style.borderLeftColor='#f44336';
+            }
+        }else{
+            answers[`q${questionNum}`] = '';
+            w++;
+            q.style.borderLeftColor='#ff9800';
+        }
+    });
+    
+    const sc=((c/qs.length)*7).toFixed(2);
+    document.getElementById('score').textContent=`${c}/${qs.length}`;
+    document.getElementById('correct').textContent=c;
+    document.getElementById('wrong').textContent=w;
+    document.getElementById('finalScore').textContent=sc;
+    
+    saveToGoogleSheets(studentName, studentClass, c, w, sc, answers);
+    
+    document.getElementById('resultModal').style.display='flex';
+}
+
+async function saveToGoogleSheets(name, studentClass, correct, wrong, score, answers) {
+    // Thu thập câu trả lời tự luận
+    const essay1 = document.querySelector('textarea[name="essay1"]')?.value || '';
+    const essay2 = document.querySelector('textarea[name="essay2"]')?.value || '';
+    const essay3 = document.querySelector('textarea[name="essay3"]')?.value || '';
+    const essay4 = document.querySelector('textarea[name="essay4"]')?.value || '';
+    
+    const data = {
+        timestamp: new Date().toLocaleString('vi-VN'),
+        name: name,
+        class: studentClass,
+        subject: 'KHTN 8',
+        exam: 'Đề số 3 - Cuối Kì 2 (Mã 001)',
+        correct: correct,
+        wrong: wrong,
+        score: score,
+        answers: JSON.stringify(answers),
+        essay1: essay1,
+        essay2: essay2,
+        essay3: essay3,
+        essay4: essay4
+    };
+    
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        console.log('✅ Đã lưu kết quả vào Google Sheets');
+    } catch (error) {
+        console.error('❌ Lỗi khi lưu:', error);
+    }
+}
+</script>
+</body>
+</html>

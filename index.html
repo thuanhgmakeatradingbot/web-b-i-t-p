@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Ôn Tập Trực Tuyến</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Menu */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100%;
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+            transition: left 0.3s ease;
+        }
+        
+        .sidebar.hidden {
+            left: -280px;
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar-header h2 {
+            color: white;
+            font-size: 20pt;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-header p {
+            color: #999;
+            font-size: 11pt;
+        }
+        
+        .menu-item {
+            padding: 20px 25px;
+            color: #ccc;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .menu-item:hover {
+            background: rgba(42, 42, 42, 0.8);
+            color: white;
+            padding-left: 35px;
+        }
+        
+        .menu-item.active {
+            background: rgba(0, 102, 204, 0.8);
+            color: white;
+            border-left: 4px solid #fff;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .menu-icon {
+            font-size: 18pt;
+        }
+        
+        /* Menu Toggle Button */
+        .menu-toggle {
+            position: fixed;
+            left: 300px;
+            top: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(26, 26, 26, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .menu-toggle:hover {
+            background: rgba(51, 51, 51, 0.9);
+            transform: scale(1.05);
+        }
+        
+        .menu-toggle.active {
+            left: 20px;
+        }
+        
+        .menu-toggle span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            border-radius: 2px;
+            transition: all 0.3s;
+        }
+        
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(8px, 8px);
+        }
+        
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 40px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content.expanded {
+            margin-left: 0;
+        }
+        
+        .header {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 50px;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .header h1 {
+            font-size: 32pt;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+        
+        .header p {
+            font-size: 14pt;
+            margin-top: 10px;
+            color: #666;
+        }
+        
+        .teacher-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            font-size: 12pt;
+            color: #333;
+        }
+        
+        .exam-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .exam-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+            border-left: 4px solid #1a1a1a;
+        }
+        
+        .exam-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .exam-card h2 {
+            color: #1a1a1a;
+            font-size: 20pt;
+            margin-bottom: 15px;
+        }
+        
+        .exam-info {
+            color: #666;
+            margin: 10px 0;
+            font-size: 11pt;
+        }
+        
+        .exam-info strong {
+            color: #1a1a1a;
+        }
+        
+        .start-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: #1a1a1a;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 11pt;
+        }
+        
+        .start-btn:hover {
+            background: #333;
+            transform: translateY(-2px);
+        }
+        
+        .difficulty {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 6px;
+            font-size: 10pt;
+            margin-top: 10px;
+            background: #f0f0f0;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        /* Fullscreen Confirmation Modal */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .fullscreen-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+        }
+        
+        .fullscreen-content h2 {
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        
+        .fullscreen-content p {
+            color: #666;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        .fullscreen-content ul {
+            text-align: left;
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+        
+        .fullscreen-content li {
+            margin: 10px 0;
+            color: #333;
+        }
+        
+        .modal-buttons {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .modal-btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12pt;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn.confirm {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .modal-btn.confirm:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        .modal-btn.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .modal-btn.cancel:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <!-- Sidebar Menu -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>📚 Môn học</h2>
+            <p>Chọn môn để xem đề thi</p>
+        </div>
+        <div class="menu-item active" data-subject="khtn">
+            <span class="menu-icon">🔬</span>
+            <span>Khoa học tự nhiên</span>
+        </div>
+        <div class="menu-item" data-subject="toan">
+            <span class="menu-icon">📐</span>
+            <span>Toán học</span>
+        </div>
+        <div class="menu-item" data-subject="hoa">
+            <span class="menu-icon">⚗️</span>
+            <span>Hóa học</span>
+        </div>
+        <div class="menu-item" data-subject="sinh">
+            <span class="menu-icon">🧬</span>
+            <span>Sinh học</span>
+        </div>
+        <div class="menu-item" data-subject="vatly">
+            <span class="menu-icon">⚡</span>
+            <span>Vật lý</span>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <div class="header">
+            <h1>📖 HỆ THỐNG ÔN TẬP TRỰC TUYẾN</h1>
+            <p>Chúc các em học tốt và đạt kết quả cao</p>
+            <div class="teacher-info">
+                <div><strong>TOÁN-HÓA-SINH-KHTN | Nguyễn Phú Thuận</strong></div>
+                <div><strong>Zalo: 0944316329</strong></div>
+            </div>
+        </div>
+        
+        <div id="examContainer">
+            <!-- Đề thi sẽ được hiển thị ở đây -->
+        </div>
+    </div>
+    
+    <script>
+        // Toggle menu
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            const menuToggle = document.getElementById('menuToggle');
+            
+            sidebar.classList.toggle('hidden');
+            mainContent.classList.toggle('expanded');
+            menuToggle.classList.toggle('active');
+        }
+        
+        // Dữ liệu đề thi theo môn
+        const examData = {
+            khtn: [
+                {
+                    title: 'Đề số 1 - KHTN 8',
+                    content: 'Bộ câu hỏi số 4 (Bài 29-34)',
+                    questions: '15 câu (Câu 1-15)',
+                    time: '30 phút',
+                    topics: 'Hệ vận động, Tiêu hóa, Dinh dưỡng, Máu & Tuần hoàn',
+                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
+                    link: 'KHTN/de-so-1/de.html'
+                },
+                {
+                    title: 'Đề số 2 - KHTN 8',
+                    content: 'Bài 29-34, 45-51',
+                    questions: '15 câu (Câu 1-15)',
+                    time: '30 phút',
+                    topics: 'Hô hấp, Xương khớp, Tiêu hóa, Máu, Sinh thái, Quần thể, Môi trường',
+                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
+                    link: 'KHTN/de-so-2/de.html'
+                },
+                {
+                    title: 'Đề số 3 - KHTN 8',
+                    content: 'Đề Kiểm Tra Cuối Kì II (Mã đề 001)',
+                    questions: '28 câu trắc nghiệm',
+                    time: '45 phút',
+                    topics: 'Điện học, Nhiệt học, Hệ vận động, Máu, Tuần hoàn, Hô hấp, Thần kinh',
+                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
+                    link: 'KHTN/de-so-3/de.html'
+                }
+            ],
+            toan: [],
+            hoa: [],
+            sinh: [
+                {
+                    title: 'Đề số 1 - Sinh học 10',
+                    content: 'Đề thi Sinh học lớp 10',
+                    questions: 'Nhiều câu hỏi',
+                    time: '45 phút',
+                    topics: 'Chương trình Sinh học 10',
+                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
+                    link: 'Sinh-10/de-so-1/de.html'
+                }
+            ],
+            vatly: []
+        };
+        
+        // Hiển thị đề thi
+        function displayExams(subject) {
+            const container = document.getElementById('examContainer');
+            const exams = examData[subject];
+            
+            if (exams.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
+                        <h2 style="color: #666; font-size: 18pt;">📚 Đề thi đang được cập nhật</h2>
+                        <p style="color: #999; margin-top: 15px;">Vui lòng quay lại sau hoặc chọn môn khác</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="exam-grid">';
+            exams.forEach(exam => {
+                html += `
+                    <div class="exam-card" onclick="window.location.href='${exam.link}'">
+                        <h2>📝 ${exam.title}</h2>
+                        <div class="exam-info"><strong>Nội dung:</strong> ${exam.content}</div>
+                        <div class="exam-info"><strong>Số câu hỏi:</strong> ${exam.questions}</div>
+                        <div class="exam-info"><strong>Thời gian:</strong> ${exam.time}</div>
+                        <div class="exam-info"><strong>Chủ đề:</strong> ${exam.topics}</div>
+                        <span class="difficulty">${exam.difficulty}</span>
+                        <br>
+                        <button class="start-btn" onclick="event.stopPropagation(); window.location.href='${exam.link}'">Bắt đầu làm bài →</button>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        // Xử lý click menu
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // Xóa active class
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                // Thêm active class
+                this.classList.add('active');
+                // Hiển thị đề thi
+                const subject = this.getAttribute('data-subject');
+                displayExams(subject);
+            });
+        });
+        
+        // Hiển thị đề thi KHTN mặc định
+        displayExams('khtn');
+    </script>
+</body>
+</html>

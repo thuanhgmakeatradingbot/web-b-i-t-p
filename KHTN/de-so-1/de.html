@@ -1,0 +1,954 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Đề Số 1 - Bài 29-34</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background: #f8f9fa; }
+        
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 12px; margin-bottom: 50px; margin-top: 20px; }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+        .teacher-tag { display: flex; justify-content: space-between; font-size: 11pt; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #333; }
+        .exam-title { font-size: 20pt; font-weight: bold; margin: 15px 0; color: #1a1a1a; }
+        .timer { position: fixed; top: 20px; right: 20px; background: #1a1a1a; color: white; padding: 15px 25px; border-radius: 10px; font-size: 18pt; font-weight: bold; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .section-title { font-size: 13pt; font-weight: bold; margin: 30px 0 20px 0; padding: 12px 15px; background: #f0f0f0; border-left: 4px solid #1a1a1a; color: #1a1a1a; }
+        .question { margin: 25px 0; padding: 20px; background: #fafafa; border-radius: 8px; border-left: 4px solid #ddd; border: 1px solid #e0e0e0; }
+        .question.answered { border-left-color: #4CAF50; background: #f1f8f4; }
+        .question-header { font-weight: bold; margin-bottom: 12px; color: #1a1a1a; font-size: 12pt; }
+        .question-content { margin: 12px 0; line-height: 1.8; color: #333; }
+        .options { margin: 20px 0; }
+        .option { display: block; margin: 12px 0; padding: 15px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .option:hover { background: #f5f5f5; border-color: #1a1a1a; }
+        .option input[type="radio"] { margin-right: 12px; }
+        .option.selected { background: #e8e8e8; border-color: #1a1a1a; font-weight: bold; }
+        .explanation-box { margin-top: 15px; padding: 15px; background: #fffbf0; border: 2px dashed #ffc107; border-radius: 8px; }
+        .explanation-box label { display: block; font-weight: bold; color: #f57c00; margin-bottom: 8px; font-size: 11pt; }
+        .explanation-box textarea { width: 100%; min-height: 80px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: 'Segoe UI', sans-serif; font-size: 11pt; resize: vertical; }
+        .explanation-box input[type="file"] { margin-top: 8px; padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 100%; cursor: pointer; }
+        .image-preview { max-width: 200px; max-height: 200px; margin-top: 10px; border: 1px solid #ddd; border-radius: 5px; display: none; }
+        .submit-section { text-align: center; margin: 50px 0; padding: 40px; background: #f8f9fa; border-radius: 10px; }
+        .submit-btn { padding: 18px 60px; font-size: 16pt; background: #1a1a1a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .submit-btn:hover { background: #333; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .result-content { background: white; padding: 50px; border-radius: 15px; text-align: center; max-width: 500px; }
+        .result-score { font-size: 48pt; font-weight: bold; color: #4CAF50; margin: 20px 0; }
+        .back-btn { display: inline-block; margin: 15px 10px; padding: 15px 35px; background: #1a1a1a; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: all 0.3s; }
+        .back-btn:hover { background: #333; }
+        .loading-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; }
+        .loading-content { text-align: center; color: white; }
+        .spinner { border: 8px solid #333; border-top: 8px solid white; border-radius: 50%; width: 80px; height: 80px; animation: spin 1s linear infinite; margin: 0 auto 30px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { font-size: 18pt; font-weight: bold; margin-top: 20px; }
+        
+        /* Start Confirmation Modal */
+        .start-modal {
+            display: flex;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .start-modal-content {
+            background: white;
+            padding: 50px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 600px;
+        }
+        
+        .start-modal-content h1 {
+            color: #1a1a1a;
+            font-size: 28pt;
+            margin-bottom: 20px;
+        }
+        
+        .start-modal-content p {
+            color: #666;
+            font-size: 13pt;
+            margin: 15px 0;
+        }
+        
+        .start-modal-content ul {
+            text-align: left;
+            margin: 25px auto;
+            padding-left: 30px;
+            max-width: 400px;
+        }
+        
+        .start-modal-content li {
+            margin: 12px 0;
+            color: #333;
+            font-size: 12pt;
+        }
+        
+        .start-modal-buttons {
+            margin-top: 35px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .start-modal-btn {
+            padding: 18px 50px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14pt;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .start-modal-btn.confirm {
+            background: #4CAF50;
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .start-modal-btn.confirm:hover {
+            background: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+        
+        .start-modal-btn.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .start-modal-btn.cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        /* Chống copy và chống chụp màn hình */
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+        input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+        .no-screenshot-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            background: transparent;
+        }
+        
+        /* Fullscreen Exit Warning Modal */
+        .fullscreen-warning-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 20000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .fullscreen-warning-content {
+            background: white;
+            padding: 50px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .fullscreen-warning-content h2 {
+            color: #f44336;
+            font-size: 24pt;
+            margin-bottom: 20px;
+        }
+        
+        .fullscreen-warning-content p {
+            color: #333;
+            font-size: 13pt;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        .fullscreen-warning-btn {
+            margin-top: 30px;
+            padding: 18px 50px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14pt;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .fullscreen-warning-btn:hover {
+            background: #45a049;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Confirmation Modal -->
+    <div class="start-modal" id="startModal">
+        <div class="start-modal-content">
+            <h1>🎯 Sẵn sàng làm bài?</h1>
+            <p><strong>Đề thi: Bộ câu hỏi số 4 (Bài 29-34)</strong></p>
+            <p>Thời gian: <strong>30 phút</strong> | Số câu: <strong>15 câu</strong></p>
+            
+            <ul>
+                <li>✅ Hệ thống sẽ chuyển sang chế độ toàn màn hình</li>
+                <li>🚫 Không được thoát khỏi màn hình làm bài</li>
+                <li>🚫 Không được sao chép hoặc chụp màn hình</li>
+                <li>⚠️ Mọi hành vi vi phạm sẽ được ghi nhận</li>
+                <li>⏰ Thời gian đếm ngược tự động khi bắt đầu</li>
+            </ul>
+            
+            <div class="start-modal-buttons">
+                <button class="start-modal-btn cancel" onclick="cancelExam()">← Quay lại</button>
+                <button class="start-modal-btn confirm" onclick="confirmStartExam()">🚀 Bắt đầu ngay</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lớp chống chụp màn hình -->
+    <div class="no-screenshot-overlay"></div>
+    
+    <!-- Fullscreen Exit Warning Modal -->
+    <div class="fullscreen-warning-modal" id="fullscreenWarningModal">
+        <div class="fullscreen-warning-content">
+            <h2>⚠️ CẢNH BÁO</h2>
+            <p><strong>Bạn đã thoát chế độ toàn màn hình!</strong></p>
+            <p>Vui lòng nhấn nút bên dưới để tiếp tục làm bài trong chế độ toàn màn hình.</p>
+            <p style="color: #f44336; font-size: 11pt;">⚠️ Hành vi này đã được ghi nhận</p>
+            <button class="fullscreen-warning-btn" onclick="reenterFullscreen()">✅ Xác nhận và tiếp tục</button>
+        </div>
+    </div>
+    
+    <div class="timer" id="timer">30:00</div>
+    <div class="container">
+        <div class="header">
+            <div class="teacher-tag">
+                <div>TOÁN-HÓA-SINH-KHTN | Nguyễn Phú Thuận</div>
+                <div>Zalo: 0944316329</div>
+            </div>
+            <div class="exam-title">ĐỀ ÔN TẬP KIỂM TRA HỌC KÌ<br>BỘ CÂU HỎI SỐ 4 (BÀI 29-34)</div>
+            <div style="font-size: 11pt; font-style: italic; margin-top: 10px;">
+                Môn: Khoa học tự nhiên 8 | Thời gian: 30 phút<br>
+                Họ và tên: <input type="text" id="studentName" style="border:none; border-bottom:1px solid #333; width:200px; margin: 5px;" required>
+                Lớp: <input type="text" id="studentClass" style="border:none; border-bottom:1px solid #333; width:80px;" required>
+            </div>
+        </div>
+        <form id="examForm">
+
+<div class="section-title">PHẦN I: NHẬN BIẾT (Câu 1-5)</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 1. [Bài 29]</div>
+    <div class="question-content">Cơ quan nào sau đây đóng vai trò chính trong việc thực hiện quá trình trao đổi khí giữa cơ thể và môi trường?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q1" value="A"> A. Trái tim</label>
+        <label class="option"><input type="radio" name="q1" value="B"> B. Dạ dày</label>
+        <label class="option"><input type="radio" name="q1" value="C"> C. Lá phổi</label>
+        <label class="option"><input type="radio" name="q1" value="D"> D. Gan mật</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp1" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img1" accept="image/*" onchange="previewImage(this, 'preview1')">
+        <img id="preview1" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 2. [Bài 30]</div>
+    <div class="question-content">Thành phần nào sau đây cấu tạo nên lớp ngoài cùng của xương dài, giúp xương có khả năng chịu lực?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q2" value="A"> A. Chất hữu cơ (protein)</label>
+        <label class="option"><input type="radio" name="q2" value="B"> B. Chất vô cơ (calcium)</label>
+        <label class="option"><input type="radio" name="q2" value="C"> C. Các tế bào thần kinh</label>
+        <label class="option"><input type="radio" name="q2" value="D"> D. Hệ thống các bó cơ</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp2" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img2" accept="image/*" onchange="previewImage(this, 'preview2')">
+        <img id="preview2" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 3. [Bài 32]</div>
+    <div class="question-content">Trong ống tiêu hóa của người, bộ phận nào nằm giữa thực quản và ruột non?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q3" value="A"> A. Khoang miệng</label>
+        <label class="option"><input type="radio" name="q3" value="B"> B. Tuyến ruột</label>
+        <label class="option"><input type="radio" name="q3" value="C"> C. Dạ dày</label>
+        <label class="option"><input type="radio" name="q3" value="D"> D. Ruột già</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp3" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img3" accept="image/*" onchange="previewImage(this, 'preview3')">
+        <img id="preview3" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 4. [Bài 34]</div>
+    <div class="question-content">Thành phần nào của máu tham gia trực tiếp vào quá trình vận chuyển oxygen từ phổi đến các tế bào?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q4" value="A"> A. Huyết tương</label>
+        <label class="option"><input type="radio" name="q4" value="B"> B. Tiểu cầu</label>
+        <label class="option"><input type="radio" name="q4" value="C"> C. Hồng cầu</label>
+        <label class="option"><input type="radio" name="q4" value="D"> D. Bạch cầu</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp4" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img4" accept="image/*" onchange="previewImage(this, 'preview4')">
+        <img id="preview4" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 5. [Bài 33]</div>
+    <div class="question-content">Chất dinh dưỡng nào sau đây thuộc nhóm chất không sinh năng lượng cho cơ thể?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q5" value="A"> A. Protein</label>
+        <label class="option"><input type="radio" name="q5" value="B"> B. Vitamin</label>
+        <label class="option"><input type="radio" name="q5" value="C"> C. Lipid</label>
+        <label class="option"><input type="radio" name="q5" value="D"> D. Carbohydrate</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp5" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img5" accept="image/*" onchange="previewImage(this, 'preview5')">
+        <img id="preview5" class="image-preview">
+    </div>
+</div>
+
+<div class="section-title">PHẦN II: THÔNG HIỂU (Câu 6-9)</div>
+
+<div class="question" data-answer="A">
+    <div class="question-header">Câu 6. [Bài 30]</div>
+    <div class="question-content">Tại sao sự kết hợp giữa chất hữu cơ và chất vô cơ lại giúp xương đảm nhận tốt chức năng của nó?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q6" value="A"> A. Giúp xương vừa có tính mềm dẻo vừa bền chắc</label>
+        <label class="option"><input type="radio" name="q6" value="B"> B. Giúp xương phát triển nhanh chóng về chiều dài</label>
+        <label class="option"><input type="radio" name="q6" value="C"> C. Giúp xương có khả năng tự phục hồi khi bị gãy</label>
+        <label class="option"><input type="radio" name="q6" value="D"> D. Giúp xương liên kết chặt chẽ với các bó cơ vân</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp6" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img6" accept="image/*" onchange="previewImage(this, 'preview6')">
+        <img id="preview6" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 7. [Bài 32]</div>
+    <div class="question-content">Khi chúng ta nhai cơm lâu trong miệng và cảm thấy có vị ngọt, đó là kết quả của hoạt động nào?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q7" value="A"> A. Răng nghiền nhỏ thức ăn giúp giải phóng đường</label>
+        <label class="option"><input type="radio" name="q7" value="B"> B. Lưỡi nhào trộn làm đường trong thức ăn tan ra</label>
+        <label class="option"><input type="radio" name="q7" value="C"> C. Enzyme amylase biến đổi tinh bột thành đường đôi</label>
+        <label class="option"><input type="radio" name="q7" value="D"> D. Dịch vị từ dạ dày trào ngược lên hỗ trợ tiêu hóa</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp7" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img7" accept="image/*" onchange="previewImage(this, 'preview7')">
+        <img id="preview7" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 8. [Bài 34]</div>
+    <div class="question-content">Điều gì sẽ xảy ra nếu một người bị giảm số lượng tiểu cầu đáng kể trong máu?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q8" value="A"> A. Cơ thể mất khả năng nhận diện các virus có hại</label>
+        <label class="option"><input type="radio" name="q8" value="B"> B. Khả năng vận chuyển chất dinh dưỡng bị đình trệ</label>
+        <label class="option"><input type="radio" name="q8" value="C"> C. Máu khó đông khi có vết thương gây mất máu nhiều</label>
+        <label class="option"><input type="radio" name="q8" value="D"> D. Nồng độ oxygen cung cấp cho não bộ bị giảm mạnh</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp8" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img8" accept="image/*" onchange="previewImage(this, 'preview8')">
+        <img id="preview8" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 9. [Bài 33]</div>
+    <div class="question-content">Tại sao trẻ em đang trong độ tuổi lớn cần nạp lượng protein cao hơn so với người cao tuổi?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q9" value="A"> A. Để dự trữ năng lượng dưới dạng mỡ ở dưới da</label>
+        <label class="option"><input type="radio" name="q9" value="B"> B. Để cung cấp nguyên liệu cho sự phát triển tế bào</label>
+        <label class="option"><input type="radio" name="q9" value="C"> C. Để tăng cường khả năng đào thải chất độc tại gan</label>
+        <label class="option"><input type="radio" name="q9" value="D"> D. Để kích thích quá trình hấp thụ nước tại ruột già</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp9" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img9" accept="image/*" onchange="previewImage(this, 'preview9')">
+        <img id="preview9" class="image-preview">
+    </div>
+</div>
+
+<div class="section-title">PHẦN III: VẬN DỤNG (Câu 10-12)</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 10. [Bài 31]</div>
+    <div class="question-content">Khi sơ cứu người bị gãy xương cẳng tay, tại sao phải lót gạc y tế hoặc vải sạch ở chỗ các đầu xương (dưới khuỷu tay và cổ tay)?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q10" value="A"> A. Để giúp máu lưu thông tại vùng bị thương tốt hơn</label>
+        <label class="option"><input type="radio" name="q10" value="B"> B. Để cố định nẹp gỗ vào tay nạn nhân được chặt hơn</label>
+        <label class="option"><input type="radio" name="q10" value="C"> C. Để tránh tổn thương da khi đặt nẹp gỗ cứng lên tay</label>
+        <label class="option"><input type="radio" name="q10" value="D"> D. Để ngăn chặn vi khuẩn xâm nhập vào chỗ xương gãy</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp10" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img10" accept="image/*" onchange="previewImage(this, 'preview10')">
+        <img id="preview10" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 11. [Bài 33]</div>
+    <div class="question-content">Một người trưởng thành làm công việc nặng nhọc cần 3200 Kcal mỗi ngày. Nếu khẩu phần ăn hiện tại chỉ cung cấp 2200 Kcal, tình trạng nào sau đây có khả năng xảy ra nhất?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q11" value="A"> A. Cơ thể bị béo phì do tích tụ năng lượng dư thừa</label>
+        <label class="option"><input type="radio" name="q11" value="B"> B. Cơ thể mệt mỏi, sút cân do thiếu hụt năng lượng</label>
+        <label class="option"><input type="radio" name="q11" value="C"> C. Hệ tiêu hóa tăng cường hoạt động để bù đắp nhiệt</label>
+        <label class="option"><input type="radio" name="q11" value="D"> D. Thận tăng cường lọc máu để giải phóng thêm đường</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp11" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img11" accept="image/*" onchange="previewImage(this, 'preview11')">
+        <img id="preview11" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 12. [Bài 34]</div>
+    <div class="question-content">Trong một thí nghiệm, bác sĩ trộn hồng cầu của người cho (có kháng nguyên A) vào huyết tương của người nhận (có kháng thể α). Kết quả sẽ là gì?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q12" value="A"> A. Máu lưu thông nhanh hơn nhờ phản ứng trao đổi</label>
+        <label class="option"><input type="radio" name="q12" value="B"> B. Hồng cầu bị ngưng kết gây tắc nghẽn mạch máu</label>
+        <label class="option"><input type="radio" name="q12" value="C"> C. Các tế bào bạch cầu sẽ tiêu diệt kháng nguyên A</label>
+        <label class="option"><input type="radio" name="q12" value="D"> D. Không có hiện tượng gì xảy ra vì cùng hệ nhóm máu</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp12" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img12" accept="image/*" onchange="previewImage(this, 'preview12')">
+        <img id="preview12" class="image-preview">
+    </div>
+</div>
+
+<div class="section-title">PHẦN IV: VẬN DỤNG CAO (Câu 13-15)</div>
+
+<div class="question" data-answer="B">
+    <div class="question-header">Câu 13. [Bài 34]</div>
+    <div class="question-content"><strong>Dữ kiện:</strong> Một vận động viên tập luyện ở vùng núi cao (nơi nồng độ oxygen thấp) trong một tháng. Khi trở về vùng đồng bằng, kết quả xét nghiệm máu cho thấy số lượng hồng cầu của anh ta tăng lên đáng kể so với trước khi đi.<br><strong>Hỏi:</strong> Em hãy giải thích hiện tượng này dựa trên chức năng của máu?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q13" value="A"> A. Do không khí núi cao làm tăng kích thước tế bào máu</label>
+        <label class="option"><input type="radio" name="q13" value="B"> B. Do cơ thể tăng sản sinh hồng cầu để bù đắp thiếu hụt oxygen</label>
+        <label class="option"><input type="radio" name="q13" value="C"> C. Do tập luyện cường độ cao làm hồng cầu phân chia nhanh</label>
+        <label class="option"><input type="radio" name="q13" value="D"> D. Do môi trường núi cao làm giảm lượng huyết tương trong máu</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp13" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img13" accept="image/*" onchange="previewImage(this, 'preview13')">
+        <img id="preview13" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 14. [Bài 33]</div>
+    <div class="question-content"><strong>Dữ kiện:</strong> Một bệnh nhân bị viêm loét dạ dày nặng và phải cắt bỏ một phần lớn dạ dày. Sau phẫu thuật, bác sĩ khuyên bệnh nhân nên chia nhỏ bữa ăn và hạn chế ăn các loại thịt giàu protein trong một lần ăn.<br><strong>Hỏi:</strong> Lời khuyên này dựa trên cơ sở khoa học nào về quá trình tiêu hóa?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q14" value="A"> A. Dạ dày bị thu nhỏ nên không thể chứa được nhiều nước</label>
+        <label class="option"><input type="radio" name="q14" value="B"> B. Enzyme amylase không thể hoạt động khi dạ dày bị cắt</label>
+        <label class="option"><input type="radio" name="q14" value="C"> C. Khả năng co bóp và tiết dịch vị tiêu hóa protein bị giảm</label>
+        <label class="option"><input type="radio" name="q14" value="D"> D. Ruột non sẽ bị quá tải nếu dạ dày không đẩy thức ăn xuống</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp14" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img14" accept="image/*" onchange="previewImage(this, 'preview14')">
+        <img id="preview14" class="image-preview">
+    </div>
+</div>
+
+<div class="question" data-answer="C">
+    <div class="question-header">Câu 15. [Bài 30 & 33]</div>
+    <div class="question-content"><strong>Dữ kiện:</strong> Bà nội của Lan 75 tuổi, có biểu hiện đau lưng và rất dễ bị gãy xương dù chỉ va chạm nhẹ. Lan được học rằng chế độ ăn uống ảnh hưởng đến xương.<br><strong>Hỏi:</strong> Dựa trên kiến thức về thành phần hóa học của xương và dinh dưỡng, em hãy dự đoán tình trạng của bà và đưa ra lời khuyên phù hợp?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q15" value="A"> A. Bà bị loãng xương; cần ăn nhiều rau xanh để tăng dẻo dai</label>
+        <label class="option"><input type="radio" name="q15" value="B"> B. Bà bị vẹo cột sống; cần tập các bài thể dục cường độ cao</label>
+        <label class="option"><input type="radio" name="q15" value="C"> C. Bà bị loãng xương; cần bổ sung thực phẩm giàu calcium</label>
+        <label class="option"><input type="radio" name="q15" value="D"> D. Bà bị viêm khớp; cần hạn chế tối đa việc vận động hàng ngày</label>
+    </div>
+    <div class="explanation-box">
+        <label>💡 Giải thích câu trả lời của bạn (không bắt buộc):</label>
+        <textarea name="exp15" placeholder="Nhập giải thích hoặc lý do chọn đáp án..."></textarea>
+        <input type="file" name="img15" accept="image/*" onchange="previewImage(this, 'preview15')">
+        <img id="preview15" class="image-preview">
+    </div>
+</div>
+
+<div class="submit-section">
+<p style="margin-bottom: 20px; font-size: 14pt;">Đã hoàn thành: <strong><span id="count">0</span>/15</strong> câu</p>
+<button type="button" class="submit-btn" onclick="submitExam()">NỘP BÀI</button><br><br>
+<a href="index.html" style="color: #666; text-decoration: none;">← Quay lại</a>
+</div>
+</form>
+</div>
+
+<div class="loading-modal" id="loadingModal">
+<div class="loading-content">
+<div class="spinner"></div>
+<div class="loading-text">⏳ Đang lưu kết quả...</div>
+<p style="font-size: 12pt; margin-top: 15px;">Vui lòng chờ trong giây lát</p>
+</div>
+</div>
+
+<div class="result-modal" id="resultModal">
+<div class="result-content">
+<h2>🎉 KẾT QUẢ</h2>
+<div class="result-score" id="score">0/15</div>
+<p>Đúng: <strong id="correct">0</strong> | Sai: <strong id="wrong">0</strong></p>
+<p>Điểm: <strong id="finalScore">0</strong>/10</p>
+<p style="font-size: 10pt; color: #666; margin-top: 15px;">✅ Kết quả và giải thích đã được lưu vào Google Sheets</p>
+<a href="../../index.html" class="back-btn">← Quay về Menu</a>
+<button onclick="location.reload()" class="back-btn" style="background: #4CAF50;">Làm lại</button>
+</div>
+</div>
+
+<script>
+// ===== BẢO VỆ CHỐNG COPY VÀ CHỤP MÀN HÌNH =====
+// Chặn chuột phải
+let lastContextMenuTime = 0;
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - lastContextMenuTime > 3000) {
+        lastContextMenuTime = now;
+        alert('⚠️ Không được phép sao chép nội dung đề thi!');
+    }
+    return false;
+});
+
+// Chặn các phím tắt
+let lastAlertKeyTime = 0;
+document.addEventListener('keydown', function(e) {
+    const now = Date.now();
+    
+    // Chặn Ctrl+C, Ctrl+X, Ctrl+V, Ctrl+A, Ctrl+S, Ctrl+P
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || e.key === 's' || e.key === 'p')) {
+        e.preventDefault();
+        if (now - lastAlertKeyTime > 3000) {
+            lastAlertKeyTime = now;
+            alert('⚠️ Không được phép sao chép hoặc in đề thi!');
+        }
+        return false;
+    }
+    
+    // Chặn F12 (Developer Tools)
+    if (e.key === 'F12') {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Chặn Ctrl+Shift+I (Developer Tools)
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Chặn Ctrl+Shift+C (Inspect Element)
+    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Chặn Ctrl+Shift+S (Windows Snipping Tool) - Cảnh báo
+    if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+        e.preventDefault();
+        if (now - lastAlertKeyTime > 3000) {
+            lastAlertKeyTime = now;
+            alert('⚠️ CẢNH BÁO: Phát hiện hành vi chụp màn hình! Hành vi này sẽ được ghi nhận và báo cáo giáo viên.');
+            logSuspiciousActivity('Attempted screenshot with Ctrl+Shift+S');
+        }
+        return false;
+    }
+    
+    // Chặn Win+Shift+S (không thể chặn hoàn toàn nhưng có thể phát hiện)
+    if (e.shiftKey && e.key === 'S' && (e.metaKey || e.key === 'Meta')) {
+        if (now - lastAlertKeyTime > 3000) {
+            lastAlertKeyTime = now;
+            alert('⚠️ CẢNH BÁO: Phát hiện hành vi chụp màn hình! Hành vi này sẽ được ghi nhận và báo cáo giáo viên.');
+            logSuspiciousActivity('Attempted screenshot with Win+Shift+S');
+        }
+        return false;
+    }
+    
+    // Chặn Ctrl+U (View Source)
+    if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+        return false;
+    }
+    
+    // Chặn PrintScreen
+    if (e.key === 'PrintScreen') {
+        if (now - lastAlertKeyTime > 3000) {
+            lastAlertKeyTime = now;
+            alert('⚠️ CẢNH BÁO: Phát hiện hành vi chụp màn hình! Hành vi này sẽ được ghi nhận và báo cáo giáo viên.');
+            logSuspiciousActivity('Attempted screenshot with PrintScreen');
+        }
+        navigator.clipboard.writeText('');
+        return false;
+    }
+});
+
+// Ghi nhận hành vi đáng ngờ
+let suspiciousActivities = [];
+let lastAlertTime = 0;
+
+function logSuspiciousActivity(activity) {
+    const timestamp = new Date().toLocaleString('vi-VN');
+    const studentName = document.getElementById('studentName')?.value || 'Chưa nhập tên';
+    const studentClass = document.getElementById('studentClass')?.value || 'Chưa nhập lớp';
+    
+    suspiciousActivities.push({
+        timestamp: timestamp,
+        student: studentName,
+        class: studentClass,
+        activity: activity
+    });
+    
+    console.warn('🚨 SUSPICIOUS ACTIVITY:', activity, 'by', studentName, 'at', timestamp);
+    
+    // Chỉ hiện alert nếu cách nhau ít nhất 5 giây
+    const now = Date.now();
+    if (suspiciousActivities.length >= 5 && now - lastAlertTime > 5000) {
+        lastAlertTime = now;
+        alert('⚠️ CẢNH BÁO NGHIÊM TRỌNG: Bạn đã có ' + suspiciousActivities.length + ' hành vi vi phạm. Thông tin đã được ghi nhận và sẽ báo cáo giáo viên!');
+    }
+}
+
+// Chặn kéo thả
+document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+// Chặn select text (ngoại trừ input và textarea)
+document.addEventListener('selectstart', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Phát hiện khi người dùng rời khỏi tab (có thể đang chụp màn hình)
+let tabSwitchCount = 0;
+let lastTabSwitchTime = 0;
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        const now = Date.now();
+        // Chỉ cảnh báo nếu cách nhau ít nhất 2 giây
+        if (now - lastTabSwitchTime > 2000) {
+            tabSwitchCount++;
+            lastTabSwitchTime = now;
+            logSuspiciousActivity('Switched tab/window (count: ' + tabSwitchCount + ')');
+            if (tabSwitchCount >= 5) {
+                alert('⚠️ CẢNH BÁO: Bạn đã chuyển tab quá nhiều lần (' + tabSwitchCount + ' lần). Hành vi này đã được ghi nhận!');
+            }
+        }
+    }
+});
+
+// Xóa phần blur event gây vòng lặp
+// Chỉ giữ lại phần clear clipboard
+let lastBlurTime = 0;
+window.addEventListener('blur', function() {
+    const now = Date.now();
+    // Chỉ xử lý nếu cách nhau ít nhất 3 giây
+    if (now - lastBlurTime > 3000) {
+        lastBlurTime = now;
+        setTimeout(function() {
+            navigator.clipboard.writeText('');
+        }, 100);
+    }
+});
+
+// ===== CẤU HÌNH GOOGLE SHEETS =====
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiAQ96NX5ZNIhZNVOrRXzXP_9xZAHa09zVCz8iw_iC0OapfvE00yKcQ2jxzUFvHsh3/exec';
+
+// ===== TỰ ĐỘNG VÀO FULLSCREEN =====
+let lastFullscreenAlertTime = 0;
+
+function enterFullscreen() {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { // IE11
+        elem.msRequestFullscreen();
+    }
+}
+
+// Quay lại trang chủ
+function cancelExam() {
+    window.location.href = 'index.html';
+}
+
+// Xác nhận bắt đầu làm bài
+function confirmStartExam() {
+    // Ẩn modal
+    document.getElementById('startModal').style.display = 'none';
+    
+    // Vào fullscreen
+    enterFullscreen();
+    
+    // Bắt đầu timer
+    startTimer();
+}
+
+// Biến kiểm soát timer
+let timerStarted = false;
+let timerInterval;
+
+function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
+    
+    timerInterval = setInterval(() => {
+        const m = Math.floor(time / 60);
+        const s = time % 60;
+        timer.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+        if (time <= 0) {
+            clearInterval(timerInterval);
+            submitExam();
+        }
+        time--;
+    }, 1000);
+}
+
+// Cảnh báo nếu thoát fullscreen
+document.addEventListener('fullscreenchange', function() {
+    if (!document.fullscreenElement && timerStarted) {
+        document.getElementById('fullscreenWarningModal').style.display = 'flex';
+        logSuspiciousActivity('Exited fullscreen mode');
+    }
+});
+
+// Hàm bật lại fullscreen
+function reenterFullscreen() {
+    document.getElementById('fullscreenWarningModal').style.display = 'none';
+    enterFullscreen();
+}
+
+// Timer
+let time = 30 * 60;
+const timer = document.getElementById('timer');
+
+// Xử lý chọn đáp án
+document.getElementById('examForm').addEventListener('change',(e)=>{
+    if(e.target.type==='radio'){
+        const q=e.target.closest('.question');
+        q.classList.add('answered');
+        q.querySelectorAll('.option').forEach(o=>o.classList.remove('selected'));
+        e.target.closest('.option').classList.add('selected');
+        document.getElementById('count').textContent=document.querySelectorAll('.question.answered').length;
+    }
+});
+
+// Preview hình ảnh
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Thu thập giải thích và hình ảnh
+async function collectExplanations() {
+    const explanations = {};
+    for (let i = 1; i <= 15; i++) {
+        const textarea = document.querySelector(`textarea[name="exp${i}"]`);
+        const fileInput = document.querySelector(`input[name="img${i}"]`);
+        
+        explanations[`q${i}`] = {
+            text: textarea ? textarea.value : '',
+            image: ''
+        };
+        
+        if (fileInput && fileInput.files[0]) {
+            try {
+                const base64 = await fileToBase64(fileInput.files[0]);
+                explanations[`q${i}`].image = base64;
+            } catch (error) {
+                console.error(`Lỗi đọc hình câu ${i}:`, error);
+            }
+        }
+    }
+    return explanations;
+}
+
+// Chuyển file thành base64
+function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Nộp bài
+async function submitExam(){
+    const studentName = document.getElementById('studentName').value.trim();
+    const studentClass = document.getElementById('studentClass').value.trim();
+    
+    if (!studentName || !studentClass) {
+        alert('⚠️ Vui lòng điền đầy đủ Họ tên và Lớp trước khi nộp bài!');
+        return;
+    }
+    
+    // Disable submit button và hiện loading
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.cursor = 'not-allowed';
+    
+    const qs=document.querySelectorAll('.question');
+    let c=0,w=0;
+    const answers = {};
+    
+    qs.forEach((q, index)=>{
+        const ans=q.dataset.answer;
+        const sel=q.querySelector('input:checked');
+        const questionNum = index + 1;
+        
+        if(sel){
+            answers[`q${questionNum}`] = sel.value;
+            if(sel.value===ans){
+                c++;
+                q.style.borderLeftColor='#4CAF50';
+            }else{
+                w++;
+                q.style.borderLeftColor='#f44336';
+            }
+        }else{
+            answers[`q${questionNum}`] = '';
+            w++;
+            q.style.borderLeftColor='#ff9800';
+        }
+    });
+    
+    const sc=((c/qs.length)*10).toFixed(1);
+    document.getElementById('score').textContent=`${c}/${qs.length}`;
+    document.getElementById('correct').textContent=c;
+    document.getElementById('wrong').textContent=w;
+    document.getElementById('finalScore').textContent=sc;
+    
+    // Hiện loading modal
+    document.getElementById('loadingModal').style.display='flex';
+    
+    const explanations = await collectExplanations();
+    await saveToGoogleSheets(studentName, studentClass, c, w, sc, answers, explanations);
+    
+    // Ẩn loading modal
+    document.getElementById('loadingModal').style.display='none';
+    
+    // Hiện kết quả
+    document.getElementById('resultModal').style.display='flex';
+}
+
+// Lưu vào Google Sheets
+async function saveToGoogleSheets(name, studentClass, correct, wrong, score, answers, explanations) {
+    if (GOOGLE_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbxrIQsn_G2t3orw3A-ZtXn10zmVccy1_6Oy7Bu6yY9yxe61UlsKDQva7ECvx-ElT7a1/exec') {
+        console.log('Chưa cấu hình Google Sheets');
+        return;
+    }
+    
+    let explanationText = '';
+    for (let i = 1; i <= 15; i++) {
+        const exp = explanations[`q${i}`];
+        if (exp.text || exp.image) {
+            explanationText += `Câu ${i}: ${exp.text || '(không có text)'}`;
+            if (exp.image) {
+                explanationText += ` [Có hình ảnh]`;
+            }
+            explanationText += ' | ';
+        }
+    }
+    
+    const data = {
+        timestamp: new Date().toLocaleString('vi-VN'),
+        name: name,
+        class: studentClass,
+        subject: 'KHTN',  // ← Thêm môn học
+        exam: 'Đề số 1 (Bài 29-34)',
+        correct: correct,
+        wrong: wrong,
+        score: score,
+        answers: JSON.stringify(answers),
+        explanations: explanationText,
+        images: JSON.stringify(explanations)
+    };
+    
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        console.log('✅ Đã lưu kết quả vào Google Sheets');
+    } catch (error) {
+        console.error('❌ Lỗi khi lưu:', error);
+    }
+}
+</script>
+</body>
+</html>

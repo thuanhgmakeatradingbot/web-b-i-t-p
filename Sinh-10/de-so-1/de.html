@@ -1,0 +1,736 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Đề Kiểm Tra Cuối Kỳ 2 - Sinh 10</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; background: #f8f9fa; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 40px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 12px; margin-bottom: 50px; margin-top: 20px; }
+        .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+        .teacher-tag { display: flex; justify-content: space-between; font-size: 11pt; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0; font-weight: 600; color: #333; }
+        .exam-title { font-size: 20pt; font-weight: bold; margin: 15px 0; color: #1a1a1a; }
+        .timer { position: fixed; top: 20px; right: 20px; background: #1a1a1a; color: white; padding: 15px 25px; border-radius: 10px; font-size: 18pt; font-weight: bold; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .section-title { font-size: 14pt; font-weight: bold; margin: 30px 0 20px 0; padding: 12px 15px; background: #f0f0f0; border-left: 4px solid #1a1a1a; color: #1a1a1a; }
+        .question { margin: 25px 0; padding: 20px; background: #fafafa; border-radius: 8px; border-left: 4px solid #ddd; border: 1px solid #e0e0e0; }
+        .question.answered { border-left-color: #4CAF50; background: #f1f8f4; }
+        .question-header { font-weight: bold; margin-bottom: 12px; color: #1a1a1a; font-size: 12pt; }
+        .question-content { margin: 12px 0; line-height: 1.8; color: #333; }
+        .question-image { max-width: 100%; margin: 15px 0; border-radius: 8px; border: 1px solid #ddd; }
+        .options { margin: 20px 0; }
+        .option { display: block; margin: 12px 0; padding: 15px; background: white; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .option:hover { background: #f5f5f5; border-color: #1a1a1a; }
+        .option input[type="radio"], .option input[type="checkbox"] { margin-right: 12px; }
+        .option.selected { background: #e8e8e8; border-color: #1a1a1a; font-weight: bold; }
+        .true-false-group { margin: 15px 0; padding: 15px; background: white; border: 1px solid #ddd; border-radius: 8px; }
+        .true-false-item { margin: 10px 0; padding: 10px; }
+        .true-false-item label { display: inline-block; margin-right: 20px; cursor: pointer; }
+        .short-answer-input { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 11pt; margin-top: 10px; }
+        .essay-textarea { width: 100%; min-height: 120px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-family: 'Segoe UI', sans-serif; font-size: 11pt; resize: vertical; margin-top: 10px; }
+        .submit-section { text-align: center; margin: 50px 0; padding: 40px; background: #f8f9fa; border-radius: 10px; }
+        .submit-btn { padding: 18px 60px; font-size: 16pt; background: #1a1a1a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: all 0.3s; }
+        .submit-btn:hover { background: #333; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .result-content { background: white; padding: 50px; border-radius: 15px; text-align: center; max-width: 500px; }
+        .result-score { font-size: 48pt; font-weight: bold; color: #4CAF50; margin: 20px 0; }
+        .score-breakdown { margin: 20px 0; text-align: left; }
+        .score-breakdown div { margin: 8px 0; font-size: 12pt; }
+        .back-btn { display: inline-block; margin: 15px 10px; padding: 15px 35px; background: #1a1a1a; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; transition: all 0.3s; }
+        .back-btn:hover { background: #333; }
+        .loading-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; justify-content: center; align-items: center; }
+        .loading-content { text-align: center; color: white; }
+        .spinner { border: 8px solid #333; border-top: 8px solid white; border-radius: 50%; width: 80px; height: 80px; animation: spin 1s linear infinite; margin: 0 auto 30px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading-text { font-size: 18pt; font-weight: bold; margin-top: 20px; }
+        .start-modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 10000; justify-content: center; align-items: center; }
+        .start-modal-content { background: white; padding: 50px; border-radius: 15px; text-align: center; max-width: 600px; }
+        .start-modal-content h1 { color: #1a1a1a; font-size: 28pt; margin-bottom: 20px; }
+        .start-modal-content p { color: #666; font-size: 13pt; margin: 15px 0; }
+        .start-modal-content ul { text-align: left; margin: 25px auto; padding-left: 30px; max-width: 400px; }
+        .start-modal-content li { margin: 12px 0; color: #333; font-size: 12pt; }
+        .start-modal-buttons { margin-top: 35px; display: flex; gap: 20px; justify-content: center; }
+        .start-modal-btn { padding: 18px 50px; border: none; border-radius: 10px; font-size: 14pt; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .start-modal-btn.confirm { background: #4CAF50; color: white; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
+        .start-modal-btn.confirm:hover { background: #45a049; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6); }
+        .start-modal-btn.cancel { background: #f0f0f0; color: #333; }
+        .start-modal-btn.cancel:hover { background: #e0e0e0; }
+        * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; }
+        input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
+        .no-screenshot-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; background: transparent; }
+        .fullscreen-warning-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 20000; justify-content: center; align-items: center; }
+        .fullscreen-warning-content { background: white; padding: 50px; border-radius: 15px; text-align: center; max-width: 500px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+        .fullscreen-warning-content h2 { color: #f44336; font-size: 24pt; margin-bottom: 20px; }
+        .fullscreen-warning-content p { color: #333; font-size: 13pt; margin: 15px 0; line-height: 1.6; }
+        .fullscreen-warning-btn { margin-top: 30px; padding: 18px 50px; background: #4CAF50; color: white; border: none; border-radius: 10px; font-size: 14pt; font-weight: bold; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4); }
+        .fullscreen-warning-btn:hover { background: #45a049; transform: translateY(-3px); box-shadow: 0 6px 20px rgba(76, 175, 80, 0.6); }
+    </style>
+</head>
+<body>
+    <div class="start-modal" id="startModal">
+        <div class="start-modal-content">
+            <h1>🎯 Sẵn sàng làm bài?</h1>
+            <p><strong>Đề thi: Kiểm tra cuối kỳ 2 - Sinh học 10</strong></p>
+            <p>Thời gian: <strong>45 phút</strong> | Tổng điểm: <strong>10 điểm</strong></p>
+            <ul>
+                <li>✅ Hệ thống sẽ chuyển sang chế độ toàn màn hình</li>
+                <li>🚫 Không được thoát khỏi màn hình làm bài</li>
+                <li>🚫 Không được sao chép hoặc chụp màn hình</li>
+                <li>⚠️ Mọi hành vi vi phạm sẽ được ghi nhận</li>
+                <li>⏰ Thời gian đếm ngược tự động khi bắt đầu</li>
+            </ul>
+            <div class="start-modal-buttons">
+                <button class="start-modal-btn cancel" onclick="cancelExam()">← Quay lại</button>
+                <button class="start-modal-btn confirm" onclick="confirmStartExam()">🚀 Bắt đầu ngay</button>
+            </div>
+        </div>
+    </div>
+    <div class="no-screenshot-overlay"></div>
+    <div class="fullscreen-warning-modal" id="fullscreenWarningModal">
+        <div class="fullscreen-warning-content">
+            <h2>⚠️ CẢNH BÁO</h2>
+            <p><strong>Bạn đã thoát chế độ toàn màn hình!</strong></p>
+            <p>Vui lòng nhấn nút bên dưới để tiếp tục làm bài trong chế độ toàn màn hình.</p>
+            <p style="color: #f44336; font-size: 11pt;">⚠️ Hành vi này đã được ghi nhận</p>
+            <button class="fullscreen-warning-btn" onclick="reenterFullscreen()">✅ Xác nhận và tiếp tục</button>
+        </div>
+    </div>
+    <div class="timer" id="timer">45:00</div>
+    <div class="container">
+        <div class="header">
+            <div class="teacher-tag">
+                <div>TOÁN-HÓA-SINH-KHTN | Nguyễn Phú Thuận</div>
+                <div>Zalo: 0944316329</div>
+            </div>
+            <div class="exam-title">ĐỀ KIỂM TRA CUỐI KỲ 2 SINH 10 NĂM 2025 – ĐỀ 001</div>
+            <div style="font-size: 11pt; font-style: italic; margin-top: 10px;">
+                Môn: Sinh học 10 | Thời gian: 45 phút<br>
+                Họ và tên: <input type="text" id="studentName" style="border:none; border-bottom:1px solid #333; width:200px; margin: 5px;" required>
+                Lớp: <input type="text" id="studentClass" style="border:none; border-bottom:1px solid #333; width:80px;" required>
+            </div>
+        </div>
+        <form id="examForm">
+
+<div class="section-title">PHẦN I. Trắc nghiệm nhiều phương án lựa chọn (3 điểm) - Thí sinh trả lời từ câu 1 đến câu 12</div>
+
+<div class="question" data-answer="A" data-points="0.25">
+    <div class="question-header">Câu 1.</div>
+    <div class="question-content">Ở kì nào của giảm phân II, nhiễm sắc thể kép xếp thành một hàng ở mặt phẳng xích đạo của thoi phân bào?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q1" value="A"> A. Kì giữa.</label>
+        <label class="option"><input type="radio" name="q1" value="B"> B. Kì đầu.</label>
+        <label class="option"><input type="radio" name="q1" value="C"> C. Kì cuối.</label>
+        <label class="option"><input type="radio" name="q1" value="D"> D. Kì sau.</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B" data-points="0.25">
+    <div class="question-header">Câu 2.</div>
+    <div class="question-content">Ở gà có 2n = 78. Quan sát dưới kính hiển vi thấy một nhóm tế bào đang nguyên phân, các nhiễm sắc thể đang xếp thành 1 hàng trên mặt phẳng xích đạo. Trong 1 tế bào như thế có</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q2" value="A"> A. 78 NST đơn, 78 chromatid</label>
+        <label class="option"><input type="radio" name="q2" value="B"> B. 78 NST kép, 156 chromatid</label>
+        <label class="option"><input type="radio" name="q2" value="C"> C. 156 NST đơn, 156 chromatid</label>
+        <label class="option"><input type="radio" name="q2" value="D"> D. 156 NST kép, 312 chromatid</label>
+    </div>
+</div>
+
+<div class="question" data-answer="B" data-points="0.25">
+    <div class="question-header">Câu 3.</div>
+    <div class="question-content">Hình ảnh sau nói đến công nghệ</div>
+    <!-- Hình câu 3 --><div style="margin:15px 0;padding:10px;background:#f9f9f9;border:1px solid #ddd;border-radius:8px;text-align:center;"><img src="./hinh_cau3.png" style="max-width:100%;border-radius:6px;">[Hình: Quy trình nhân bản vô tính - cừu Dolly]</p>'" style="max-width:100%;border-radius:6px;" alt="Quy trinh nhan ban vo tinh"><p style="font-size:10pt;color:#666;margin-top:8px;font-style:italic;">Hinh 3. Quy trinh nhan ban vo tinh (cay truyen phoi)</p></div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q3" value="A"> A. Nhân bản vô tính</label>
+        <label class="option"><input type="radio" name="q3" value="B"> B. Cấy truyền phôi</label>
+        <label class="option"><input type="radio" name="q3" value="C"> C. Nuôi cấy mô</label>
+        <label class="option"><input type="radio" name="q3" value="D"> D. Chuyển gene</label>
+    </div>
+</div>
+
+<div class="question" data-answer="A" data-points="0.25">
+    <div class="question-header">Câu 4.</div>
+    <div class="question-content">Vi sinh vật có khả năng hấp thu và chuyển hóa nhanh các chất dinh dưỡng nên chúng</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q4" value="A"> A. sinh trưởng và sinh sản rất nhanh.</label>
+        <label class="option"><input type="radio" name="q4" value="B"> B. sinh trưởng và sinh sản rất chậm.</label>
+        <label class="option"><input type="radio" name="q4" value="C"> C. sinh trưởng rất nhanh nhưng sinh sản rất chậm.</label>
+        <label class="option"><input type="radio" name="q4" value="D"> D. sinh sản rất nhanh nhưng sinh trưởng rất chậm.</label>
+    </div>
+</div>
+
+<div class="question" data-answer="A" data-points="0.25">
+    <div class="question-header">Câu 5.</div>
+    <div class="question-content">Làm sữa chua là ứng dụng của quá trình</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q5" value="A"> A. lên men lactic.</label>
+        <label class="option"><input type="radio" name="q5" value="B"> B. lên men rượu etylic.</label>
+        <label class="option"><input type="radio" name="q5" value="C"> C. lên men acetic.</label>
+        <label class="option"><input type="radio" name="q5" value="D"> D. lên men butylic.</label>
+    </div>
+</div>
+
+<div class="question" data-answer="A" data-points="0.25">
+    <div class="question-header">Câu 6.</div>
+    <div class="question-content">Cho các ứng dụng sau:<br>
+    1. Sản xuất sinh khối (protein đơn bào).<br>
+    2. Làm rượu, tương cà, dưa muối.<br>
+    3. Sản xuất các chế phẩm sinh học (chất xúc tác sinh học, gôm,…).<br>
+    4. Sản xuất amino acid.<br>
+    Những ứng dụng từ quá trình tổng hợp của vi sinh vật là:</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q6" value="A"> A. 1, 3, 4.</label>
+        <label class="option"><input type="radio" name="q6" value="B"> B. 2, 3, 4.</label>
+        <label class="option"><input type="radio" name="q6" value="C"> C. 1, 2, 4.</label>
+        <label class="option"><input type="radio" name="q6" value="D"> D. 1, 2, 3.</label>
+    </div>
+</div>
+
+<div class="question" data-answer="C" data-points="0.25">
+    <div class="question-header">Câu 7.</div>
+    <div class="question-content">Phát biểu nào sai khi nói đến vai trò của vi sinh vật đối với tự nhiên?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q7" value="A"> A. Đối với tự nhiên là mắt xích quan trọng đảm bảo sự tuần hoàn vật chất trong tự nhiên.</label>
+        <label class="option"><input type="radio" name="q7" value="B"> B. Nhiều vi sinh vật là mắt xích khởi đầu của vòng tuần hoàn vật chất trong tự nhiên.</label>
+        <label class="option"><input type="radio" name="q7" value="C"> C. Nhiều vi sinh vật sống cộng sinh cố định đạm, phân giải lân,... làm nghèo chất đạm và P trong đất.</label>
+        <label class="option"><input type="radio" name="q7" value="D"> D. Nhiều vi sinh vật cung cấp khí O2 và chất hữu cơ cho các mắt xích trong chu trình tuần hoàn vật chất trong tự nhiên.</label>
+    </div>
+</div>
+
+<div class="question" data-answer="D" data-points="0.25">
+    <div class="question-header">Câu 8.</div>
+    <div class="question-content">Thành phần nào dưới đây tồn tại ở mọi virus?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q8" value="A"> A. Nucleic acid và vỏ ngoài.</label>
+        <label class="option"><input type="radio" name="q8" value="B"> B. Vỏ ngoài và vỏ capsid.</label>
+        <label class="option"><input type="radio" name="q8" value="C"> C. Nucleic acid, vỏ ngoài và vỏ capsid.</label>
+        <label class="option"><input type="radio" name="q8" value="D"> D. Nucleic acid và vỏ capsid.</label>
+    </div>
+</div>
+
+<div class="question" data-answer="A" data-points="0.25">
+    <div class="question-header">Câu 9.</div>
+    <div class="question-content">Hoạt động xảy ra ở giai đoạn lắp ráp của quá trình xâm nhập vào tế bào chủ của virus là</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q9" value="A"> A. lắp Nucleic acid vào protein để tạo virus.</label>
+        <label class="option"><input type="radio" name="q9" value="B"> B. tổng hợp Nucleic acid cho virus.</label>
+        <label class="option"><input type="radio" name="q9" value="C"> C. tổng hợp protein cho virus.</label>
+        <label class="option"><input type="radio" name="q9" value="D"> D. giải phóng bộ gen của virus vào tế bào chủ</label>
+    </div>
+</div>
+
+<div class="question" data-answer="D" data-points="0.25">
+    <div class="question-header">Câu 10.</div>
+    <div class="question-content">HIV có thể lây truyền qua con đường nào dưới đây</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q10" value="A"> A. ăn uống</label>
+        <label class="option"><input type="radio" name="q10" value="B"> B. hô hấp</label>
+        <label class="option"><input type="radio" name="q10" value="C"> C. tiếp xúc trực tiếp</label>
+        <label class="option"><input type="radio" name="q10" value="D"> D. tình dục</label>
+    </div>
+</div>
+
+<div class="question" data-answer="D" data-points="0.25">
+    <div class="question-header">Câu 11.</div>
+    <div class="question-content">Bệnh nào dưới đây do virus gây ra</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q11" value="A"> A. suy tim</label>
+        <label class="option"><input type="radio" name="q11" value="B"> B. viêm phổi</label>
+        <label class="option"><input type="radio" name="q11" value="C"> C. kiết lỵ</label>
+        <label class="option"><input type="radio" name="q11" value="D"> D. đậu mùa</label>
+    </div>
+</div>
+
+<div class="question" data-answer="A" data-points="0.25">
+    <div class="question-header">Câu 12.</div>
+    <div class="question-content">Vaccine có thể phòng chống bệnh nào dưới đây?</div>
+    <div class="options">
+        <label class="option"><input type="radio" name="q12" value="A"> A. viêm não nhật bản</label>
+        <label class="option"><input type="radio" name="q12" value="B"> B. gut</label>
+        <label class="option"><input type="radio" name="q12" value="C"> C. béo phì</label>
+        <label class="option"><input type="radio" name="q12" value="D"> D. viêm phổi</label>
+    </div>
+</div>
+
+<div class="section-title">PHẦN II. Trắc nghiệm đúng sai (2 điểm) - Thí sinh trả lời từ câu 1 đến câu 2</div>
+
+<div class="question" data-type="true-false" data-points="1.0">
+    <div class="question-header">Câu 1.</div>
+    <div class="question-content">HRV (Holmes ribgrass virus) và TMV (Tobacco mosaic virus) là hai chủng virus đều gây bệnh khảm thuốc lá nhưng vết thương trên lá khác nhau. Năm 1957, Frankel-Conrat đã tiến hành thí nghiệm lai lõi RNA của chủng HRV và protein của chủng TMV tạo thành virus lai. Sau đó, nhiễm virus lai vào cây thuốc lá khoẻ mạnh (hình bên dưới). Các nhận định dưới đây ĐÚNG hay SAI về thí nghiệm trên?</div>
+    <div style="margin:15px 0;padding:10px;background:#f9f9f9;border:1px solid #ddd;border-radius:8px;text-align:center;"><img src="./hinh_p2c1.png" style="max-width:80%;border-radius:6px;" alt="Thi nghiem HRV TMV" onerror="this.style.display='none'"><p style="font-size:10pt;color:#666;margin-top:8px;font-style:italic;">Hinh: Thi nghiem lai virus HRV va TMV (Frankel-Conrat, 1957) - RNA quyet dinh dac diem di truyen</p></div>
+    <div class="true-false-group">
+        <div class="true-false-item">
+            <strong>a.</strong> Thí nghiệm trên chứng minh vai trò quyết định đặc điểm di truyền của lõi RNA.<br>
+            <label><input type="radio" name="q13a" value="true"> Đúng</label>
+            <label><input type="radio" name="q13a" value="false"> Sai</label>
+            <input type="hidden" data-correct="true" data-points="0.25">
+        </div>
+        <div class="true-false-item">
+            <strong>b.</strong> Khi nhiễm virus lai vào cây thuốc lá khoẻ mạnh, sau một thời gian cây có những vết thương trên lá của chủng HRV.<br>
+            <label><input type="radio" name="q13b" value="true"> Đúng</label>
+            <label><input type="radio" name="q13b" value="false"> Sai</label>
+            <input type="hidden" data-correct="true" data-points="0.25">
+        </div>
+        <div class="true-false-item">
+            <strong>c.</strong> Trong dịch chiết của cây thuốc lá vẫn sẽ có cả virus HRV và TMV.<br>
+            <label><input type="radio" name="q13c" value="true"> Đúng</label>
+            <label><input type="radio" name="q13c" value="false"> Sai</label>
+            <input type="hidden" data-correct="false" data-points="0.25">
+        </div>
+        <div class="true-false-item">
+            <strong>d.</strong> Trong dịch chiết của cây thuốc lá xuất hiện loại virus lai vừa mang đặc điểm của cả virus HRV và TMV.<br>
+            <label><input type="radio" name="q13d" value="true"> Đúng</label>
+            <label><input type="radio" name="q13d" value="false"> Sai</label>
+            <input type="hidden" data-correct="false" data-points="0.25">
+        </div>
+    </div>
+</div>
+
+<div class="question" data-type="true-false" data-points="1.0">
+    <div class="question-header">Câu 2.</div>
+    <div class="question-content">Quan sát quy trình ứng dụng virus để sản xuất insulin hoặc interferon. Mỗi nhận định sau đây là Đúng hay Sai khi nói về quy trình này?</div>
+    <div style="margin:15px 0;padding:10px;background:#f9f9f9;border:1px solid #ddd;border-radius:8px;text-align:center;"><img src="./hinh_p2c2.png" style="max-width:90%;border-radius:6px;" alt="Quy trinh san xuat insulin"><p style="font-size:10pt;color:#666;margin-top:8px;font-style:italic;">Hinh 30.1. Quy trinh ung dung virus de san xuat insulin hoac interferon</p></div>
+    <div class="true-false-group">
+        <div class="true-false-item">
+            <strong>A.</strong> Hệ gene của virus được sử dụng là RNA.<br>
+            <label><input type="radio" name="q14a" value="true"> Đúng</label>
+            <label><input type="radio" name="q14a" value="false"> Sai</label>
+            <input type="hidden" data-correct="false" data-points="0.25">
+        </div>
+        <div class="true-false-item">
+            <strong>B.</strong> Quy trình sản xuất insulin hoặc interferon gồm 3 giai đoạn.<br>
+            <label><input type="radio" name="q14b" value="true"> Đúng</label>
+            <label><input type="radio" name="q14b" value="false"> Sai</label>
+            <input type="hidden" data-correct="true" data-points="0.25">
+        </div>
+        <div class="true-false-item">
+            <strong>C.</strong> Nuôi vi khuẩn để thu sinh khối và tách chiết sinh khối để thu chế phẩm.<br>
+            <label><input type="radio" name="q14c" value="true"> Đúng</label>
+            <label><input type="radio" name="q14c" value="false"> Sai</label>
+            <input type="hidden" data-correct="true" data-points="0.25">
+        </div>
+        <div class="true-false-item">
+            <strong>D.</strong> Cắt bỏ gene của virus không ảnh hưởng đến quá trình nhân lên của virus.<br>
+            <label><input type="radio" name="q14d" value="true"> Đúng</label>
+            <label><input type="radio" name="q14d" value="false"> Sai</label>
+            <input type="hidden" data-correct="false" data-points="0.25">
+        </div>
+    </div>
+</div>
+
+<div class="section-title">PHẦN III. Trắc nghiệm trả lời ngắn (2 điểm) - Thí sinh trả lời từ câu 1 đến câu 8</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 1.</div>
+    <div class="question-content">Thành tựu nổi bật và có ý nghĩa lớn trong thực tiễn của công nghệ tế bào động vật là:<br>
+    (1) Liệu pháp tế bào gốc<br>
+    (2) Nhân bản vô tính vật nuôi<br>
+    (3) Liệu pháp gen<br>
+    (4) Lai tế bào sinh dưỡng<br>
+    (5) Nuôi cấy hạt phấn hoặc noãn chưa thụ tinh<br>
+    <em>(Trả lời bằng các số, ví dụ: 1,2,3)</em></div>
+    <input type="text" class="short-answer-input" name="short1" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="1,2,3" data-points="0.25">
+</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 2.</div>
+    <div class="question-content">Cho các loại tế bào: Hợp tử, giao tử, tế bào sinh dục sơ khai, tế bào sinh dục chín và tế bào sinh dưỡng. Có bao nhiêu loại tế bào xảy ra nguyên phân?<br>
+    <em>(Trả lời bằng số)</em></div>
+    <input type="text" class="short-answer-input" name="short2" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="3" data-points="0.25">
+</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 3.</div>
+    <div class="question-content">Có bao nhiêu phương pháp nghiên cứu vi sinh vật?<br>
+    <em>(Trả lời bằng số)</em></div>
+    <input type="text" class="short-answer-input" name="short3" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="3" data-points="0.25">
+</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 4.</div>
+    <div class="question-content">Một loài vi khuẩn có thời gian thế hệ là 30 phút. Cấy 200 tế bào vào môi trường nuôi cấy thì thấy pha cân bằng đạt được sau 7 giờ với tổng số tế bào là 1638400. Tính toán thời gian pha tiềm phát?<br>
+    <em>(Trả lời bằng số phút, ví dụ: 60)</em></div>
+    <input type="text" class="short-answer-input" name="short4" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="30" data-points="0.25">
+</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 5.</div>
+    <div class="question-content">Cho các loại vi sinh vật: nấm Penicillium, nấm Candida, xạ khuẩn Streptomyces. Có bao nhiêu loại vi sinh vật kể trên được sử dụng để sản xuất thuốc kháng sinh?<br>
+    <em>(Trả lời bằng số)</em></div>
+    <input type="text" class="short-answer-input" name="short5" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="2" data-points="0.25">
+</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 6.</div>
+    <div class="question-content">Có bao nhiêu phương pháp trong các phương pháp được trình bày ở hình sau xử lí cần oxygene trong quá trình thực hiện?<br>
+    <em>(Trả lời bằng số)</em></div>
+    <div style="margin:15px 0;padding:10px;background:#f9f9f9;border:1px solid #ddd;border-radius:8px;text-align:center;"><img src="./hinh_p3c6.png" style="max-width:80%;border-radius:6px;" alt="Be UASB"><p style="font-size:10pt;color:#666;margin-top:8px;font-style:italic;">Hinh: Cac phuong phap xu ly nuoc thai bang phuong phap sinh hoc (Be UASB)</p></div>
+    <input type="text" class="short-answer-input" name="short6" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="2" data-points="0.25">
+</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 7.</div>
+    <div class="question-content">Bệnh viêm phổi Vũ Hán do virus SARS-CoV-2 gây ra được phát hiện vào năm nào?<br>
+    <em>(Trả lời bằng năm, ví dụ: 2020)</em></div>
+    <input type="text" class="short-answer-input" name="short7" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="2019" data-points="0.25">
+</div>
+
+<div class="question" data-type="short-answer" data-points="0.25">
+    <div class="question-header">Câu 8.</div>
+    <div class="question-content">Để trả lời cho yêu cầu "Các cây trên đường phố hoặc trong công viên cũng như những cây trồng lâu năm thường hay được quét vôi ở gốc (khoảng một m tính từ mặt đất lên). Việc quét vôi như vậy nhằm mục đích trang trí hay mục đích gì khác?". Bạn Thảo đã đưa ra các nhận định sau:<br>
+    - Thành phần trong vôi chủ yếu là canxi, nên quét vôi làm cây vững chắc hơn.<br>
+    - Quét vôi có tác dụng cải tạo và ngăn chặn sự suy thoái của đất.<br>
+    - Quét vôi có tác dụng tạo cảnh quang đường phố đẹp hơn.<br>
+    - Vôi có tác dụng diệt khuẩn, nấm gây bệnh, nên quét vôi để ngừa bệnh.<br>
+    - Vôi có tác dụng hạn chế bào tử nấm gây hại phát triển trên cây trồng.<br>
+    - Vôi có tác dụng chống lại sự tấn công của nấm bệnh.<br>
+    - Vôi có tác dụng chống lại sâu bọ gây hại cho thân cây.<br>
+    - Vôi có tác dụng chống sâu đục thân tìm đến đẻ trứng vào những kẽ nứt gây hại cây.<br>
+    Có bao nhiêu nhận định trên đúng với mục đích quét vôi?<br>
+    <em>(Trả lời bằng số)</em></div>
+    <input type="text" class="short-answer-input" name="short8" placeholder="Nhập câu trả lời...">
+    <input type="hidden" data-correct="5" data-points="0.25">
+</div>
+
+<div class="section-title">PHẦN IV. Tự luận (3 điểm)</div>
+
+<div class="question" data-type="essay" data-points="1.0">
+    <div class="question-header">Câu 1. (1 điểm)</div>
+    <div class="question-content">Có 2 tế bào của một loài (2n = 14) nguyên phân 3 lần. Hãy xác định số tế bào con đã được tạo ra và số NST có trong các tế bào con?</div>
+    <textarea class="essay-textarea" name="essay1" placeholder="Nhập câu trả lời của bạn..."></textarea>
+</div>
+
+<div class="question" data-type="essay" data-points="1.0">
+    <div class="question-header">Câu 2. (1 điểm)</div>
+    <div class="question-content">Dựa vào hình. Hãy nhận xét số lượng tế bào vi khuẩn E. coli sau mỗi lần phân chia. Từ đó, hãy cho biết khái niệm sinh trưởng ở vi sinh vật.</div>
+    <div style="margin:15px 0;padding:10px;background:#f9f9f9;border:1px solid #ddd;border-radius:8px;text-align:center;"><img src="./hinh_p4c2.png" style="max-width:80%;border-radius:6px;" alt="Vi khuan E.coli"><p style="font-size:10pt;color:#666;margin-top:8px;font-style:italic;">Hinh 25.2. Su sinh truong cua quan the vi khuan E. coli</p></div>
+    <textarea class="essay-textarea" name="essay2" placeholder="Nhập câu trả lời của bạn..."></textarea>
+</div>
+
+<div class="question" data-type="essay" data-points="1.0">
+    <div class="question-header">Câu 3. (1 điểm)</div>
+    <div class="question-content">Nêu đặc điểm của giai đoạn hấp phụ trong quá trình nhân lên của virus?</div>
+    <textarea class="essay-textarea" name="essay3" placeholder="Nhập câu trả lời của bạn..."></textarea>
+</div>
+
+<div class="submit-section">
+<p style="margin-bottom: 20px; font-size: 14pt;">
+    <strong>Tổng điểm: 10 điểm</strong><br>
+    Phần I: <span id="part1Score">0</span>/3đ | 
+    Phần II: <span id="part2Score">0</span>/2đ | 
+    Phần III: <span id="part3Score">0</span>/2đ | 
+    Phần IV: <span id="part4Score">0</span>/3đ
+</p>
+<button type="button" class="submit-btn" onclick="submitExam()">NỘP BÀI</button><br><br>
+<a href="../../index.html" style="color: #666; text-decoration: none;">← Quay về Menu</a>
+</div>
+</form>
+</div>
+
+<div class="loading-modal" id="loadingModal">
+<div class="loading-content">
+<div class="spinner"></div>
+<div class="loading-text">⏳ Đang lưu kết quả...</div>
+<p style="font-size: 12pt; margin-top: 15px;">Vui lòng chờ trong giây lát</p>
+</div>
+</div>
+
+<div class="result-modal" id="resultModal">
+<div class="result-content">
+<h2>🎉 KẾT QUẢ</h2>
+<div class="result-score" id="totalScore">0/10</div>
+<div class="score-breakdown">
+    <div><strong>Phần I (Trắc nghiệm):</strong> <span id="finalPart1">0</span>/3 điểm</div>
+    <div><strong>Phần II (Đúng/Sai):</strong> <span id="finalPart2">0</span>/2 điểm</div>
+    <div><strong>Phần III (Trả lời ngắn):</strong> <span id="finalPart3">0</span>/2 điểm</div>
+    <div><strong>Phần IV (Tự luận):</strong> <span id="finalPart4">0</span>/3 điểm (Chấm thủ công)</div>
+</div>
+<p style="font-size: 10pt; color: #666; margin-top: 15px;">✅ Kết quả đã được lưu vào Google Sheets</p>
+<a href="../../index.html" class="back-btn">← Quay về Menu</a>
+<button onclick="location.reload()" class="back-btn" style="background: #4CAF50;">Làm lại</button>
+</div>
+</div>
+
+<script>
+// ===== BẢO VỆ CHỐNG COPY VÀ CHỤP MÀN HÌNH =====
+let lastContextMenuTime = 0;
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+    const now = Date.now();
+    if (now - lastContextMenuTime > 3000) {
+        lastContextMenuTime = now;
+        alert('⚠️ Không được phép sao chép nội dung đề thi!');
+    }
+    return false;
+});
+
+let lastAlertKeyTime = 0;
+document.addEventListener('keydown', function(e) {
+    const now = Date.now();
+    if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v' || e.key === 'a' || e.key === 's' || e.key === 'p')) {
+        e.preventDefault();
+        if (now - lastAlertKeyTime > 3000) {
+            lastAlertKeyTime = now;
+            alert('⚠️ Không được phép sao chép hoặc in đề thi!');
+        }
+        return false;
+    }
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) || (e.ctrlKey && e.key === 'u')) {
+        e.preventDefault();
+        return false;
+    }
+    if ((e.ctrlKey && e.shiftKey && e.key === 'S') || e.key === 'PrintScreen') {
+        e.preventDefault();
+        if (now - lastAlertKeyTime > 3000) {
+            lastAlertKeyTime = now;
+            alert('⚠️ CẢNH BÁO: Phát hiện hành vi chụp màn hình!');
+        }
+        navigator.clipboard.writeText('');
+        return false;
+    }
+});
+
+document.addEventListener('selectstart', function(e) {
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// ===== FULLSCREEN =====
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiAQ96NX5ZNIhZNVOrRXzXP_9xZAHa09zVCz8iw_iC0OapfvE00yKcQ2jxzUFvHsh3/exec';
+
+function enterFullscreen() {
+    const elem = document.documentElement;
+    if (elem.requestFullscreen) elem.requestFullscreen();
+    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+    else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+}
+
+function cancelExam() {
+    window.location.href = 'index.html';
+}
+
+function confirmStartExam() {
+    document.getElementById('startModal').style.display = 'none';
+    enterFullscreen();
+    startTimer();
+}
+
+let timerStarted = false;
+let timerInterval;
+let time = 45 * 60;
+const timer = document.getElementById('timer');
+
+function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
+    timerInterval = setInterval(() => {
+        const m = Math.floor(time / 60);
+        const s = time % 60;
+        timer.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+        if (time <= 0) {
+            clearInterval(timerInterval);
+            submitExam();
+        }
+        time--;
+    }, 1000);
+}
+
+document.addEventListener('fullscreenchange', function() {
+    if (!document.fullscreenElement && timerStarted) {
+        document.getElementById('fullscreenWarningModal').style.display = 'flex';
+    }
+});
+
+function reenterFullscreen() {
+    document.getElementById('fullscreenWarningModal').style.display = 'none';
+    enterFullscreen();
+}
+
+// Xử lý chọn đáp án
+document.getElementById('examForm').addEventListener('change', (e) => {
+    if (e.target.type === 'radio') {
+        const q = e.target.closest('.question');
+        if (q && !q.dataset.type) {
+            q.classList.add('answered');
+            q.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            e.target.closest('.option').classList.add('selected');
+        }
+    }
+});
+
+// Nộp bài
+async function submitExam() {
+    const studentName = document.getElementById('studentName').value.trim();
+    const studentClass = document.getElementById('studentClass').value.trim();
+    
+    if (!studentName || !studentClass) {
+        alert('⚠️ Vui lòng điền đầy đủ Họ tên và Lớp trước khi nộp bài!');
+        return;
+    }
+    
+    const submitBtn = document.querySelector('.submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.cursor = 'not-allowed';
+    
+    // Chấm Phần I: Trắc nghiệm (3 điểm)
+    let part1Score = 0;
+    for (let i = 1; i <= 12; i++) {
+        const q = document.querySelector(`[name="q${i}"]:checked`);
+        const question = document.querySelector(`input[name="q${i}"]`).closest('.question');
+        const correctAnswer = question.dataset.answer;
+        if (q && q.value === correctAnswer) {
+            part1Score += 0.25;
+            question.style.borderLeftColor = '#4CAF50';
+        } else {
+            question.style.borderLeftColor = '#f44336';
+        }
+    }
+    
+    // Chấm Phần II: Đúng/Sai (2 điểm)
+    let part2Score = 0;
+    const trueFalseQuestions = [
+        ['q13a', 'q13b', 'q13c', 'q13d'],
+        ['q14a', 'q14b', 'q14c', 'q14d']
+    ];
+    trueFalseQuestions.forEach(group => {
+        group.forEach(name => {
+            const selected = document.querySelector(`input[name="${name}"]:checked`);
+            const hidden = document.querySelector(`input[name="${name}"]`).closest('.true-false-item').querySelector('input[type="hidden"]');
+            const correct = hidden.dataset.correct;
+            if (selected && selected.value === correct) {
+                part2Score += 0.25;
+            }
+        });
+    });
+    
+    // Chấm Phần III: Trả lời ngắn (2 điểm)
+    let part3Score = 0;
+    const shortAnswers = [
+        { name: 'short1', correct: ['1,2,3', '1, 2, 3', '123'] },
+        { name: 'short2', correct: ['3'] },
+        { name: 'short3', correct: ['3'] },
+        { name: 'short4', correct: ['30'] },
+        { name: 'short5', correct: ['2'] },
+        { name: 'short6', correct: ['2'] },
+        { name: 'short7', correct: ['2019'] },
+        { name: 'short8', correct: ['5'] }
+    ];
+    shortAnswers.forEach(item => {
+        const input = document.querySelector(`input[name="${item.name}"]`);
+        if (input) {
+            const answer = input.value.trim();
+            if (item.correct.some(c => answer === c)) {
+                part3Score += 0.25;
+                input.style.borderColor = '#4CAF50';
+            } else {
+                input.style.borderColor = '#f44336';
+            }
+        }
+    });
+    
+    // Phần IV: Tự luận (3 điểm) - Không tự động chấm
+    const part4Score = 0; // Giáo viên sẽ chấm thủ công
+    
+    const totalScore = (part1Score + part2Score + part3Score + part4Score).toFixed(1);
+    
+    // Hiển thị kết quả
+    document.getElementById('part1Score').textContent = part1Score.toFixed(2);
+    document.getElementById('part2Score').textContent = part2Score.toFixed(2);
+    document.getElementById('part3Score').textContent = part3Score.toFixed(2);
+    document.getElementById('part4Score').textContent = '0.00';
+    
+    document.getElementById('totalScore').textContent = totalScore + '/10';
+    document.getElementById('finalPart1').textContent = part1Score.toFixed(2);
+    document.getElementById('finalPart2').textContent = part2Score.toFixed(2);
+    document.getElementById('finalPart3').textContent = part3Score.toFixed(2);
+    document.getElementById('finalPart4').textContent = '0.00';
+    
+    // Thu thập câu trả lời
+    const answers = {
+        part1: {},
+        part2: {},
+        part3: {},
+        part4: {}
+    };
+    
+    // Part 1
+    for (let i = 1; i <= 12; i++) {
+        const q = document.querySelector(`[name="q${i}"]:checked`);
+        answers.part1[`q${i}`] = q ? q.value : '';
+    }
+    
+    // Part 2
+    trueFalseQuestions.forEach((group, idx) => {
+        group.forEach(name => {
+            const selected = document.querySelector(`input[name="${name}"]:checked`);
+            answers.part2[name] = selected ? selected.value : '';
+        });
+    });
+    
+    // Part 3
+    shortAnswers.forEach(item => {
+        const input = document.querySelector(`input[name="${item.name}"]`);
+        answers.part3[item.name] = input ? input.value : '';
+    });
+    
+    // Part 4
+    for (let i = 1; i <= 3; i++) {
+        const textarea = document.querySelector(`textarea[name="essay${i}"]`);
+        answers.part4[`essay${i}`] = textarea ? textarea.value : '';
+    }
+    
+    // Hiện loading modal
+    document.getElementById('loadingModal').style.display = 'flex';
+    
+    await saveToGoogleSheets(studentName, studentClass, part1Score, part2Score, part3Score, part4Score, totalScore, answers);
+    
+    // Ẩn loading modal
+    document.getElementById('loadingModal').style.display = 'none';
+    
+    // Hiện kết quả
+    document.getElementById('resultModal').style.display = 'flex';
+}
+
+// Lưu vào Google Sheets
+async function saveToGoogleSheets(name, studentClass, p1, p2, p3, p4, total, answers) {
+    const data = {
+        timestamp: new Date().toLocaleString('vi-VN'),
+        name: name,
+        class: studentClass,
+        subject: 'Sinh học 10',
+        exam: 'Đề kiểm tra cuối kỳ 2 - Đề 001',
+        part1Score: p1.toFixed(2),
+        part2Score: p2.toFixed(2),
+        part3Score: p3.toFixed(2),
+        part4Score: p4.toFixed(2),
+        totalScore: total,
+        answers: JSON.stringify(answers)
+    };
+    
+    try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        console.log('✅ Đã lưu kết quả vào Google Sheets');
+    } catch (error) {
+        console.error('❌ Lỗi khi lưu:', error);
+    }
+}
+</script>
+</body>
+</html>
