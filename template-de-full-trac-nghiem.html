@@ -48,6 +48,11 @@
         .start-modal-btn.cancel { background: #f0f0f0; color: #333; }
         .start-modal-btn.cancel:hover { background: #e0e0e0; }
         
+        .fullscreen-warning-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(244, 67, 54, 0.95); z-index: 10001; display: flex; justify-content: center; align-items: center; animation: shake 0.5s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); } 20%, 40%, 60%, 80% { transform: translateX(10px); } }
+        .fullscreen-warning-content { background: white; padding: 50px; border-radius: 15px; text-align: center; max-width: 500px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { transform: translateY(-100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
         * { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; }
         input, textarea { -webkit-user-select: text; -moz-user-select: text; -ms-user-select: text; user-select: text; }
     </style>
@@ -68,6 +73,17 @@
                 <button class="start-modal-btn cancel" onclick="cancelExam()">← Quay lại</button>
                 <button class="start-modal-btn confirm" onclick="confirmStartExam()">🚀 Bắt đầu ngay</button>
             </div>
+        </div>
+    </div>
+    
+    <!-- Modal cảnh báo thoát fullscreen -->
+    <div class="fullscreen-warning-modal" id="fullscreenWarning" style="display: none;">
+        <div class="fullscreen-warning-content">
+            <h1 style="color: #f44336; font-size: 28pt; margin-bottom: 20px;">⚠️ CẢNH BÁO!</h1>
+            <p style="font-size: 14pt; margin: 15px 0; color: #333;">Bạn đã thoát khỏi chế độ toàn màn hình!</p>
+            <p style="font-size: 12pt; margin: 15px 0; color: #666;">Vui lòng quay lại chế độ toàn màn hình để tiếp tục làm bài.</p>
+            <p style="font-size: 11pt; margin: 15px 0; color: #999; font-style: italic;">Hành vi này có thể bị ghi nhận và ảnh hưởng đến kết quả thi.</p>
+            <button class="start-modal-btn confirm" onclick="returnToFullscreen()" style="margin-top: 25px;">🔄 Quay lại toàn màn hình</button>
         </div>
     </div>
     
@@ -154,6 +170,9 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ===== FULLSCREEN =====
+let examStarted = false;
+let fullscreenExitCount = 0;
+
 function enterFullscreen() {
     const elem = document.documentElement;
     if (elem.requestFullscreen) elem.requestFullscreen();
@@ -167,6 +186,29 @@ function confirmStartExam() {
     document.getElementById('startModal').style.display = 'none';
     enterFullscreen();
     startTimer();
+    startFullscreenMonitoring();
+}
+
+function startFullscreenMonitoring() {
+    examStarted = true;
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+}
+
+function handleFullscreenChange() {
+    const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    if (examStarted && !isFullscreen) {
+        fullscreenExitCount++;
+        document.getElementById('fullscreenWarning').style.display = 'flex';
+        console.warn(`⚠️ Thoát fullscreen lần ${fullscreenExitCount}`);
+    }
+}
+
+function returnToFullscreen() {
+    document.getElementById('fullscreenWarning').style.display = 'none';
+    enterFullscreen();
 }
 
 // ===== TIMER =====
