@@ -195,7 +195,7 @@
 
 <script>
 // ===== CẤU HÌNH =====
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiAQ96NX5ZNIhZNVOrRXzXP_9xZAHa09zVCz8iw_iC0OapfvE00yKcQ2jxzUFvHsh3/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzD4yoyLOg0PbP3J52WWPK3qsPpkcD2YIXiXCx0ZR2DtQze8EH6XOxqyVzGfP5R6YzW/exec';
 const EXAM_TIME_MINUTES = 45;
 
 // ===== CHỐNG SAO CHÉP =====
@@ -369,8 +369,6 @@ async function saveToGoogleSheets(name, studentClass, answers) {
     try {
         await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         });
         console.log('✅ Đã lưu kết quả vào Google Sheets');

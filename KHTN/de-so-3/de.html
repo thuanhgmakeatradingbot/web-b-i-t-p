@@ -563,7 +563,7 @@
 </div>
 
 <script>
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiAQ96NX5ZNIhZNVOrRXzXP_9xZAHa09zVCz8iw_iC0OapfvE00yKcQ2jxzUFvHsh3/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzD4yoyLOg0PbP3J52WWPK3qsPpkcD2YIXiXCx0ZR2DtQze8EH6XOxqyVzGfP5R6YzW/exec';
 
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
@@ -654,11 +654,15 @@ function submitExam(){
     const qs=document.querySelectorAll('.question');
     let c=0,w=0;
     const answers = {};
+    const correctAnswers = {};
     
     qs.forEach((q, index)=>{
         const ans=q.dataset.answer;
         const sel=q.querySelector('input:checked');
         const questionNum = index + 1;
+        
+        // Lưu đáp án đúng
+        correctAnswers[`q${questionNum}`] = ans;
         
         if(sel){
             answers[`q${questionNum}`] = sel.value;
@@ -682,12 +686,12 @@ function submitExam(){
     document.getElementById('wrong').textContent=w;
     document.getElementById('finalScore').textContent=sc;
     
-    saveToGoogleSheets(studentName, studentClass, c, w, sc, answers);
+    saveToGoogleSheets(studentName, studentClass, c, w, sc, answers, correctAnswers);
     
     document.getElementById('resultModal').style.display='flex';
 }
 
-async function saveToGoogleSheets(name, studentClass, correct, wrong, score, answers) {
+async function saveToGoogleSheets(name, studentClass, correct, wrong, score, answers, correctAnswers) {
     // Thu thập câu trả lời tự luận
     const essay1 = document.querySelector('textarea[name="essay1"]')?.value || '';
     const essay2 = document.querySelector('textarea[name="essay2"]')?.value || '';
@@ -704,6 +708,7 @@ async function saveToGoogleSheets(name, studentClass, correct, wrong, score, ans
         wrong: wrong,
         score: score,
         answers: JSON.stringify(answers),
+        correctAnswers: JSON.stringify(correctAnswers),
         essay1: essay1,
         essay2: essay2,
         essay3: essay3,
@@ -711,13 +716,14 @@ async function saveToGoogleSheets(name, studentClass, correct, wrong, score, ans
     };
     
     try {
-        await fetch(GOOGLE_SCRIPT_URL, {
+        // Gửi dữ liệu lên Google Sheets
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(data)
         });
-        console.log('✅ Đã lưu kết quả vào Google Sheets');
+        
+        console.log('✅ Đã gửi kết quả lên Google Sheets');
+        console.log('📊 Data gửi đi:', data);
     } catch (error) {
         console.error('❌ Lỗi khi lưu:', error);
     }
