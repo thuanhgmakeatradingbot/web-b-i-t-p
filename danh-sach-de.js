@@ -1,14 +1,9 @@
 /* ============================================================
    DANH SÁCH ĐỀ THI - NGUỒN DỮ LIỆU DUY NHẤT
    ------------------------------------------------------------
-   - File này chứa toàn bộ danh sách đề của trang chủ.
-   - KHÔNG cần sửa tay. Hãy dùng "tao-de.html" để tạo đề mới,
-     rồi tải file này về và thay thế file cũ.
-   - Mỗi đề có 2 kiểu:
-       1) Đề cũ (file riêng): có thuộc tính "link".
-       2) Đề mới (do trình tạo đề sinh ra): có thuộc tính "id"
-          và "questions" -> sẽ mở bằng "lam-bai.html?id=...".
-   - "grade": lớp của đề (KHTN: 6-9, các môn còn lại: 10-12).
+   - File này được cập nhật tự động khi bấm "Đẩy lên GitHub".
+   - Đề mới mở bằng lam-bai.html?id=...
+   - Đề cũ (có "link") mở file riêng như trước.
    ============================================================ */
 
 window.EXAM_LIST = {
@@ -42,6 +37,33 @@ window.EXAM_LIST = {
       "topics": "Điện học, Nhiệt học, Hệ vận động, Máu, Tuần hoàn, Hô hấp, Thần kinh",
       "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
       "link": "KHTN/de-so-3/de.html"
+    },
+    {
+      "id": "de-khtn-1780827220650",
+      "subjectKey": "khtn",
+      "subjectName": "Khoa học tự nhiên",
+      "grade": 9,
+      "title": "Test",
+      "content": "",
+      "questions": "1 trắc nghiệm",
+      "time": "45 phút",
+      "timeMinutes": 45,
+      "topics": "",
+      "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
+      "items": [
+        {
+          "type": "mc",
+          "content": "Test nè",
+          "image": "",
+          "options": [
+            "cái này sai",
+            "cái này sai",
+            "cái này sai",
+            "cái này sai"
+          ],
+          "answer": "A"
+        }
+      ]
     }
   ],
   "toan": [
