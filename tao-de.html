@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tạo đề mới - Không cần code</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
+.wrap{max-width:950px;margin:0 auto;padding:30px 20px 80px}
+h1{font-size:26pt;margin-bottom:5px}
+.sub{color:#666;margin-bottom:25px}
+.card{background:white;border-radius:12px;padding:25px;margin-bottom:25px;box-shadow:0 2px 10px rgba(0,0,0,0.07)}
+.card h2{font-size:15pt;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #eee}
+label{display:block;font-weight:600;margin:12px 0 5px;font-size:11pt}
+input[type=text],input[type=number],select,textarea{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:11pt;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a1a}
+textarea{resize:vertical;min-height:70px}
+.row{display:flex;gap:15px;flex-wrap:wrap}
+.row>div{flex:1;min-width:180px}
+.btn{padding:12px 22px;border:none;border-radius:8px;font-size:11pt;font-weight:bold;cursor:pointer;transition:all .25s}
+.btn-dark{background:#1a1a1a;color:white}
+.btn-dark:hover{background:#333}
+.btn-green{background:#4CAF50;color:white}
+.btn-green:hover{background:#45a049}
+.btn-blue{background:#1565c0;color:white}
+.btn-blue:hover{background:#0d47a1}
+.btn-red{background:#f44336;color:white}
+.btn-red:hover{background:#d32f2f}
+.btn-gray{background:#eee;color:#333}
+.btn-gray:hover{background:#ddd}
+.q-block{border:2px solid #e0e0e0;border-radius:10px;padding:18px;margin:15px 0;background:#fafafa}
+.q-block .q-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.q-tag{display:inline-block;padding:4px 12px;border-radius:6px;font-size:10pt;font-weight:bold;color:white}
+.tag-mc{background:#1565c0}
+.tag-tf{background:#7b1fa2}
+.tag-short{background:#ef6c00}
+.tag-essay{background:#2e7d32}
+.opt-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.opt-row input[type=text]{flex:1}
+.opt-row .letter{font-weight:bold;width:22px}
+.tf-row{display:flex;align-items:center;gap:10px;margin:6px 0}
+.tf-row input[type=text]{flex:1}
+.tf-row select{width:auto;min-width:90px}
+.hint{font-size:10pt;color:#888;font-weight:400;margin-top:3px}
+.preview-list{margin-top:10px}
+.preview-item{padding:12px 15px;background:#f1f8f4;border-left:4px solid #4CAF50;border-radius:6px;margin:8px 0;font-size:11pt}
+.empty{color:#999;font-style:italic;padding:15px 0}
+.toolbar{position:sticky;bottom:0;background:white;border-top:2px solid #eee;padding:15px 20px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;box-shadow:0 -2px 10px rgba(0,0,0,0.05);z-index:50}
+.note{background:#fff8e1;border-left:4px solid #ffb300;padding:15px;border-radius:8px;font-size:10.5pt;margin-bottom:20px}
+.added-exam{padding:12px 15px;background:#e3f2fd;border-left:4px solid #1565c0;border-radius:6px;margin:8px 0;display:flex;justify-content:space-between;align-items:center}
+code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+<!-- Bảo vệ: chỉ giáo viên (admin) mới được vào trang này -->
+<script src="auth.js"></script>
+<script>
+  if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }
+</script>
+<div class="wrap">
+  <h1>➕ Tạo đề mới</h1>
+  <p class="sub">Gõ câu hỏi vào form, chọn loại, đánh dấu đáp án đúng. Không cần code.</p>
+
+  <div class="note">
+    <strong>Quy trình mới:</strong> ① Điền thông tin đề → ② Thêm từng câu hỏi → ③ Bấm <strong>"Lưu đề & Xem lại"</strong>
+    → ④ Kiểm tra đề trong bảng xem lại → ⑤ Bấm <strong>"Xác nhận & Đẩy lên GitHub"</strong>. Xong! Web tự cập nhật cho mọi người.
+    <br>🔑 Lần đầu đẩy, hệ thống sẽ hỏi <strong>GitHub Token</strong> (chỉ nhập 1 lần, lưu trên máy này). Cách tạo token xem trong file <code>github-sync.js</code>.
+    <br>Công thức toán: gõ trong dấu <code>$...$</code>, ví dụ <code>$x^2 + 1$</code>. Xuống dòng cứ Enter bình thường.
+  </div>
+
+  <!-- THÔNG TIN ĐỀ -->
+  <div class="card">
+    <h2>1. Thông tin đề</h2>
+    <div class="row">
+      <div>
+        <label>Môn học</label>
+        <select id="subject" onchange="updateGradeOptions()">
+          <option value="khtn">🔬 Khoa học tự nhiên</option>
+          <option value="toan">📐 Toán học</option>
+          <option value="hoa">⚗️ Hóa học</option>
+          <option value="sinh">🧬 Sinh học</option>
+          <option value="vatly">⚡ Vật lý</option>
+        </select>
+      </div>
+      <div>
+        <label>Lớp</label>
+        <select id="grade"></select>
+      </div>
+      <div>
+        <label>Thời gian làm bài (phút)</label>
+        <input type="number" id="timeMinutes" value="45" min="1">
+      </div>
+    </div>
+    <label>Tên đề (hiển thị to trong đề)</label>
+    <input type="text" id="title" placeholder="VD: Đề số 4 - KHTN 8 - Kiểm tra giữa kì">
+    <div class="row">
+      <div>
+        <label>Mô tả ngắn (Nội dung)</label>
+        <input type="text" id="content" placeholder="VD: Đề kiểm tra giữa kì II">
+      </div>
+      <div>
+        <label>Chủ đề</label>
+        <input type="text" id="topics" placeholder="VD: Quang hợp, Hô hấp tế bào">
+      </div>
+    </div>
+  </div>
+
+  <!-- THÊM CÂU HỎI -->
+  <div class="card">
+    <h2>2. Thêm câu hỏi</h2>
+    <label>Chọn loại câu hỏi</label>
+    <select id="qType" onchange="onTypeChange()">
+      <option value="mc">1. Trắc nghiệm 4 đáp án</option>
+      <option value="truefalse">2. Trắc nghiệm đúng / sai</option>
+      <option value="short">3. Trả lời ngắn</option>
+      <option value="essay">4. Tự luận</option>
+    </select>
+
+    <div id="editor"></div>
+
+    <button class="btn btn-green" id="addQBtn" style="margin-top:15px" onclick="addQuestion()">＋ Thêm câu hỏi này</button>
+    <button class="btn btn-gray" id="cancelQBtn" style="margin-top:15px;display:none" onclick="cancelEditQuestion()">Hủy sửa câu</button>
+  </div>
+
+  <!-- DANH SÁCH CÂU HỎI ĐÃ THÊM -->
+  <div class="card">
+    <h2>3. Các câu hỏi đã thêm (<span id="qCount">0</span>)</h2>
+    <div id="qList"><div class="empty">Chưa có câu hỏi nào.</div></div>
+  </div>
+
+  <!-- ĐỀ ĐÃ GOM -->
+  <div class="card">
+    <h2>4. Đề đã thêm vào danh sách (<span id="examCount">0</span>)</h2>
+    <p class="hint">Bạn có thể tạo nhiều đề liên tiếp rồi tải 1 lần. Các đề cũ vẫn được giữ nguyên.</p>
+    <div id="editingBanner" style="display:none;background:#fff3e0;border-left:4px solid #ef6c00;padding:10px 15px;border-radius:6px;margin-bottom:10px;font-size:11pt">
+      ✏️ Đang sửa đề: <strong id="editingTitle"></strong>
+    </div>
+    <div id="examList"><div class="empty">Chưa thêm đề nào vào danh sách.</div></div>
+  </div>
+</div>
+
+<!-- MODAL XEM LẠI ĐỀ + XÁC NHẬN ĐẨY LÊN GITHUB -->
+<div id="reviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;justify-content:center;align-items:center;padding:20px">
+  <div style="background:white;border-radius:14px;max-width:820px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3)">
+    <div style="position:sticky;top:0;background:#1a1a1a;color:white;padding:18px 25px;display:flex;justify-content:space-between;align-items:center">
+      <h2 style="font-size:15pt;margin:0">👀 Xem lại đề trước khi đẩy lên GitHub</h2>
+      <button class="btn btn-gray" onclick="closeReview()">✕ Đóng</button>
+    </div>
+    <div id="reviewBody" style="padding:25px"></div>
+    <div style="position:sticky;bottom:0;background:#f8f9fa;border-top:1px solid #eee;padding:15px 25px;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
+      <span id="reviewStatus" style="flex:1;align-self:center;font-size:10.5pt;color:#666"></span>
+      <button class="btn btn-gray" onclick="closeReview()">Sửa lại</button>
+      <button class="btn btn-green" id="confirmPushBtn" onclick="confirmPush()">🚀 Xác nhận & Đẩy lên GitHub</button>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <button class="btn btn-blue" id="addExamBtn" onclick="addExam()">✅ Lưu đề & Xem lại</button>
+  <button class="btn btn-gray" id="cancelExamBtn" style="display:none" onclick="cancelEditExam()">Hủy sửa đề</button>
+  <button class="btn btn-dark" onclick="downloadFile()">⬇️ Tải file danh-sach-de.js</button>
+  <button class="btn btn-gray" onclick="resetCurrent()">🗑️ Xóa đề đang soạn</button>
+  <a class="btn btn-gray" href="index.html" style="text-decoration:none;display:inline-block">← Về trang chủ</a>
+</div>
+
+<!-- Tải danh sách đề hiện có để gộp thêm -->
+<script src="danh-sach-de.js"></script>
+<script src="github-sync.js"></script>
+<script>
+// ========= TRẠNG THÁI =========
+// Bản sao danh sách đề hiện có (giữ nguyên đề cũ, kể cả đề dùng "link")
+const baseList = JSON.parse(JSON.stringify(window.EXAM_LIST || { khtn:[], toan:[], hoa:[], sinh:[], vatly:[] }));
+['khtn','toan','hoa','sinh','vatly'].forEach(k => { if (!baseList[k]) baseList[k] = []; });
+
+let currentQuestions = []; // câu hỏi của đề đang soạn
+let newExams = [];         // các đề mới đã "thêm vào danh sách" trong phiên này
+let editingQIndex = -1;    // -1 = đang thêm mới; >=0 = đang sửa câu hỏi thứ i
+let editingExamIndex = -1; // -1 = đang tạo đề mới; >=0 = đang sửa đề thứ i
+
+const LOCAL_KEY = 'EXAM_LIST_LOCAL'; // nơi lưu đề mới trong trình duyệt
+
+const SUBJECT_NAMES = {
+  khtn: 'Khoa học tự nhiên', toan: 'Toán học', hoa: 'Hóa học',
+  sinh: 'Sinh học', vatly: 'Vật lý'
+};
+
+// Lớp theo môn: KHTN 6-9, các môn còn lại 10-12
+const GRADES_BY_SUBJECT = {
+  khtn: [6, 7, 8, 9],
+  toan: [10, 11, 12],
+  hoa: [10, 11, 12],
+  sinh: [10, 11, 12],
+  vatly: [10, 11, 12]
+};
+
+// Cập nhật danh sách lớp theo môn đang chọn
+function updateGradeOptions(keepValue){
+  const subject = document.getElementById('subject').value;
+  const grades = GRADES_BY_SUBJECT[subject] || [];
+  const sel = document.getElementById('grade');
+  const old = keepValue != null ? keepValue : parseInt(sel.value, 10);
+  sel.innerHTML = grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
+  if (grades.indexOf(old) >= 0) sel.value = String(old);
+}
+
+// Lưu danh sách đề mới vào bộ nhớ trình duyệt (để trang chủ hiện ngay)
+function saveLocal(){
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(newExams)); }
+  catch(e){ console.error('Không lưu được localStorage:', e); }
+}
+// Đọc lại đề mới đã lưu trước đó
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    if (raw) newExams = JSON.parse(raw) || [];
+  } catch(e){ newExams = []; }
+}
+
+// ========= EDITOR THEO LOẠI =========
+// onTypeChange: khi người dùng đổi loại câu (chỉ khi đang thêm mới)
+function onTypeChange(){
+  if (editingQIndex >= 0){
+    // đang sửa câu -> không cho đổi loại, trả lại loại cũ
+    document.getElementById('qType').value = currentQuestions[editingQIndex].type;
+    return;
+  }
+  renderEditor();
+}
+
+function setVal(id, v){ const e = document.getElementById(id); if (e) e.value = (v == null ? '' : v); }
+
+// data (tùy chọn): dữ liệu câu hỏi để điền sẵn khi sửa
+function renderEditor(data){
+  const t = document.getElementById('qType').value;
+  const box = document.getElementById('editor');
+  if (t === 'mc'){
+    box.innerHTML = `
+      <label>Nội dung câu hỏi</label>
+      <textarea id="mc_content" placeholder="Nhập đề bài..."></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label>
+      <input type="text" id="mc_image" placeholder="VD: hinh1.png (đặt cùng thư mục) hoặc https://...">
+      <label>4 đáp án</label>
+      <div class="opt-row"><span class="letter">A.</span><input type="text" id="mc_a" placeholder="Đáp án A"></div>
+      <div class="opt-row"><span class="letter">B.</span><input type="text" id="mc_b" placeholder="Đáp án B"></div>
+      <div class="opt-row"><span class="letter">C.</span><input type="text" id="mc_c" placeholder="Đáp án C"></div>
+      <div class="opt-row"><span class="letter">D.</span><input type="text" id="mc_d" placeholder="Đáp án D"></div>
+      <label>Đáp án đúng</label>
+      <select id="mc_answer">
+        <option value="A">A</option><option value="B">B</option>
+        <option value="C">C</option><option value="D">D</option>
+      </select>`;
+    if (data){
+      setVal('mc_content', data.content);
+      setVal('mc_image', data.image);
+      setVal('mc_a', (data.options||[])[0]);
+      setVal('mc_b', (data.options||[])[1]);
+      setVal('mc_c', (data.options||[])[2]);
+      setVal('mc_d', (data.options||[])[3]);
+      document.getElementById('mc_answer').value = data.answer || 'A';
+    }
+  }
+  else if (t === 'truefalse'){
+    box.innerHTML = `
+      <label>Nội dung dẫn (phần chung của câu)</label>
+      <textarea id="tf_content" placeholder="VD: Cho đường tròn (C)... Xét các phát biểu sau:"></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label>
+      <input type="text" id="tf_image" placeholder="VD: hinh1.png hoặc https://...">
+      <label>Các ý a, b, c, d (mỗi ý chọn Đúng/Sai)</label>
+      <div id="tf_items"></div>
+      <button class="btn btn-gray" style="margin-top:8px" onclick="addTfItem()">＋ Thêm ý</button>`;
+    if (data){
+      setVal('tf_content', data.content);
+      setVal('tf_image', data.image);
+      (data.subItems || []).forEach(si => addTfItem(si.text, si.answer));
+    } else {
+      for (let i=0;i<4;i++) addTfItem();
+    }
+  }
+  else if (t === 'short'){
+    box.innerHTML = `
+      <label>Nội dung câu hỏi</label>
+      <textarea id="sh_content" placeholder="Nhập đề bài..."></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label>
+      <input type="text" id="sh_image" placeholder="VD: hinh1.png hoặc https://...">
+      <label>Đáp án đúng</label>
+      <input type="text" id="sh_answers" placeholder="VD: 12   (nhiều cách viết thì ngăn bằng dấu | , ví dụ: 0.5|1/2)">
+      <p class="hint">Hệ thống tự bỏ khoảng trắng & coi dấu phẩy = dấu chấm (0,5 = 0.5).</p>`;
+    if (data){
+      setVal('sh_content', data.content);
+      setVal('sh_image', data.image);
+      setVal('sh_answers', (data.answers || []).join('|'));
+    }
+  }
+  else if (t === 'essay'){
+    box.innerHTML = `
+      <label>Nội dung câu hỏi tự luận</label>
+      <textarea id="es_content" placeholder="Nhập đề bài tự luận..."></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label>
+      <input type="text" id="es_image" placeholder="VD: hinh1.png hoặc https://...">
+      <label>Điểm câu này</label>
+      <input type="number" id="es_points" value="1" min="0" step="0.25">
+      <p class="hint">Tự luận do giáo viên chấm sau. Điểm tự luận sẽ trừ vào phần tự động để tổng = 10.</p>`;
+    if (data){
+      setVal('es_content', data.content);
+      setVal('es_image', data.image);
+      document.getElementById('es_points').value = data.points != null ? data.points : 1;
+    }
+  }
+}
+
+function addTfItem(text, answer){
+  const box = document.getElementById('tf_items');
+  if (!box) return;
+  const idx = box.children.length;
+  const letters = ['a','b','c','d','e','f'];
+  const row = document.createElement('div');
+  row.className = 'tf-row';
+  row.innerHTML = `
+    <span class="letter">${letters[idx] || (idx+1)})</span>
+    <input type="text" placeholder="Nội dung ý ${letters[idx] || (idx+1)}">
+    <select><option value="true">Đúng</option><option value="false">Sai</option></select>
+    <button class="btn btn-red" type="button" onclick="this.parentNode.remove()">✕</button>`;
+  box.appendChild(row);
+  if (text != null) row.querySelector('input[type=text]').value = text;
+  if (answer != null) row.querySelector('select').value = answer ? 'true' : 'false';
+}
+
+// ========= THÊM / SỬA CÂU HỎI =========
+function buildQuestionFromForm(){
+  const t = document.getElementById('qType').value;
+
+  if (t === 'mc'){
+    const content = val('mc_content');
+    const a = val('mc_a'), b = val('mc_b'), c = val('mc_c'), d = val('mc_d');
+    if (!content){ alert('Vui lòng nhập nội dung câu hỏi.'); return null; }
+    if (!a || !b || !c || !d){ alert('Vui lòng nhập đủ 4 đáp án.'); return null; }
+    return {
+      type: 'mc', content,
+      image: val('mc_image'),
+      options: [a, b, c, d],
+      answer: document.getElementById('mc_answer').value
+    };
+  }
+  else if (t === 'truefalse'){
+    const content = val('tf_content');
+    const rows = document.querySelectorAll('#tf_items .tf-row');
+    if (!content){ alert('Vui lòng nhập nội dung dẫn của câu.'); return null; }
+    const subItems = [];
+    rows.forEach(r => {
+      const text = r.querySelector('input[type=text]').value.trim();
+      const ans = r.querySelector('select').value === 'true';
+      if (text) subItems.push({ text, answer: ans });
+    });
+    if (subItems.length === 0){ alert('Vui lòng nhập ít nhất 1 ý đúng/sai.'); return null; }
+    return { type: 'truefalse', content, image: val('tf_image'), subItems };
+  }
+  else if (t === 'short'){
+    const content = val('sh_content');
+    const raw = val('sh_answers');
+    if (!content){ alert('Vui lòng nhập nội dung câu hỏi.'); return null; }
+    if (!raw){ alert('Vui lòng nhập đáp án đúng.'); return null; }
+    const answers = raw.split('|').map(s => s.trim()).filter(Boolean);
+    return { type: 'short', content, image: val('sh_image'), answers };
+  }
+  else if (t === 'essay'){
+    const content = val('es_content');
+    if (!content){ alert('Vui lòng nhập nội dung câu hỏi tự luận.'); return null; }
+    const points = parseFloat(document.getElementById('es_points').value) || 1;
+    return { type: 'essay', content, image: val('es_image'), points };
+  }
+  return null;
+}
+
+function addQuestion(){
+  const q = buildQuestionFromForm();
+  if (!q) return;
+
+  if (editingQIndex >= 0){
+    // Đang sửa: thay thế câu cũ
+    currentQuestions[editingQIndex] = q;
+    editingQIndex = -1;
+    document.getElementById('addQBtn').textContent = '＋ Thêm câu hỏi này';
+    document.getElementById('cancelQBtn').style.display = 'none';
+    document.getElementById('qType').disabled = false;
+  } else {
+    currentQuestions.push(q);
+  }
+
+  renderEditor(); // reset form nhập
+  renderQList();
+}
+
+// Bắt đầu sửa câu hỏi thứ i
+function editQuestion(i){
+  const q = currentQuestions[i];
+  if (!q) return;
+  editingQIndex = i;
+  document.getElementById('qType').value = q.type;
+  document.getElementById('qType').disabled = true; // khóa loại khi sửa
+  renderEditor(q);
+  document.getElementById('addQBtn').textContent = '💾 Lưu câu hỏi';
+  document.getElementById('cancelQBtn').style.display = 'inline-block';
+  document.getElementById('editor').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function cancelEditQuestion(){
+  editingQIndex = -1;
+  document.getElementById('qType').disabled = false;
+  document.getElementById('addQBtn').textContent = '＋ Thêm câu hỏi này';
+  document.getElementById('cancelQBtn').style.display = 'none';
+  renderEditor();
+}
+
+function val(id){ const e = document.getElementById(id); return e ? e.value.trim() : ''; }
+
+// ========= HIỂN THỊ DANH SÁCH CÂU HỎI =========
+function renderQList(){
+  const box = document.getElementById('qList');
+  document.getElementById('qCount').textContent = currentQuestions.length;
+  if (currentQuestions.length === 0){ box.innerHTML = '<div class="empty">Chưa có câu hỏi nào.</div>'; return; }
+  const typeLabel = { mc:'Trắc nghiệm', truefalse:'Đúng/Sai', short:'Trả lời ngắn', essay:'Tự luận' };
+  const typeClass = { mc:'tag-mc', truefalse:'tag-tf', short:'tag-short', essay:'tag-essay' };
+  let html = '';
+  currentQuestions.forEach((q, i) => {
+    let detail = '';
+    if (q.type === 'mc') detail = `Đáp án đúng: <strong>${q.answer}</strong>`;
+    else if (q.type === 'truefalse') detail = `${q.subItems.length} ý (${q.subItems.map(s=>s.answer?'Đ':'S').join(', ')})`;
+    else if (q.type === 'short') detail = `Đáp án: <strong>${escapeHtml(q.answers.join(' | '))}</strong>`;
+    else if (q.type === 'essay') detail = `${q.points} điểm`;
+    const preview = escapeHtml((q.content || '').slice(0, 90)) + ((q.content||'').length > 90 ? '…' : '');
+    html += `
+      <div class="q-block">
+        <div class="q-top">
+          <span class="q-tag ${typeClass[q.type]}">${i+1}. ${typeLabel[q.type]}</span>
+          <span>
+            <button class="btn btn-blue" onclick="editQuestion(${i})">✏️ Sửa</button>
+            <button class="btn btn-red" onclick="removeQuestion(${i})">✕ Xóa</button>
+          </span>
+        </div>
+        <div>${preview}</div>
+        <div class="hint">${detail}</div>
+      </div>`;
+  });
+  box.innerHTML = html;
+}
+function removeQuestion(i){
+  if (editingQIndex === i) cancelEditQuestion();
+  currentQuestions.splice(i, 1);
+  renderQList();
+}
+
+// ========= THÊM / SỬA ĐỀ =========
+function addExam(){
+  const title = val('title');
+  const subject = document.getElementById('subject').value;
+  if (!title){ alert('Vui lòng nhập tên đề.'); return; }
+  if (currentQuestions.length === 0){ alert('Đề chưa có câu hỏi nào.'); return; }
+
+  const timeMinutes = parseInt(document.getElementById('timeMinutes').value, 10) || 45;
+  const counts = { mc:0, truefalse:0, short:0, essay:0 };
+  currentQuestions.forEach(q => counts[q.type]++);
+  const parts = [];
+  if (counts.mc) parts.push(counts.mc + ' trắc nghiệm');
+  if (counts.truefalse) parts.push(counts.truefalse + ' đúng/sai');
+  if (counts.short) parts.push(counts.short + ' trả lời ngắn');
+  if (counts.essay) parts.push(counts.essay + ' tự luận');
+
+  if (editingExamIndex >= 0){
+    // ----- SỬA ĐỀ ĐÃ CÓ -----
+    const ex = newExams[editingExamIndex];
+    ex.subjectKey = subject;
+    ex.subjectName = SUBJECT_NAMES[subject];
+    ex.grade = parseInt(document.getElementById('grade').value, 10) || null;
+    ex.title = title;
+    ex.content = val('content');
+    ex.questions = parts.join(' + ');
+    ex.time = timeMinutes + ' phút';
+    ex.timeMinutes = timeMinutes;
+    ex.topics = val('topics');
+    ex.items = JSON.parse(JSON.stringify(currentQuestions));
+    saveLocal();
+    renderExamList();
+    const savedId = ex.id;
+    cancelEditExam();
+    openReview(savedId); // xem lại + xác nhận đẩy lên GitHub
+    return;
+  }
+
+  // ----- THÊM ĐỀ MỚI -----
+  const exam = {
+    id: 'de-' + subject + '-' + Date.now(),
+    subjectKey: subject,
+    subjectName: SUBJECT_NAMES[subject],
+    grade: parseInt(document.getElementById('grade').value, 10) || null,
+    title: title,
+    content: val('content'),
+    questions: parts.join(' + '),
+    time: timeMinutes + ' phút',
+    timeMinutes: timeMinutes,
+    topics: val('topics'),
+    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
+    items: JSON.parse(JSON.stringify(currentQuestions))
+  };
+
+  newExams.push(exam);
+  saveLocal();
+  renderExamList();
+  resetCurrent();
+  openReview(exam.id); // xem lại + xác nhận đẩy lên GitHub
+}
+
+// ========= XEM LẠI ĐỀ + ĐẨY LÊN GITHUB =========
+let reviewExamId = null;
+
+function openReview(examId){
+  reviewExamId = examId;
+  const ex = newExams.find(e => e.id === examId);
+  if (!ex){ return; }
+  document.getElementById('reviewBody').innerHTML = renderExamPreview(ex);
+  document.getElementById('reviewStatus').textContent = '';
+  const btn = document.getElementById('confirmPushBtn');
+  btn.disabled = false; btn.textContent = '🚀 Xác nhận & Đẩy lên GitHub';
+  document.getElementById('reviewModal').style.display = 'flex';
+  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([document.getElementById('reviewBody')]);
+}
+
+function closeReview(){
+  document.getElementById('reviewModal').style.display = 'none';
+  reviewExamId = null;
+}
+
+// Dựng bản xem trước giống hệt cách trình bày khi làm bài
+function renderExamPreview(ex){
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const nl = s => esc(s).replace(/\n/g,'<br>');
+  let h = '';
+  h += `<div style="text-align:center;border-bottom:2px solid #eee;padding-bottom:12px;margin-bottom:18px">
+          <div style="font-size:16pt;font-weight:bold">${esc(ex.title)}</div>
+          <div style="color:#666;font-size:10.5pt;margin-top:5px">${SUBJECT_NAMES[ex.subjectKey]||''}${ex.grade ? ' • Lớp ' + ex.grade : ''} • ${esc(ex.time)} • ${ex.items.length} câu</div>
+        </div>`;
+
+  const letters = ['A','B','C','D','E','F'];
+  const tfLetters = ['a','b','c','d','e','f'];
+  const groups = [
+    { type:'mc', title:'PHẦN I. Trắc nghiệm 4 đáp án' },
+    { type:'truefalse', title:'PHẦN II. Đúng / Sai' },
+    { type:'short', title:'PHẦN III. Trả lời ngắn' },
+    { type:'essay', title:'PHẦN IV. Tự luận' }
+  ];
+
+  groups.forEach(g => {
+    const arr = ex.items.filter(q => q.type === g.type);
+    if (!arr.length) return;
+    h += `<div style="font-weight:bold;background:#f0f0f0;border-left:4px solid #1a1a1a;padding:8px 12px;margin:18px 0 10px">${g.title} (${arr.length} câu)</div>`;
+    arr.forEach((q, i) => {
+      h += `<div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px;margin:10px 0;background:#fafafa">`;
+      h += `<div style="font-weight:bold;margin-bottom:6px">Câu ${i+1}.</div>`;
+      h += `<div style="margin-bottom:8px">${nl(q.content)}</div>`;
+      if (q.image) h += `<div style="color:#1565c0;font-size:10pt">🖼️ Hình: ${esc(q.image)}</div>`;
+
+      if (q.type === 'mc'){
+        (q.options||[]).forEach((opt, oi) => {
+          const isAns = letters[oi] === q.answer;
+          h += `<div style="padding:6px 10px;margin:4px 0;border-radius:6px;${isAns?'background:#e8f5e9;border:1px solid #4CAF50;font-weight:bold':'background:white;border:1px solid #ddd'}">
+                  ${letters[oi]}. ${nl(opt)} ${isAns?'<span style="color:#2e7d32">✓ đáp án đúng</span>':''}
+                </div>`;
+        });
+      }
+      else if (q.type === 'truefalse'){
+        (q.subItems||[]).forEach((si, si2) => {
+          h += `<div style="padding:6px 10px;margin:4px 0;border-bottom:1px solid #eee">
+                  <b>${tfLetters[si2]})</b> ${nl(si.text)}
+                  <span style="float:right;font-weight:bold;color:${si.answer?'#2e7d32':'#c62828'}">${si.answer?'ĐÚNG':'SAI'}</span>
+                </div>`;
+        });
+      }
+      else if (q.type === 'short'){
+        h += `<div style="background:#fff8e1;padding:6px 10px;border-radius:6px">Đáp án đúng: <b>${esc((q.answers||[]).join('  hoặc  '))}</b></div>`;
+      }
+      else if (q.type === 'essay'){
+        h += `<div style="color:#666;font-size:10pt">Điểm: <b>${q.points}</b> • Giáo viên chấm tay</div>`;
+      }
+      h += `</div>`;
+    });
+  });
+  return h;
+}
+
+async function confirmPush(){
+  const ex = newExams.find(e => e.id === reviewExamId);
+  if (!ex){ closeReview(); return; }
+  const btn = document.getElementById('confirmPushBtn');
+  const status = document.getElementById('reviewStatus');
+  btn.disabled = true; btn.textContent = '⏳ Đang đẩy lên GitHub...';
+  status.style.color = '#666'; status.textContent = 'Đang kết nối GitHub...';
+  try {
+    await GitHubSync.pushExam(ex, 'Thêm/cập nhật đề: ' + ex.title);
+    status.style.color = '#2e7d32';
+    status.textContent = '✅ Đã đẩy lên GitHub thành công! Web sẽ cập nhật sau ~1 phút.';
+    btn.textContent = '✅ Đã đẩy xong';
+  } catch(err){
+    status.style.color = '#c62828';
+    status.textContent = '❌ ' + err.message;
+    btn.disabled = false; btn.textContent = '🚀 Thử đẩy lại';
+    // Nếu token sai thì xóa để lần sau hỏi lại
+    if (/401|token/i.test(err.message)) GitHubSync.clearToken();
+  }
+}
+
+// Bắt đầu sửa đề thứ i (chỉ sửa được đề tạo bằng công cụ này)
+function editExam(i){
+  const ex = newExams[i];
+  if (!ex) return;
+  cancelEditQuestion();
+  editingExamIndex = i;
+  document.getElementById('subject').value = ex.subjectKey || 'khtn';
+  updateGradeOptions(ex.grade); // nạp danh sách lớp theo môn + chọn đúng lớp
+  document.getElementById('timeMinutes').value = ex.timeMinutes || 45;
+  document.getElementById('title').value = ex.title || '';
+  document.getElementById('content').value = ex.content || '';
+  document.getElementById('topics').value = ex.topics || '';
+  currentQuestions = JSON.parse(JSON.stringify(ex.items || []));
+  renderQList();
+
+  document.getElementById('addExamBtn').textContent = '💾 Lưu thay đổi đề';
+  document.getElementById('cancelExamBtn').style.display = 'inline-block';
+  document.getElementById('editingBanner').style.display = 'block';
+  document.getElementById('editingTitle').textContent = ex.title || '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function cancelEditExam(){
+  editingExamIndex = -1;
+  document.getElementById('addExamBtn').textContent = '✅ Thêm đề này vào danh sách';
+  document.getElementById('cancelExamBtn').style.display = 'none';
+  document.getElementById('editingBanner').style.display = 'none';
+  resetCurrent();
+}
+
+function renderExamList(){
+  const box = document.getElementById('examList');
+  document.getElementById('examCount').textContent = newExams.length;
+  if (newExams.length === 0){ box.innerHTML = '<div class="empty">Chưa thêm đề nào vào danh sách.</div>'; return; }
+  let html = '';
+  newExams.forEach((ex, i) => {
+    html += `
+      <div class="added-exam">
+        <div><strong>${escapeHtml(ex.title)}</strong><br>
+          <span class="hint">${SUBJECT_NAMES[ex.subjectKey]}${ex.grade ? ' • Lớp ' + ex.grade : ''} • ${ex.items.length} câu • ${ex.time}</span>
+        </div>
+        <span>
+          <button class="btn btn-green" onclick="openReview('${ex.id}')">👀 Xem lại & Đẩy</button>
+          <button class="btn btn-blue" onclick="editExam(${i})">✏️ Sửa</button>
+          <button class="btn btn-red" onclick="removeExam(${i})">✕ Xóa</button>
+        </span>
+      </div>`;
+  });
+  box.innerHTML = html;
+}
+function removeExam(i){
+  if (!confirm('Xóa đề "' + (newExams[i] ? newExams[i].title : '') + '"?')) return;
+  if (editingExamIndex === i) cancelEditExam();
+  else if (editingExamIndex > i) editingExamIndex--; // giữ đúng chỉ số đề đang sửa
+  newExams.splice(i, 1);
+  saveLocal();
+  renderExamList();
+}
+
+function resetCurrent(){
+  currentQuestions = [];
+  editingQIndex = -1;
+  document.getElementById('qType').disabled = false;
+  document.getElementById('addQBtn').textContent = '＋ Thêm câu hỏi này';
+  document.getElementById('cancelQBtn').style.display = 'none';
+  document.getElementById('title').value = '';
+  document.getElementById('content').value = '';
+  document.getElementById('topics').value = '';
+  renderEditor();
+  renderQList();
+}
+
+// ========= TẢI FILE =========
+function downloadFile(){
+  if (newExams.length === 0){
+    if (!confirm('Bạn chưa "Thêm đề vào danh sách". File tải về sẽ chỉ chứa các đề cũ. Vẫn tải?')) return;
+  }
+  // Gộp đề mới vào bản sao danh sách cũ
+  const merged = JSON.parse(JSON.stringify(baseList));
+  newExams.forEach(ex => {
+    const key = ex.subjectKey;
+    if (!merged[key]) merged[key] = [];
+    // Bỏ field nội bộ subjectKey khỏi bản lưu (không cần thiết nhưng giữ cũng được)
+    merged[key].push(ex);
+  });
+
+  const header =
+`/* ============================================================
+   DANH SÁCH ĐỀ THI - NGUỒN DỮ LIỆU DUY NHẤT
+   ------------------------------------------------------------
+   - File này được sinh tự động bởi tao-de.html.
+   - Đề mới mở bằng lam-bai.html?id=...
+   - Đề cũ (có "link") mở file riêng như trước.
+   ============================================================ */
+
+window.EXAM_LIST = `;
+
+  const content = header + JSON.stringify(merged, null, 2) + ';\n';
+
+  const blob = new Blob([content], { type: 'application/javascript;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'danh-sach-de.js';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ========= TIỆN ÍCH =========
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Khởi tạo
+loadLocal();
+updateGradeOptions();
+renderEditor();
+renderExamList();
+
+// Nếu mở từ trang chủ bằng "Sửa" (tao-de.html?edit=ID) thì mở sẵn đề đó
+(function openEditFromUrl(){
+  const id = new URLSearchParams(location.search).get('edit');
+  if (!id) return;
+  const idx = newExams.findIndex(e => e.id === id);
+  if (idx >= 0) editExam(idx);
+  else alert('Không tìm thấy đề cần sửa trong bộ nhớ trình duyệt này.');
+})();
+</script>
+</body>
+</html>

@@ -34,7 +34,19 @@ node_modules/
 # Backup files
 *.bak
 *.backup
+*.before_fix.js
+
+# Tài liệu đáp án / lý thuyết - KHÔNG public lên web
+*.docx
 
 # Test files (nếu không muốn push)
 # test/
 # *.test.html
+
+# ⚠️ BẢO MẬT: KHÔNG đẩy token GitHub lên repo công khai
+# (Token được lưu trong localStorage trình duyệt, không nằm trong file.
+#  Các dòng dưới chỉ để chặn lỡ tay tạo file chứa token.)
+*token*
+*TOKEN*
+github-token.txt
+secret*.js

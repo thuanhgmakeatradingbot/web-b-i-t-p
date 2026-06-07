@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kết quả học sinh - Giáo viên</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.5}
+.wrap{max-width:1200px;margin:0 auto;padding:25px 18px 80px}
+.topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+h1{font-size:22pt}
+.btn{padding:10px 18px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:11pt;text-decoration:none;display:inline-block}
+.btn-dark{background:#1a1a1a;color:white}
+.btn-gray{background:#eee;color:#333}
+.btn-blue{background:#1565c0;color:white}
+.btn-green{background:#2e7d32;color:white}
+.filters{display:flex;gap:12px;flex-wrap:wrap;background:white;padding:16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:18px;align-items:flex-end}
+.filters .f{display:flex;flex-direction:column;gap:4px}
+.filters label{font-size:10pt;font-weight:600;color:#555}
+.filters select,.filters input{padding:9px;border:2px solid #ddd;border-radius:8px;font-size:11pt;min-width:150px}
+.stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.stat{background:white;border-radius:10px;padding:14px 20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);flex:1;min-width:140px}
+.stat .num{font-size:20pt;font-weight:bold;color:#1565c0}
+.stat .lbl{font-size:10pt;color:#666}
+table{width:100%;border-collapse:collapse;background:white;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eee;font-size:10.5pt;vertical-align:top}
+th{background:#1a1a1a;color:white;position:sticky;top:0;cursor:pointer;white-space:nowrap}
+tr:hover{background:#f5f9ff}
+.score-cell{font-weight:bold;color:#2e7d32}
+.detail-btn{padding:5px 12px;background:#e3f2fd;color:#1565c0;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:10pt}
+.msg{text-align:center;padding:50px;color:#666}
+.spin{border:6px solid #ddd;border-top:6px solid #1565c0;border-radius:50%;width:50px;height:50px;animation:sp 1s linear infinite;margin:20px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* Modal chi tiết */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;justify-content:center;align-items:center;padding:18px}
+.modal-box{background:white;border-radius:12px;max-width:820px;width:100%;max-height:90vh;overflow:auto}
+.modal-head{position:sticky;top:0;background:#1a1a1a;color:white;padding:16px 22px;display:flex;justify-content:space-between;align-items:center}
+.modal-body{padding:22px}
+.ans-tag{display:inline-block;padding:2px 9px;border-radius:6px;margin:3px;font-size:10pt;font-weight:bold;background:#f0f0f0}
+.ans-tag.ok{background:#e6f4ea;color:#188038;border:1px solid #a8d5b5}
+.ans-tag.no{background:#fce8e6;color:#d93025;border:1px solid #f0b4ae}
+.ans-tag .corr{font-weight:normal;opacity:.85;font-style:italic}
+.essay-block{background:#f8f9fa;padding:12px;border-radius:8px;margin:10px 0;white-space:pre-wrap;font-size:11pt}
+.img-link{display:inline-block;margin:6px 8px 0 0}
+.img-link img{max-width:200px;max-height:200px;border:1px solid #ddd;border-radius:8px;display:block}
+.notice{background:#fff8e1;border-left:4px solid #ffb300;padding:14px;border-radius:8px;font-size:10.5pt;margin-bottom:18px}
+code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
+</style>
+</head>
+<body>
+<!-- Bảo vệ: chỉ giáo viên (admin) mới xem được -->
+<script src="auth.js"></script>
+<script>
+  if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }
+</script>
+
+<div class="wrap">
+  <div class="topbar">
+    <h1>📊 Kết quả học sinh</h1>
+    <div>
+      <button class="btn btn-blue" onclick="loadResults()">🔄 Tải lại</button>
+      <a class="btn btn-gray" href="index.html">← Về trang chủ</a>
+    </div>
+  </div>
+
+  <div id="configNotice" class="notice" style="display:none"></div>
+
+  <div class="filters" id="filters" style="display:none">
+    <div class="f">
+      <label>Môn</label>
+      <select id="fSubject" onchange="applyFilters()"><option value="">Tất cả</option></select>
+    </div>
+    <div class="f">
+      <label>Lớp</label>
+      <select id="fClass" onchange="applyFilters()"><option value="">Tất cả</option></select>
+    </div>
+    <div class="f">
+      <label>Đề</label>
+      <select id="fExam" onchange="applyFilters()"><option value="">Tất cả</option></select>
+    </div>
+    <div class="f" style="flex:1">
+      <label>Tìm tên học sinh</label>
+      <input type="text" id="fName" placeholder="Gõ tên..." oninput="applyFilters()">
+    </div>
+    <button class="btn btn-green" onclick="exportCSV()">⬇️ Xuất Excel (CSV)</button>
+  </div>
+
+  <div class="stats" id="stats" style="display:none"></div>
+
+  <div id="content">
+    <div class="msg"><div class="spin"></div>Đang tải kết quả...</div>
+  </div>
+</div>
+
+<!-- Modal chi tiết 1 bài -->
+<div class="modal" id="detailModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 style="font-size:14pt;margin:0" id="detailTitle">Chi tiết bài làm</h2>
+      <button class="btn btn-gray" onclick="closeDetail()">✕ Đóng</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script>
+// ====== CẤU HÌNH ======
+// URL Google Apps Script (giống trong lam-bai.html)
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgaG9f9xxns2K90ai9l_nMadsQjh8hAY5fvjVsF5oljNkIrwxuWW1nFjHT2XjC44Ik/exec';
+// Khóa bí mật - PHẢI GIỐNG biến RESULTS_SECRET trong Google Apps Script
+const RESULTS_SECRET = 'thaythuan-2026';
+
+let allRows = [];
+
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function loadResults(){
+  document.getElementById('content').innerHTML = '<div class="msg"><div class="spin"></div>Đang tải kết quả...</div>';
+  try {
+    const url = GOOGLE_SCRIPT_URL + '?action=results&secret=' + encodeURIComponent(RESULTS_SECRET);
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.status !== 'success'){
+      throw new Error(data.message || 'Không đọc được kết quả.');
+    }
+    allRows = data.rows || [];
+    buildFilters();
+    document.getElementById('filters').style.display = 'flex';
+    applyFilters();
+  } catch(err){
+    document.getElementById('content').innerHTML =
+      '<div class="msg" style="color:#c62828">❌ ' + esc(err.message) +
+      '<br><br>Kiểm tra lại: URL Apps Script, khóa bí mật, và đã Deploy bản mới chưa.</div>';
+  }
+}
+
+function unique(arr){ return Array.from(new Set(arr.filter(x => x !== '' && x != null))); }
+
+function buildFilters(){
+  fillSelect('fSubject', unique(allRows.map(r => r.subject)));
+  fillSelect('fClass', unique(allRows.map(r => r.class)));
+  fillSelect('fExam', unique(allRows.map(r => r.exam)));
+}
+function fillSelect(id, vals){
+  const sel = document.getElementById(id);
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tất cả</option>' + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  if (vals.indexOf(cur) >= 0) sel.value = cur;
+}
+
+function getFiltered(){
+  const sub = document.getElementById('fSubject').value;
+  const cls = document.getElementById('fClass').value;
+  const exam = document.getElementById('fExam').value;
+  const name = document.getElementById('fName').value.trim().toLowerCase();
+  return allRows.filter(r => {
+    if (sub && r.subject !== sub) return false;
+    if (cls && r.class !== cls) return false;
+    if (exam && r.exam !== exam) return false;
+    if (name && !String(r.name||'').toLowerCase().includes(name)) return false;
+    return true;
+  });
+}
+
+function applyFilters(){
+  const rows = getFiltered();
+  renderStats(rows);
+  renderTable(rows);
+}
+
+function renderStats(rows){
+  const box = document.getElementById('stats');
+  box.style.display = 'flex';
+  const n = rows.length;
+  const scores = rows.map(r => parseFloat(r.score)).filter(x => !isNaN(x));
+  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+  const max = scores.length ? Math.max(...scores) : 0;
+  const min = scores.length ? Math.min(...scores) : 0;
+  box.innerHTML = `
+    <div class="stat"><div class="num">${n}</div><div class="lbl">Lượt nộp</div></div>
+    <div class="stat"><div class="num">${avg.toFixed(2)}</div><div class="lbl">Điểm trung bình</div></div>
+    <div class="stat"><div class="num">${max.toFixed(2)}</div><div class="lbl">Cao nhất</div></div>
+    <div class="stat"><div class="num">${min.toFixed(2)}</div><div class="lbl">Thấp nhất</div></div>`;
+}
+
+function renderTable(rows){
+  const c = document.getElementById('content');
+  if (rows.length === 0){ c.innerHTML = '<div class="msg">Chưa có bài nộp nào khớp bộ lọc.</div>'; return; }
+  let html = `<table><thead><tr>
+    <th>#</th><th>Thời gian</th><th>Họ tên</th><th>Lớp</th><th>Môn</th><th>Đề</th><th>Điểm</th><th>Chi tiết</th>
+  </tr></thead><tbody>`;
+  rows.forEach((r, i) => {
+    html += `<tr>
+      <td>${i+1}</td>
+      <td>${esc(r.timestamp)}</td>
+      <td>${esc(r.name)}</td>
+      <td>${esc(r.class)}</td>
+      <td>${esc(r.subject)}</td>
+      <td>${esc(r.exam)}</td>
+      <td class="score-cell">${esc(r.score)}</td>
+      <td><button class="detail-btn" onclick="showDetail(${i})">Xem</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  c.innerHTML = html;
+  c._rows = rows;
+}
+
+function showDetail(i){
+  const r = (document.getElementById('content')._rows || [])[i];
+  if (!r) return;
+  document.getElementById('detailTitle').textContent = (r.name || '') + ' - ' + (r.class || '');
+  let h = '';
+  h += `<p><b>Đề:</b> ${esc(r.exam)} &nbsp; | &nbsp; <b>Điểm:</b> <span style="color:#2e7d32;font-weight:bold">${esc(r.score)}</span></p>`;
+  h += `<p style="color:#666;font-size:10pt">${esc(r.timestamp)}</p><hr style="margin:12px 0">`;
+
+  // Câu trả lời (đối chiếu đáp án đúng -> tô xanh/đỏ)
+  let correctMap = {};
+  try { correctMap = JSON.parse(r.correctAnswers || '{}'); } catch(e){ correctMap = {}; }
+  const hasKey = Object.keys(correctMap).length > 0;
+
+  h += `<h3 style="margin:8px 0">📝 Câu trả lời</h3><div>`;
+  const ans = String(r.answers || '');
+  if (ans){
+    let nCorrect = 0, nWrong = 0;
+    ans.split(',').forEach(part => {
+      const seg = part.trim();
+      if (!seg) return;
+      const ci = seg.indexOf(':');
+      const key = ci >= 0 ? seg.slice(0, ci).trim() : seg;
+      let stu = ci >= 0 ? seg.slice(ci + 1).trim() : '';
+      if (stu === '') stu = '∅';
+
+      if (hasKey && correctMap[key] !== undefined){
+        const correct = String(correctMap[key]);
+        const ok = stu === correct;
+        if (ok) nCorrect++; else nWrong++;
+        h += `<span class="ans-tag ${ok ? 'ok' : 'no'}">${esc(key)}: ${esc(stu)} ${ok
+          ? '✓'
+          : '✗ <span class="corr">(đúng: ' + esc(correct) + ')</span>'}</span>`;
+      } else {
+        h += `<span class="ans-tag">${esc(seg)}</span>`;
+      }
+    });
+    if (hasKey){
+      h += `<div style="margin-top:10px;font-size:11pt">
+              <span style="color:#188038;font-weight:bold">✓ Đúng: ${nCorrect}</span> &nbsp;&nbsp;
+              <span style="color:#d93025;font-weight:bold">✗ Sai: ${nWrong}</span>
+            </div>`;
+    }
+  } else { h += '<i>(trống)</i>'; }
+  h += `</div>`;
+
+  // Tự luận
+  if (r.essays && String(r.essays).trim()){
+    h += `<h3 style="margin:14px 0 6px">✍️ Tự luận</h3><div class="essay-block">${esc(r.essays)}</div>`;
+  }
+
+  // Ảnh bài làm (link Drive, dạng "q5: https://... | q6: https://...")
+  if (r.images && String(r.images).trim()){
+    h += `<h3 style="margin:14px 0 6px">📷 Ảnh bài làm</h3><div>`;
+    String(r.images).split('|').forEach(seg => {
+      const m = seg.match(/(https?:\/\/[^\s]+)/);
+      if (m){
+        const link = m[1];
+        const label = seg.split(':')[0].trim();
+        h += `<a class="img-link" href="${esc(link)}" target="_blank" title="Mở ảnh ${esc(label)}">
+                <img src="${esc(link)}" alt="${esc(label)}" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span style=color:#1565c0>🔗 ${esc(label)} (mở ảnh)</span>')">
+              </a>`;
+      }
+    });
+    h += `</div>`;
+  }
+
+  document.getElementById('detailBody').innerHTML = h;
+  document.getElementById('detailModal').style.display = 'flex';
+}
+function closeDetail(){ document.getElementById('detailModal').style.display = 'none'; }
+
+// Xuất CSV để mở bằng Excel
+function exportCSV(){
+  const rows = getFiltered();
+  if (rows.length === 0){ alert('Không có dữ liệu để xuất.'); return; }
+  const header = ['Thời gian','Họ tên','Lớp','Môn','Đề','Điểm','Câu trả lời','Tự luận','Ảnh'];
+  const lines = [header.join(',')];
+  rows.forEach(r => {
+    const cells = [r.timestamp, r.name, r.class, r.subject, r.exam, r.score, r.answers, r.essays, r.images]
+      .map(v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"');
+    lines.push(cells.join(','));
+  });
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ket-qua-hoc-sinh.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Cảnh báo nếu chưa cấu hình
+if (GOOGLE_SCRIPT_URL.indexOf('AKfyc') < 0 || RESULTS_SECRET === ''){
+  const n = document.getElementById('configNotice');
+  n.style.display = 'block';
+  n.innerHTML = '⚠️ Chưa cấu hình. Hãy điền <code>GOOGLE_SCRIPT_URL</code> và <code>RESULTS_SECRET</code> trong file ket-qua.html cho khớp với Apps Script.';
+}
+
+loadResults();
+</script>
+</body>
+</html>

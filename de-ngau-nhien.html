@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Làm đề ngẫu nhiên</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
+.wrap{max-width:760px;margin:0 auto;padding:25px 18px 60px}
+h1{font-size:24pt;margin-bottom:5px}
+.sub{color:#666;margin-bottom:22px}
+.card{background:white;border-radius:12px;padding:24px;margin-bottom:22px;box-shadow:0 2px 10px rgba(0,0,0,0.07)}
+.card h2{font-size:14pt;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #eee}
+label{display:block;font-weight:600;margin:12px 0 5px;font-size:11pt}
+select,input[type=number]{width:100%;padding:11px;border:2px solid #ddd;border-radius:8px;font-size:11pt}
+select:focus,input:focus{outline:none;border-color:#1a1a1a}
+.row{display:flex;gap:16px;flex-wrap:wrap}.row>div{flex:1;min-width:150px}
+.type-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #f0f0f0}
+.type-row:last-child{border-bottom:none}
+.type-info{flex:1}
+.type-info .nm{font-weight:600}
+.type-info .av{font-size:10pt;color:#888}
+.type-row input[type=number]{width:90px}
+.btn{padding:14px 30px;border:none;border-radius:9px;font-size:13pt;font-weight:bold;cursor:pointer;color:white;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-dark{background:#1a1a1a}.btn-dark:hover{background:#333}
+.btn-gray{background:#eee;color:#333}
+.bar{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+.warn{color:#c62828;font-size:10.5pt;margin-top:10px;display:none}
+.summary{background:#f0f7ff;border-radius:8px;padding:12px 15px;margin-top:12px;font-size:11pt;color:#1565c0}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<script>if (!KiroAuth.requireLogin()) { throw new Error('redirect login'); }</script>
+
+<div class="wrap">
+  <h1>🎲 Làm đề ngẫu nhiên</h1>
+  <p class="sub">Chọn môn, lớp và số câu mỗi loại. Hệ thống sẽ bốc ngẫu nhiên từ ngân hàng câu hỏi.</p>
+
+  <div class="card">
+    <h2>1. Chọn môn & lớp</h2>
+    <div class="row">
+      <div>
+        <label>Môn</label>
+        <select id="subject" onchange="onSubjectGrade()"></select>
+      </div>
+      <div>
+        <label>Lớp</label>
+        <select id="grade" onchange="onSubjectGrade()"></select>
+      </div>
+    </div>
+    <label>Phạm vi bài (chọn để giới hạn, hoặc để "Tất cả các bài")</label>
+    <select id="lesson" onchange="renderTypeInputs()"><option value="">Tất cả các bài</option></select>
+  </div>
+
+  <div class="card">
+    <h2>2. Số câu mỗi loại</h2>
+    <div id="typeInputs"></div>
+    <div class="warn" id="warn"></div>
+    <div class="summary" id="summary"></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Thời gian & bắt đầu</h2>
+    <label>Thời gian làm bài (phút)</label>
+    <input type="number" id="timeMinutes" value="45" min="1">
+    <div class="bar" style="margin-top:18px">
+      <button class="btn btn-dark" onclick="startRandom()">🎲 Tạo đề & Bắt đầu làm</button>
+      <a class="btn btn-gray" href="index.html">← Về trang chủ</a>
+    </div>
+  </div>
+</div>
+
+<script src="cau-hinh.js"></script>
+<script src="ngan-hang.js"></script>
+<script>
+const SUBJECTS = window.BANK_SUBJECTS;
+const TYPES = window.QUESTION_TYPES;
+
+// Gộp ngân hàng từ file + bản lưu cục bộ (nếu giáo viên vừa thêm mà chưa đẩy)
+function getBank(){
+  const fromFile = Array.isArray(window.QUESTION_BANK) ? window.QUESTION_BANK : [];
+  let local = [];
+  try { local = JSON.parse(localStorage.getItem('QUESTION_BANK_LOCAL') || '[]') || []; } catch(e){}
+  const map = {};
+  fromFile.forEach(q => map[q.id] = q);
+  local.forEach(q => map[q.id] = q);
+  return Object.keys(map).map(k => map[k]);
+}
+const BANK = getBank();
+
+function fillSubjects(){
+  document.getElementById('subject').innerHTML =
+    Object.keys(SUBJECTS).map(k => `<option value="${k}">${SUBJECTS[k].icon} ${SUBJECTS[k].name}</option>`).join('');
+}
+function fillGrades(){
+  const sub = document.getElementById('subject').value;
+  const grades = (SUBJECTS[sub] && SUBJECTS[sub].grades) || [];
+  document.getElementById('grade').innerHTML = grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
+}
+
+// Danh sách bài theo môn + lớp đang chọn
+function fillLessons(){
+  const keys = getSubjectKeys(document.getElementById('subject').value);
+  const grade = document.getElementById('grade').value;
+  const lessons = Array.from(new Set(
+    BANK.filter(q => keys.includes(q.subjectKey) && String(q.grade) === String(grade))
+        .map(q => q.lesson).filter(Boolean)
+  )).sort((a,b)=>{
+    const na=(a.match(/\d+/)||[0])[0], nb=(b.match(/\d+/)||[0])[0];
+    return (+na)-(+nb) || a.localeCompare(b);
+  });
+  const sel = document.getElementById('lesson');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Tất cả các bài</option>' + lessons.map(l => `<option value="${l.replace(/"/g,'&quot;')}">${l}</option>`).join('');
+  if (lessons.indexOf(cur) >= 0) sel.value = cur;
+}
+function getLesson(){ return document.getElementById('lesson').value; }
+
+// Đếm số câu có sẵn theo môn+lớp+loại
+// Nếu môn là combo (KHTN tổ hợp), gộp các môn con
+function getSubjectKeys(sub){
+  const info = SUBJECTS[sub];
+  if (info && info.combo) return info.combo;
+  return [sub];
+}
+
+function available(subject, grade, type){
+  const keys = getSubjectKeys(subject);
+  const lesson = getLesson();
+  return BANK.filter(q =>
+    keys.includes(q.subjectKey) &&
+    String(q.grade) === String(grade) &&
+    q.type === type &&
+    (!lesson || q.lesson === lesson)
+  ).length;
+}
+
+function renderTypeInputs(){
+  const sub = document.getElementById('subject').value;
+  const grade = document.getElementById('grade').value;
+  let html = '';
+  Object.keys(TYPES).forEach(t => {
+    const av = available(sub, grade, t);
+    html += `
+      <div class="type-row">
+        <div class="type-info">
+          <div class="nm">${TYPES[t]}</div>
+          <div class="av">Có sẵn trong kho: <b>${av}</b> câu</div>
+        </div>
+        <input type="number" id="cnt_${t}" min="0" max="${av}" value="0" oninput="updateSummary()" ${av===0?'disabled':''}>
+      </div>`;
+  });
+  document.getElementById('typeInputs').innerHTML = html;
+  updateSummary();
+}
+
+function onSubjectGrade(){
+  if (this && this.id === 'subject') fillGrades();
+  fillLessons();
+  renderTypeInputs();
+}
+
+function getCounts(){
+  const c = {};
+  Object.keys(TYPES).forEach(t => {
+    const el = document.getElementById('cnt_' + t);
+    c[t] = el ? (parseInt(el.value, 10) || 0) : 0;
+  });
+  return c;
+}
+
+function updateSummary(){
+  const c = getCounts();
+  const total = Object.values(c).reduce((a,b)=>a+b,0);
+  const sum = document.getElementById('summary');
+  const parts = [];
+  Object.keys(TYPES).forEach(t => { if (c[t] > 0) parts.push(c[t] + ' ' + TYPES[t].toLowerCase()); });
+  sum.textContent = total > 0 ? ('Đề sẽ gồm: ' + parts.join(' + ') + ' = ' + total + ' câu') : 'Chưa chọn câu nào.';
+}
+
+// Trộn mảng (Fisher-Yates)
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startRandom(){
+  const sub = document.getElementById('subject').value;
+  const grade = document.getElementById('grade').value;
+  const c = getCounts();
+  const total = Object.values(c).reduce((a,b)=>a+b,0);
+  const warn = document.getElementById('warn');
+  warn.style.display = 'none';
+
+  if (total === 0){ warn.textContent = 'Vui lòng chọn ít nhất 1 câu.'; warn.style.display = 'block'; return; }
+
+  // Kiểm tra đủ câu cho từng loại
+  for (const t of Object.keys(TYPES)){
+    const av = available(sub, grade, t);
+    if (c[t] > av){
+      warn.textContent = 'Loại "' + TYPES[t] + '" không đủ câu trong kho (cần ' + c[t] + ', có ' + av + ').';
+      warn.style.display = 'block';
+      return;
+    }
+  }
+
+  // Bốc ngẫu nhiên từng loại
+  let items = [];
+  const keys = getSubjectKeys(sub);
+  const lesson = getLesson();
+  Object.keys(TYPES).forEach(t => {
+    if (c[t] > 0){
+      const pool = BANK.filter(q => keys.includes(q.subjectKey) && String(q.grade) === String(grade) && q.type === t && (!lesson || q.lesson === lesson));
+      items = items.concat(shuffle(pool).slice(0, c[t]));
+    }
+  });
+  // Trộn thứ tự các câu trong đề
+  items = shuffle(items);
+
+  const timeMinutes = parseInt(document.getElementById('timeMinutes').value, 10) || 45;
+  const subjName = (SUBJECTS[sub] && SUBJECTS[sub].name) || sub;
+
+  const exam = {
+    id: 'random-' + Date.now(),
+    random: true,
+    subjectKey: sub,
+    subjectName: subjName,
+    grade: parseInt(grade, 10),
+    title: 'Đề ngẫu nhiên - ' + subjName + ' - Lớp ' + grade,
+    timeMinutes: timeMinutes,
+    items: items
+  };
+
+  // Lưu vào sessionStorage để lam-bai.html đọc
+  try { sessionStorage.setItem('RANDOM_EXAM', JSON.stringify(exam)); }
+  catch(e){ warn.textContent = 'Không tạo được đề (bộ nhớ đầy).'; warn.style.display = 'block'; return; }
+
+  window.location.href = 'lam-bai.html?random=1';
+}
+
+// Khởi tạo
+fillSubjects();
+fillGrades();
+fillLessons();
+renderTypeInputs();
+document.getElementById('subject').addEventListener('change', () => { fillGrades(); fillLessons(); renderTypeInputs(); });
+document.getElementById('grade').addEventListener('change', () => { fillLessons(); renderTypeInputs(); });
+</script>
+</body>
+</html>

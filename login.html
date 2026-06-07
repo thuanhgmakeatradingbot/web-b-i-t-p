@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng nhập - Hệ Thống Ôn Tập</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:linear-gradient(135deg,#1a1a1a 0%,#2c3e50 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:20px}
+.box{background:white;border-radius:16px;padding:40px;width:100%;max-width:440px;box-shadow:0 10px 40px rgba(0,0,0,0.3)}
+.box h1{font-size:22pt;text-align:center;color:#1a1a1a;margin-bottom:5px}
+.box .sub{text-align:center;color:#777;font-size:11pt;margin-bottom:25px}
+.tabs{display:flex;gap:10px;margin-bottom:25px}
+.tab{flex:1;padding:12px;text-align:center;border-radius:10px;cursor:pointer;font-weight:bold;background:#f0f0f0;color:#555;transition:all .25s;font-size:11pt}
+.tab.active{background:#1a1a1a;color:white}
+label{display:block;font-weight:600;margin:14px 0 6px;font-size:11pt}
+input{width:100%;padding:13px;border:2px solid #ddd;border-radius:9px;font-size:12pt}
+input:focus{outline:none;border-color:#1a1a1a}
+.btn{width:100%;margin-top:22px;padding:14px;border:none;border-radius:9px;font-size:13pt;font-weight:bold;cursor:pointer;color:white;transition:all .25s}
+.btn-student{background:#1565c0}
+.btn-student:hover{background:#0d47a1}
+.btn-admin{background:#2e7d32}
+.btn-admin:hover{background:#1b5e20}
+.err{color:#c62828;font-size:10.5pt;margin-top:12px;text-align:center;display:none}
+.hide{display:none}
+.teacher{margin-top:25px;text-align:center;color:#999;font-size:10pt;border-top:1px solid #eee;padding-top:15px}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>📖 Hệ Thống Ôn Tập</h1>
+  <p class="sub">TOÁN-HÓA-SINH-KHTN | Nguyễn Phú Thuận</p>
+
+  <div class="tabs">
+    <div class="tab active" id="tabStudent" onclick="switchTab('student')">🧑‍🎓 Học sinh</div>
+    <div class="tab" id="tabAdmin" onclick="switchTab('admin')">👨‍🏫 Giáo viên</div>
+  </div>
+
+  <!-- FORM HỌC SINH -->
+  <div id="studentForm">
+    <label>Họ và tên</label>
+    <input type="text" id="sName" placeholder="VD: Nguyễn Văn A" onkeydown="if(event.key==='Enter')doStudentLogin()">
+    <label>Lớp</label>
+    <input type="text" id="sClass" placeholder="VD: 10A1" onkeydown="if(event.key==='Enter')doStudentLogin()">
+    <button class="btn btn-student" onclick="doStudentLogin()">Vào làm bài →</button>
+    <div class="err" id="sErr">Vui lòng nhập đầy đủ họ tên và lớp.</div>
+  </div>
+
+  <!-- FORM GIÁO VIÊN -->
+  <div id="adminForm" class="hide">
+    <label>Mật khẩu giáo viên</label>
+    <input type="password" id="aPass" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <button class="btn btn-admin" onclick="doAdminLogin()">Đăng nhập quản trị →</button>
+    <div class="err" id="aErr">Sai mật khẩu. Vui lòng thử lại.</div>
+  </div>
+
+  <div class="teacher">📞 Zalo: 0944316329</div>
+</div>
+
+<script src="auth.js"></script>
+<script>
+function switchTab(which){
+  const isStudent = which === 'student';
+  document.getElementById('tabStudent').classList.toggle('active', isStudent);
+  document.getElementById('tabAdmin').classList.toggle('active', !isStudent);
+  document.getElementById('studentForm').classList.toggle('hide', !isStudent);
+  document.getElementById('adminForm').classList.toggle('hide', isStudent);
+  document.getElementById('sErr').style.display = 'none';
+  document.getElementById('aErr').style.display = 'none';
+}
+
+function doStudentLogin(){
+  const name = document.getElementById('sName').value;
+  const cls = document.getElementById('sClass').value;
+  if (KiroAuth.loginStudent(name, cls)){
+    window.location.href = 'index.html';
+  } else {
+    document.getElementById('sErr').style.display = 'block';
+  }
+}
+
+function doAdminLogin(){
+  const pass = document.getElementById('aPass').value;
+  if (KiroAuth.loginAdmin(pass)){
+    window.location.href = 'index.html';
+  } else {
+    document.getElementById('aErr').style.display = 'block';
+  }
+}
+
+// Nếu đã đăng nhập rồi thì vào thẳng trang chủ
+if (KiroAuth.isLoggedIn()) window.location.href = 'index.html';
+</script>
+</body>
+</html>

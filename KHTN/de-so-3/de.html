@@ -624,7 +624,7 @@
 </div>
 
 <script>
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzD4yoyLOg0PbP3J52WWPK3qsPpkcD2YIXiXCx0ZR2DtQze8EH6XOxqyVzGfP5R6YzW/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgaG9f9xxns2K90ai9l_nMadsQjh8hAY5fvjVsF5oljNkIrwxuWW1nFjHT2XjC44Ik/exec';
 
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
@@ -834,6 +834,26 @@ async function saveToGoogleSheets(name, studentClass, correct, wrong, score, ans
         console.error('❌ Lỗi khi lưu:', error);
     }
 }
+</script>
+
+<!-- Dong bo ten dang nhap voi de thi -->
+<script src="../../auth.js"></script>
+<script>
+(function(){
+  function fillStudent(){
+    try{
+      var s = (window.KiroAuth && KiroAuth.getStudent) ? KiroAuth.getStudent() : null;
+      if (s && s.name){
+        var n = document.getElementById('studentName');
+        var c = document.getElementById('studentClass');
+        if (n){ n.value = s.name; n.readOnly = true; n.style.background = '#f0f0f0'; }
+        if (c){ c.value = s.class || ''; c.readOnly = true; c.style.background = '#f0f0f0'; }
+      }
+    }catch(e){}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fillStudent);
+  else fillStudent();
+})();
 </script>
 </body>
 </html>

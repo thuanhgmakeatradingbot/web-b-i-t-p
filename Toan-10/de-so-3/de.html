@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ð? S? 3 - Cu?i kì 2 - Toán 10</title>
+<script>
+MathJax = {
+  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;background:#f8f9fa}
+.container{max-width:1000px;margin:0 auto;background:white;padding:40px;box-shadow:0 2px 10px rgba(0,0,0,0.1);border-radius:12px;margin-bottom:50px;margin-top:20px}
+.header{text-align:center;margin-bottom:30px;padding-bottom:20px;border-bottom:2px solid #e0e0e0}
+.teacher-tag{display:flex;justify-content:space-between;font-size:11pt;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #e0e0e0;font-weight:600;color:#333}
+.exam-title{font-size:20pt;font-weight:bold;margin:15px 0;color:#1a1a1a}
+.timer{position:fixed;top:20px;right:20px;background:#1a1a1a;color:white;padding:15px 25px;border-radius:10px;font-size:18pt;font-weight:bold;z-index:1000;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+.section-title{font-size:13pt;font-weight:bold;margin:30px 0 20px 0;padding:12px 15px;background:#f0f0f0;border-left:4px solid #1a1a1a;color:#1a1a1a}
+.question{margin:25px 0;padding:20px;background:#fafafa;border-radius:8px;border-left:4px solid #ddd;border:1px solid #e0e0e0}
+.question.answered{border-left-color:#4CAF50;background:#f1f8f4}
+.question-header{font-weight:bold;margin-bottom:12px;color:#1a1a1a;font-size:12pt}
+.question-content{margin:12px 0;line-height:1.8;color:#333}
+.options{margin:20px 0}
+.option{display:block;margin:12px 0;padding:15px;background:white;border:2px solid #ddd;border-radius:8px;cursor:pointer;transition:all 0.3s}
+.option:hover{background:#f5f5f5;border-color:#1a1a1a}
+.option input[type=radio]{margin-right:12px}
+.option.selected{background:#e8e8e8;border-color:#1a1a1a;font-weight:bold}
+.true-false-group{margin:15px 0;padding:15px;background:white;border:1px solid #ddd;border-radius:8px}
+.true-false-item{margin:10px 0;padding:10px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #f0f0f0}
+.true-false-item:last-child{border-bottom:none}
+.true-false-item label{display:inline-flex;align-items:center;margin-right:20px;cursor:pointer;white-space:nowrap}
+.true-false-item input[type=radio]{margin-right:8px}
+.essay-section{background:white;padding:30px;border-radius:8px;border:2px solid #e0e0e0;margin:20px 0}
+.essay-textarea{width:100%;min-height:120px;padding:12px;border:2px solid #ddd;border-radius:8px;font-family:'Segoe UI',sans-serif;font-size:11pt;resize:vertical}
+.submit-section{text-align:center;margin:50px 0;padding:40px;background:#f8f9fa;border-radius:10px}
+.submit-btn{padding:18px 60px;font-size:16pt;background:#1a1a1a;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:bold;transition:all 0.3s}
+.submit-btn:hover{background:#333;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+.result-modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:2000;justify-content:center;align-items:center}
+.result-content{background:white;padding:50px;border-radius:15px;text-align:center;max-width:550px;width:90%}
+.result-score{font-size:48pt;font-weight:bold;color:#4CAF50;margin:20px 0}
+.back-btn{display:inline-block;margin:15px 10px;padding:15px 35px;background:#1a1a1a;color:white;text-decoration:none;border-radius:8px;font-weight:bold;border:none;cursor:pointer;transition:all 0.3s}
+.back-btn:hover{background:#333}
+.start-modal{display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:10000;justify-content:center;align-items:center}
+.start-modal-content{background:white;padding:50px;border-radius:15px;text-align:center;max-width:600px}
+.start-modal-content h1{color:#1a1a1a;font-size:28pt;margin-bottom:20px}
+.start-modal-content p{color:#666;font-size:13pt;margin:15px 0}
+.start-modal-content ul{text-align:left;margin:25px auto;padding-left:30px;max-width:400px}
+.start-modal-content li{margin:12px 0;color:#333;font-size:12pt}
+.start-modal-buttons{margin-top:35px;display:flex;gap:20px;justify-content:center}
+.start-modal-btn{padding:18px 50px;border:none;border-radius:10px;font-size:14pt;font-weight:bold;cursor:pointer;transition:all 0.3s}
+.start-modal-btn.confirm{background:#4CAF50;color:white;box-shadow:0 4px 15px rgba(76,175,80,0.4)}
+.start-modal-btn.confirm:hover{background:#45a049;transform:translateY(-3px)}
+.start-modal-btn.cancel{background:#f0f0f0;color:#333}
+.fullscreen-warning-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(244,67,54,0.95);z-index:10001;display:none;justify-content:center;align-items:center}
+.fullscreen-warning-content{background:white;padding:50px;border-radius:15px;text-align:center;max-width:500px;box-shadow:0 10px 40px rgba(0,0,0,0.5)}
+*{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}
+input,textarea{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
+.contact-info{margin-top:15px;padding:12px;background:#f0f7ff;border-radius:8px;font-size:11pt;color:#1565c0}
+.contact-info a{color:#1565c0;text-decoration:none;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="start-modal" id="startModal">
+<div class="start-modal-content">
+<h1>?? S?n sàng làm bài?</h1>
+<p><strong>Ð? S? 3 - Cu?i kì 2 - Toán 10</strong></p>
+<p>Th?i gian: <strong>90 phút</strong></p>
+<ul>
+<li>? H? th?ng s? chuy?n sang ch? d? toàn màn hình</li>
+<li>?? Không du?c thoát kh?i màn hình làm bài</li>
+<li>?? Không du?c sao chép ho?c ch?p màn hình</li>
+<li>? Th?i gian d?m ngu?c t? d?ng khi b?t d?u</li>
+</ul>
+<div class="start-modal-buttons">
+<button class="start-modal-btn cancel" onclick="cancelExam()">? Quay l?i</button>
+<button class="start-modal-btn confirm" onclick="confirmStartExam()">?? B?t d?u ngay</button>
+</div>
+</div>
+</div>
+<div class="fullscreen-warning-modal" id="fullscreenWarning" style="display:none">
+<div class="fullscreen-warning-content">
+<h1 style="color:#f44336;font-size:28pt;margin-bottom:20px">?? C?NH BÁO!</h1>
+<p style="font-size:14pt;margin:15px 0;color:#333">B?n dã thoát kh?i ch? d? toàn màn hình!</p>
+<p style="font-size:12pt;margin:15px 0;color:#666">Vui lòng quay l?i ch? d? toàn màn hình d? ti?p t?c làm bài.</p>
+<button class="start-modal-btn confirm" onclick="returnToFullscreen()" style="margin-top:25px">?? Quay l?i toàn màn hình</button>
+</div>
+</div>
+<div class="timer" id="timer">90:00</div>
+<div class="container">
+<div class="header">
+<div class="teacher-tag">
+<div>TOÁN-HÓA-SINH-KHTN | Nguy?n Phú Thu?n</div>
+<div>Zalo: 0944316329</div>
+</div>
+<div class="exam-title">Ð? ÔN T?P H?C K? II NAM H?C 2025 - 2026<br>MÔN: TOÁN 10<br>Ð? S? 03</div>
+<div style="font-size:11pt;font-style:italic;margin-top:10px">
+Môn: Toán 10 | Th?i gian: 90 phút<br>
+H? và tên: <input type="text" id="studentName" style="border:none;border-bottom:1px solid #333;width:200px;margin:5px" required>
+L?p: <input type="text" id="studentClass" style="border:none;border-bottom:1px solid #333;width:80px" required>
+</div>
+</div>
+<form id="examForm">
+<div class="section-title">PH?N I. Câu tr?c nghi?m nhi?u phuong án l?a ch?n (12 câu - m?i câu 0,25 di?m)</div>
+
+<div class="question" data-answer="D">
+<div class="question-header">Câu 1.</div>
+<div class="question-content">Bi?u th?c nào sau dây là m?t tam th?c b?c hai?</div>
+<div class="options">
+<label class="option"><input type="radio" name="q1" value="A"> A. $f(x) = 3x + 1$</label>
+<label class="option"><input type="radio" name="q1" value="B"> B. $f(x) = \dfrac{2}{x^2 + 2x - 4}$</label>
+<label class="option"><input type="radio" name="q1" value="C"> C. $f(x) = \dfrac{x^2 - x + 1}{x + 2}$</label>
+<label class="option"><input type="radio" name="q1" value="D"> D. $f(x) = -x^2 + 2x - 5$</label>
+</div>
+</div>
+
+<div class="question" data-answer="C">
+<div class="question-header">Câu 2.</div>
+<div class="question-content">T?p nghi?m c?a b?t phuong trình $x^2 - 2x - 3 \leq 0$ là</div>
+<div class="options">
+<label class="option"><input type="radio" name="q2" value="A"> A. $S = [-3;1]$</label>
+<label class="option"><input type="radio" name="q2" value="B"> B. $S = (-\infty;-1] \cup [3;+\infty)$</label>
+<label class="option"><input type="radio" name="q2" value="C"> C. $S = [-1;3]$</label>
+<label class="option"><input type="radio" name="q2" value="D"> D. $S = (-\infty;-3] \cup [1;+\infty)$</label>
+</div>
+</div>
+
+<div class="question" data-answer="B">
+<div class="question-header">Câu 3.</div>
+<div class="question-content">Phuong trình $\sqrt{x^2 + 3x - 3} = 2x - 1$ có bao nhiêu nghi?m?</div>
+<div class="options">
+<label class="option"><input type="radio" name="q3" value="A"> A. 0</label>
+<label class="option"><input type="radio" name="q3" value="B"> B. 1</label>
+<label class="option"><input type="radio" name="q3" value="C"> C. 2</label>
+<label class="option"><input type="radio" name="q3" value="D"> D. 3</label>
+</div>
+</div>
+
+<div class="question" data-answer="D">
+<div class="question-header">Câu 4.</div>
+<div class="question-content">L?p 10C có 30 h?c sinh nam và 22 h?c sinh n?. S? cách ch?n ra 1 b?n h?c sinh d? làm l?p tru?ng là</div>
+<div class="options">
+<label class="option"><input type="radio" name="q4" value="A"> A. 22</label>
+<label class="option"><input type="radio" name="q4" value="B"> B. 30</label>
+<label class="option"><input type="radio" name="q4" value="C"> C. 660</label>
+<label class="option"><input type="radio" name="q4" value="D"> D. 52</label>
+</div>
+</div>
+
+<div class="question" data-answer="A">
+<div class="question-header">Câu 5.</div>
+<div class="question-content">T? các ch? s? 1, 2, 3, 4, 5 có th? l?p du?c bao nhiêu s? t? nhiên có ba ch? s? dôi m?t khác nhau?</div>
+<div class="options">
+<label class="option"><input type="radio" name="q5" value="A"> A. 60</label>
+<label class="option"><input type="radio" name="q5" value="B"> B. 120</label>
+<label class="option"><input type="radio" name="q5" value="C"> C. 3125</label>
+<label class="option"><input type="radio" name="q5" value="D"> D. 24</label>
+</div>
+</div>
+
+<div class="question" data-answer="A">
+<div class="question-header">Câu 6.</div>
+<div class="question-content">Có bao nhiêu cách c?m 3 bông hoa khác nhau vào 3 cái l? khác nhau, bi?t r?ng m?i l? c?m 1 bông?</div>
+<div class="options">
+<label class="option"><input type="radio" name="q6" value="A"> A. 6</label>
+<label class="option"><input type="radio" name="q6" value="B"> B. 315</label>
+<label class="option"><input type="radio" name="q6" value="C"> C. 6615</label>
+<label class="option"><input type="radio" name="q6" value="D"> D. 210</label>
+</div>
+</div>
+
+<div class="question" data-answer="A">
+<div class="question-header">Câu 7.</div>
+<div class="question-content">Tìm s? h?ng ch?a $x^3y^2$ trong khai tri?n Newton bi?u th?c $(2x + 3y)^5$</div>
+<div class="options">
+<label class="option"><input type="radio" name="q7" value="A"> A. $480x^3y^2$</label>
+<label class="option"><input type="radio" name="q7" value="B"> B. $480$</label>
+<label class="option"><input type="radio" name="q7" value="C"> C. $1080x^3y^2$</label>
+<label class="option"><input type="radio" name="q7" value="D"> D. $240x^3y^2$</label>
+</div>
+</div>
+
+<div class="question" data-answer="C">
+<div class="question-header">Câu 8.</div>
+<div class="question-content">Trong m?t ph?ng $Oxy$, cho ba di?m $A(2;2)$, $B(3;-1)$, $C(6;5)$. Tìm t?a d? di?m $D$ d? $ABCD$ là hình bình hành.</div>
+<div class="options">
+<label class="option"><input type="radio" name="q8" value="A"> A. $(5;-3)$</label>
+<label class="option"><input type="radio" name="q8" value="B"> B. $(-3;2)$</label>
+<label class="option"><input type="radio" name="q8" value="C"> C. $(5;8)$</label>
+<label class="option"><input type="radio" name="q8" value="D"> D. $(4;5)$</label>
+</div>
+</div>
+
+<div class="question" data-answer="B">
+<div class="question-header">Câu 9.</div>
+<div class="question-content">Ðu?ng th?ng $2x + y - 1 = 0$ có vecto pháp tuy?n là vecto nào?</div>
+<div class="options">
+<label class="option"><input type="radio" name="q9" value="A"> A. $\vec{n} = (2;-1)$</label>
+<label class="option"><input type="radio" name="q9" value="B"> B. $\vec{n} = (2;1)$</label>
+<label class="option"><input type="radio" name="q9" value="C"> C. $\vec{n} = (1;-1)$</label>
+<label class="option"><input type="radio" name="q9" value="D"> D. $\vec{n} = (-1;2)$</label>
+</div>
+</div>
+
+<div class="question" data-answer="A">
+<div class="question-header">Câu 10.</div>
+<div class="question-content">Tâm c?a du?ng tròn $(C)$ có phuong trình $(x-3)^2 + (y+4)^2 = 12$ có to? d? là</div>
+<div class="options">
+<label class="option"><input type="radio" name="q10" value="A"> A. $(3;-4)$</label>
+<label class="option"><input type="radio" name="q10" value="B"> B. $(-4;3)$</label>
+<label class="option"><input type="radio" name="q10" value="C"> C. $(-3;4)$</label>
+<label class="option"><input type="radio" name="q10" value="D"> D. $(3;4)$</label>
+</div>
+</div>
+
+<div class="question" data-answer="B">
+<div class="question-header">Câu 11.</div>
+<div class="question-content">Ðu?ng Elip $\dfrac{x^2}{16} + \dfrac{y^2}{7} = 1$ có tiêu c? b?ng</div>
+<div class="options">
+<label class="option"><input type="radio" name="q11" value="A"> A. 18</label>
+<label class="option"><input type="radio" name="q11" value="B"> B. 6</label>
+<label class="option"><input type="radio" name="q11" value="C"> C. 9</label>
+<label class="option"><input type="radio" name="q11" value="D"> D. 3</label>
+</div>
+</div>
+
+<div class="question" data-answer="C">
+<div class="question-header">Câu 12.</div>
+<div class="question-content">Gieo m?t d?ng ti?n liên ti?p 3 l?n thì s? ph?n t? không gian m?u là bao nhiêu?</div>
+<div class="options">
+<label class="option"><input type="radio" name="q12" value="A"> A. 4</label>
+<label class="option"><input type="radio" name="q12" value="B"> B. 6</label>
+<label class="option"><input type="radio" name="q12" value="C"> C. 8</label>
+<label class="option"><input type="radio" name="q12" value="D"> D. 16</label>
+</div>
+</div>
+
+<div class="section-title">PH?N II. Câu tr?c nghi?m dúng sai (2 câu)</div>
+
+<div class="question" data-type="truefalse">
+<div class="question-header">Câu 1.</div>
+<div class="question-content">M?t t? có 5 h?c sinh nam và 5 h?c sinh n?.</div>
+<div class="true-false-group">
+<div class="true-false-item" data-answer="true">
+<span style="flex:1"><strong>a)</strong> Có $P_{10} = 10!$ cách x?p 10 h?c sinh trên thành m?t hàng ngang.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q13a" value="true"> Ðúng</label><label><input type="radio" name="q13a" value="false"> Sai</label></div>
+</div>
+<div class="true-false-item" data-answer="false">
+<span style="flex:1"><strong>b)</strong> Có $C_5^2$ cách ch?n 5 h?c sinh t? 10 h?c sinh trên trong dó có dúng 2 h?c sinh nam.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q13b" value="true"> Ðúng</label><label><input type="radio" name="q13b" value="false"> Sai</label></div>
+</div>
+<div class="true-false-item" data-answer="false">
+<span style="flex:1"><strong>c)</strong> Có $5! \cdot 5!$ cách x?p 10 h?c sinh trên thành hàng ngang sao cho 5 h?c sinh nam và 5 h?c sinh n? luôn d?ng c?nh nhau.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q13c" value="true"> Ðúng</label><label><input type="radio" name="q13c" value="false"> Sai</label></div>
+</div>
+<div class="true-false-item" data-answer="true">
+<span style="flex:1"><strong>d)</strong> Có $5! \cdot 6!$ cách x?p 10 h?c sinh trên sao cho 5 h?c sinh n? luôn d?ng c?nh nhau.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q13d" value="true"> Ðúng</label><label><input type="radio" name="q13d" value="false"> Sai</label></div>
+</div>
+</div>
+</div>
+
+<div class="question" data-type="truefalse">
+<div class="question-header">Câu 2.</div>
+<div class="question-content">Trong m?t ph?ng $Oxy$, cho hai du?ng th?ng $\Delta_1: 2x + y + 15 = 0$ và $\Delta_2: x - 2y - 3 = 0$.</div>
+<div class="true-false-group">
+<div class="true-false-item" data-answer="true">
+<span style="flex:1"><strong>a)</strong> Ði?m $M(-10;5)$ thu?c du?ng th?ng $\Delta_1$.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q14a" value="true"> Ðúng</label><label><input type="radio" name="q14a" value="false"> Sai</label></div>
+</div>
+<div class="true-false-item" data-answer="true">
+<span style="flex:1"><strong>b)</strong> Hai du?ng th?ng $\Delta_1$ và $\Delta_2$ c?t nhau t?i di?m $N\!\left(-\dfrac{27}{5};-\dfrac{21}{5}\right)$.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q14b" value="true"> Ðúng</label><label><input type="radio" name="q14b" value="false"> Sai</label></div>
+</div>
+<div class="true-false-item" data-answer="true">
+<span style="flex:1"><strong>c)</strong> Hai du?ng th?ng $\Delta_1$ và $\Delta_2$ vuông góc v?i nhau.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q14c" value="true"> Ðúng</label><label><input type="radio" name="q14c" value="false"> Sai</label></div>
+</div>
+<div class="true-false-item" data-answer="false">
+<span style="flex:1"><strong>d)</strong> Có hai du?ng th?ng song song v?i $\Delta_1$ và cách $\Delta_1$ m?t kho?ng $2\sqrt{5}$ có phuong trình: $2x + y + m = 0$ và $2x + y + n = 0$. T?ng $m + n = -30$.</span>
+<div style="white-space:nowrap"><label><input type="radio" name="q14d" value="true"> Ðúng</label><label><input type="radio" name="q14d" value="false"> Sai</label></div>
+</div>
+</div>
+</div>
+
+<div class="section-title">PH?N III. Câu tr?c nghi?m tr? l?i ng?n (4 câu)</div>
+
+<div class="question" id="qShort1">
+<div class="question-header">Câu 1.</div>
+<div class="question-content">Tìm s? nghi?m nguyên duong c?a phuong trình $\sqrt{x^2 + x + 1} = \sqrt{x + 2}$.</div>
+<input type="text" name="short1" class="short-answer-input" placeholder="Nh?p dáp s?...">
+</div>
+
+<div class="question" id="qShort2">
+<div class="question-header">Câu 2.</div>
+<div class="question-content">Cho khai tri?n: $(2x + \sqrt{5})^5 = a_5x^5 + a_4x^4 + a_3x^3 + a_2x^2 + a_1x + a_0$. Tính $S = a_5 + a_4 + a_3 + a_2 + a_1 + a_0$. (Làm tròn d?n hàng don v?)</div>
+<input type="text" name="short2" class="short-answer-input" placeholder="Nh?p dáp s?...">
+</div>
+
+<div class="question" id="qShort3">
+<div class="question-header">Câu 3.</div>
+<div class="question-content">Cho tam giác $ABC$ v?i $A(-1;-2)$ và phuong trình du?ng th?ng $BC$ là $x - y + 4 = 0$. Phuong trình du?ng cao $AH$ c?a tam giác $ABC$ là $x + by + c = 0$. Khi dó t?ng $b + c$ b?ng bao nhiêu?</div>
+<input type="text" name="short3" class="short-answer-input" placeholder="Nh?p dáp s?...">
+</div>
+
+<div class="question" id="qShort4">
+<div class="question-header">Câu 4.</div>
+<div class="question-content">Ngày 6/2/2023, m?t tr?n d?ng d?t 7,8 d? richter có tâm ch?n t?i Th? Nhi K?. Bi?t r?ng du?ng tròn tác d?ng di qua 2 thành ph? Kahramamaras và Nurdagi có to? d? l?n lu?t là $K(-3;10)$ và $N(8;0)$. M?t khác, tâm ch?n cách d?u hai thành ph? nói trên. Bán kính tác d?ng tính t? tâm ch?n b?ng bao nhiêu? (K?t qu? làm tròn d?n hàng ph?n tram)</div>
+<input type="text" name="short4" class="short-answer-input" placeholder="Nh?p dáp s?...">
+</div>
+
+<div class="section-title">PH?N IV. T? lu?n (2 câu)</div>
+
+<div class="essay-section">
+<div style="font-weight:bold;font-size:13pt;margin-bottom:15px;color:#1a1a1a">Câu 1 (1 di?m):</div>
+<div style="line-height:1.8;color:#333;margin-bottom:15px">
+Gi?i b?t phuong trình b?c hai $-x^2 + 4x + 5 \leq 0$.
+</div>
+<textarea name="essay1" class="essay-textarea" placeholder="Nh?p câu tr? l?i c?a b?n..."></textarea>
+<div style="margin-top:10px"><label style="color:#666;font-size:10pt">Ho?c dính kèm hình ?nh bài làm:</label>
+<input type="file" name="essayImg1" accept="image/*" onchange="previewImage(this,'essayPreview1')" style="margin-top:5px;padding:8px;border:1px solid #ddd;border-radius:5px;width:100%;cursor:pointer">
+<img id="essayPreview1" style="max-width:200px;max-height:200px;margin-top:10px;border:1px solid #ddd;border-radius:5px;display:none"></div>
+</div>
+
+<div class="essay-section">
+<div style="font-weight:bold;font-size:13pt;margin-bottom:15px;color:#1a1a1a">Câu 2 (1 di?m):</div>
+<div style="line-height:1.8;color:#333;margin-bottom:15px">
+Trong m?t ph?ng t?a d? $Oxy$, cho hai di?m $A(1;1)$ và $B(-2;3)$. Vi?t phuong trình du?ng th?ng $\Delta$ di qua $A$ và cách $B$ m?t kho?ng l?n nh?t.
+</div>
+<textarea name="essay2" class="essay-textarea" placeholder="Nh?p câu tr? l?i c?a b?n..."></textarea>
+<div style="margin-top:10px"><label style="color:#666;font-size:10pt">Ho?c dính kèm hình ?nh bài làm:</label>
+<input type="file" name="essayImg2" accept="image/*" onchange="previewImage(this,'essayPreview2')" style="margin-top:5px;padding:8px;border:1px solid #ddd;border-radius:5px;width:100%;cursor:pointer">
+<img id="essayPreview2" style="max-width:200px;max-height:200px;margin-top:10px;border:1px solid #ddd;border-radius:5px;display:none"></div>
+</div>
+
+<div class="essay-section">
+<div style="font-weight:bold;font-size:13pt;margin-bottom:15px;color:#1a1a1a">Câu 3 (1 di?m):</div>
+<div style="line-height:1.8;color:#333;margin-bottom:15px">
+T? b?y ch? s? $\{0;1;2;3;4;5;6\}$ có th? l?p du?c bao nhiêu s? t? nhiên chia h?t cho 5 có b?n ch? s? dôi m?t khác nhau?
+</div>
+<textarea name="essay3" class="essay-textarea" placeholder="Nh?p câu tr? l?i c?a b?n..."></textarea>
+<div style="margin-top:10px"><label style="color:#666;font-size:10pt">Ho?c dính kèm hình ?nh bài làm:</label>
+<input type="file" name="essayImg3" accept="image/*" onchange="previewImage(this,'essayPreview3')" style="margin-top:5px;padding:8px;border:1px solid #ddd;border-radius:5px;width:100%;cursor:pointer">
+<img id="essayPreview3" style="max-width:200px;max-height:200px;margin-top:10px;border:1px solid #ddd;border-radius:5px;display:none"></div>
+</div>
+
+<div class="submit-section">
+<p style="margin-bottom:20px;font-size:14pt">Ti?n d? làm bài: <strong><span id="count">0</span></strong> câu dã hoàn thành</p>
+<button type="button" class="submit-btn" onclick="submitExam()">N?P BÀI</button><br><br>
+<a href="../../index.html" style="color:#666;text-decoration:none">? Quay l?i</a>
+</div>
+</form>
+</div>
+
+<style>
+.short-answer-input{width:100%;padding:12px;border:2px solid #ddd;border-radius:8px;font-size:12pt;margin-top:10px;font-family:'Segoe UI',sans-serif}
+.short-answer-input:focus{outline:none;border-color:#1a1a1a}
+.short-answer-input.correct{border-color:#4CAF50;background:#f1f8f4}
+.short-answer-input.wrong{border-color:#f44336;background:#fff5f5}
+.loading-content{text-align:center;color:white}
+.spinner{border:8px solid #333;border-top:8px solid white;border-radius:50%;width:80px;height:80px;animation:spin 1s linear infinite;margin:0 auto 30px}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.loading-text{font-size:18pt;font-weight:bold;margin-top:20px}
+</style>
+
+<div class="loading-modal" id="loadingModal">
+<div class="loading-content">
+<div class="spinner"></div>
+<div class="loading-text">Ðang n?p bài...</div>
+<p style="margin-top:15px;color:#aaa">Vui lòng không t?t trình duy?t</p>
+</div>
+</div>
+
+<div class="result-modal" id="resultModal">
+<div class="result-content">
+<h2>?? ÐÃ N?P BÀI THÀNH CÔNG</h2>
+<div class="result-score" id="totalScore">--</div>
+<div class="score-breakdown" style="margin:20px 0;text-align:left;background:#f8f9fa;padding:15px;border-radius:8px">
+<div style="margin:8px 0;font-size:12pt">?? Ph?n I (tr?c nghi?m): <strong><span id="p1Score">0</span> / 3 di?m</strong></div>
+<div style="margin:8px 0;font-size:12pt">? Ph?n II (dúng/sai): <strong><span id="p2Score">0</span> / 2 di?m</strong></div>
+<div style="margin:8px 0;font-size:12pt">?? Ph?n III (tr? l?i ng?n): <strong><span id="p3Score">0</span> / 1 di?m</strong></div>
+<div style="margin:8px 0;font-size:12pt">?? Ph?n IV (t? lu?n): <strong>Giáo viên ch?m sau</strong></div>
+</div>
+<p style="font-size:11pt;color:#666">Bài làm dã du?c g?i d?n giáo viên</p>
+<div class="contact-info">
+<p>?? Liên h? d? có file dáp án:</p>
+<p>Facebook: <a href="https://www.facebook.com/nguyen.phu.thuan.13902" target="_blank">https://www.facebook.com/nguyen.phu.thuan.13902</a></p>
+<p>Zalo: <strong>0944316329</strong></p>
+</div>
+<a href="../../index.html" class="back-btn">? Quay v? Menu</a>
+<button onclick="location.reload()" class="back-btn" style="background:#4CAF50">Làm l?i</button>
+</div>
+</div>
+
+<script>
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgaG9f9xxns2K90ai9l_nMadsQjh8hAY5fvjVsF5oljNkIrwxuWW1nFjHT2XjC44Ik/exec';
+const EXAM_TIME_MINUTES = 90;
+
+document.addEventListener('contextmenu', e => { e.preventDefault(); return false; });
+document.addEventListener('keydown', e => {
+    if (e.ctrlKey && ['c','x','v','a','s','p'].includes(e.key)) { e.preventDefault(); return false; }
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','C'].includes(e.key)) || (e.ctrlKey && e.key === 'u')) { e.preventDefault(); return false; }
+});
+
+function enterFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+}
+
+let examStarted = false;
+function cancelExam() { window.location.href = '../../index.html'; }
+function confirmStartExam() {
+    document.getElementById('startModal').style.display = 'none';
+    enterFullscreen();
+    startTimer();
+    examStarted = true;
+    document.addEventListener('fullscreenchange', handleFSChange);
+}
+function handleFSChange() {
+    const fs = document.fullscreenElement || document.webkitFullscreenElement;
+    if (examStarted && !fs) document.getElementById('fullscreenWarning').style.display = 'flex';
+}
+function returnToFullscreen() {
+    document.getElementById('fullscreenWarning').style.display = 'none';
+    enterFullscreen();
+}
+
+let timerStarted = false, timerInterval, time = EXAM_TIME_MINUTES * 60;
+const timerEl = document.getElementById('timer');
+function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
+    timerInterval = setInterval(() => {
+        const m = Math.floor(time / 60), s = time % 60;
+        timerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+        if (time <= 0) { clearInterval(timerInterval); submitExam(); }
+        time--;
+    }, 1000);
+}
+
+document.getElementById('examForm').addEventListener('change', e => {
+    if (e.target.type === 'radio') {
+        const q = e.target.closest('.question');
+        if (q) q.classList.add('answered');
+        if (e.target.closest('.option')) {
+            q.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+            e.target.closest('.option').classList.add('selected');
+        }
+        updateProgress();
+    }
+});
+function updateProgress() {
+    document.getElementById('count').textContent = document.querySelectorAll('.question.answered').length;
+}
+
+function previewImage(input, previewId) {
+    const p = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+        const r = new FileReader();
+        r.onload = e => { p.src = e.target.result; p.style.display = 'block'; };
+        r.readAsDataURL(input.files[0]);
+    }
+}
+
+function fileToBase64(file) {
+    return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(r.result);
+        r.onerror = rej;
+        r.readAsDataURL(file);
+    });
+}
+
+async function submitExam() {
+    const name = document.getElementById('studentName').value.trim();
+    const cls = document.getElementById('studentClass').value.trim();
+    if (!name || !cls) { alert('Vui lòng di?n d?y d? H? tên và L?p tru?c khi n?p bài!'); return; }
+
+    const btn = document.querySelector('.submit-btn');
+    btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed';
+
+    const answers = {};
+
+    // ===== PH?N I: 12 câu tr?c nghi?m (m?i câu 0.25d = 3d) =====
+    const p1Correct = {q1:'D',q2:'C',q3:'B',q4:'D',q5:'A',q6:'A',q7:'A',q8:'C',q9:'B',q10:'A',q11:'B',q12:'C'};
+    let p1Score = 0;
+    for (let i = 1; i <= 12; i++) {
+        const sel = document.querySelector(`input[name="q${i}"]:checked`);
+        const val = sel ? sel.value : '';
+        answers[`q${i}`] = val;
+        const q = document.querySelector(`input[name="q${i}"]`).closest('.question');
+        if (val === p1Correct[`q${i}`]) {
+            p1Score += 0.25;
+            q.style.borderLeftColor = '#4CAF50';
+        } else {
+            q.style.borderLeftColor = '#f44336';
+        }
+    }
+
+    // ===== PH?N II: Ðúng/Sai (m?i ý 0.25d = 2d) =====
+    const p2Correct = {q13a:'true',q13b:'false',q13c:'false',q13d:'true',q14a:'true',q14b:'true',q14c:'true',q14d:'false'};
+    let p2Score = 0;
+    ['q13a','q13b','q13c','q13d','q14a','q14b','q14c','q14d'].forEach(n => {
+        const sel = document.querySelector(`input[name="${n}"]:checked`);
+        const val = sel ? sel.value : '';
+        answers[n] = val;
+        if (val === p2Correct[n]) p2Score += 0.25;
+    });
+
+    // ===== PH?N III: Tr? l?i ng?n (m?i câu 0.25d = 1d) =====
+    const p3Correct = {
+        short1: ['1'],
+        short2: ['1364'],
+        short3: ['4'],
+        short4: ['8.31','8,31']
+    };
+    let p3Score = 0;
+    for (let i = 1; i <= 4; i++) {
+        const input = document.querySelector(`input[name="short${i}"]`);
+        const val = input ? input.value.trim() : '';
+        answers[`short${i}`] = val;
+        const correct = p3Correct[`short${i}`];
+        const isCorrect = correct.some(c => val === c);
+        if (isCorrect) {
+            p3Score += 0.25;
+            if (input) input.classList.add('correct');
+        } else {
+            if (input) input.classList.add('wrong');
+        }
+        // Tô màu câu h?i
+        const qEl = document.getElementById(`qShort${i}`);
+        if (qEl) qEl.style.borderLeftColor = isCorrect ? '#4CAF50' : '#f44336';
+    }
+
+    // ===== PH?N IV: T? lu?n (giáo viên ch?m) =====
+    for (let i = 1; i <= 3; i++) {
+        const ta = document.querySelector(`textarea[name="essay${i}"]`);
+        answers[`essay${i}`] = ta ? ta.value : '';
+    }
+
+    const totalAuto = (p1Score + p2Score + p3Score).toFixed(2);
+
+    // Hi?n th? di?m lên result modal
+    document.getElementById('p1Score').textContent = p1Score.toFixed(2);
+    document.getElementById('p2Score').textContent = p2Score.toFixed(2);
+    document.getElementById('p3Score').textContent = p3Score.toFixed(2);
+    document.getElementById('totalScore').textContent = totalAuto + ' / 6d (t? d?ng)';
+
+    document.getElementById('loadingModal').style.display = 'flex';
+    await saveToGoogleSheets(name, cls, p1Score, p2Score, p3Score, totalAuto, answers);
+    document.getElementById('loadingModal').style.display = 'none';
+    document.getElementById('resultModal').style.display = 'flex';
+}
+
+function collectEssayImages_(){
+  return new Promise(function(resolve){
+    var inputs = document.querySelectorAll('input[type=file][name^="essayImg"]');
+    var store = {}; var pending = 0;
+    function finish(){ resolve(Object.keys(store).length ? JSON.stringify(store) : ''); }
+    inputs.forEach(function(inp){
+      if (inp.files && inp.files[0]){
+        pending++;
+        var rd = new FileReader();
+        var key = 'essay' + (inp.name.replace(/[^0-9]/g,'') || '');
+        rd.onload = function(e){ store[key] = e.target.result; pending--; if(pending===0) finish(); };
+        rd.onerror = function(){ pending--; if(pending===0) finish(); };
+        rd.readAsDataURL(inp.files[0]);
+      }
+    });
+    if (pending === 0) finish();
+  });
+}
+async function saveToGoogleSheets(name, cls, p1, p2, p3, total, answers) {
+    const data = {
+        timestamp: new Date().toLocaleString('vi-VN'),
+        name: name,
+        class: cls,
+        subject: 'Toán 10',
+        exam: 'Ð? S? 3 - Cu?i kì 2 - Toán 10',
+        correct: 0,
+        wrong: 0,
+        score: total,
+        answers: JSON.stringify(answers)
+    };
+    try {
+        data.essayImages = await collectEssayImages_();
+        await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
+        console.log('? Ðã luu k?t qu? vào Google Sheets');
+    } catch (e) {
+        console.error('? L?i khi luu:', e);
+    }
+}
+</script>
+
+<!-- Dong bo ten dang nhap voi de thi -->
+<script src="../../auth.js"></script>
+<script>
+(function(){
+  function fillStudent(){
+    try{
+      var s = (window.KiroAuth && KiroAuth.getStudent) ? KiroAuth.getStudent() : null;
+      if (s && s.name){
+        var n = document.getElementById('studentName');
+        var c = document.getElementById('studentClass');
+        if (n){ n.value = s.name; n.readOnly = true; n.style.background = '#f0f0f0'; }
+        if (c){ c.value = s.class || ''; c.readOnly = true; c.style.background = '#f0f0f0'; }
+      }
+    }catch(e){}
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fillStudent);
+  else fillStudent();
+})();
+</script>
+</body>
+</html>
+

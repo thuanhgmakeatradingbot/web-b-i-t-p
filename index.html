@@ -240,6 +240,63 @@
             transform: translateY(-2px);
         }
         
+        .admin-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 10pt;
+            transition: all 0.2s;
+        }
+        
+        .admin-btn.edit {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .admin-btn.edit:hover {
+            background: #bbdefb;
+        }
+        
+        .admin-btn.delete {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .admin-btn.delete:hover {
+            background: #ffcdd2;
+        }
+        
+        .grade-bar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+        
+        .grade-tab {
+            padding: 10px 22px;
+            border-radius: 25px;
+            background: white;
+            color: #555;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 11pt;
+            transition: all 0.2s;
+        }
+        
+        .grade-tab:hover {
+            border-color: #1a1a1a;
+        }
+        
+        .grade-tab.active {
+            background: #1a1a1a;
+            color: white;
+            border-color: #1a1a1a;
+        }
+        
         .difficulty {
             display: inline-block;
             padding: 6px 15px;
@@ -333,6 +390,21 @@
     </style>
 </head>
 <body>
+    <!-- Bảo vệ: chưa đăng nhập thì chuyển về login -->
+    <script src="auth.js"></script>
+    <script>
+        if (!KiroAuth.requireLogin()) {
+            // requireLogin đã tự chuyển trang; dừng phần còn lại
+            throw new Error('redirecting to login');
+        }
+    </script>
+
+    <!-- Thanh tài khoản -->
+    <div id="accountBar" style="position:fixed; top:15px; right:20px; z-index:1002; display:flex; align-items:center; gap:12px; background:rgba(26,26,26,0.92); color:white; padding:8px 16px; border-radius:30px; box-shadow:0 4px 12px rgba(0,0,0,0.25); font-size:10.5pt;">
+        <span id="accountLabel">...</span>
+        <button onclick="KiroAuth.logout(); window.location.href='login.html';" style="background:#f44336; color:white; border:none; padding:6px 14px; border-radius:20px; cursor:pointer; font-weight:bold; font-size:10pt;">Đăng xuất</button>
+    </div>
+
     <!-- Menu Toggle Button -->
     <button class="menu-toggle" id="menuToggle" onclick="toggleMenu()">
         <span></span>
@@ -379,11 +451,26 @@
             </div>
         </div>
         
+        <div id="adminBar" style="text-align:right; margin-bottom:20px; display:none;">
+            <a href="ket-qua.html" style="display:inline-block; padding:12px 25px; background:#1565c0; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">📊 Xem kết quả học sinh</a>
+            <a href="ngan-hang.html" style="display:inline-block; padding:12px 25px; background:#7b1fa2; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">🏦 Ngân hàng câu hỏi</a>
+            <a href="tao-de.html" style="display:inline-block; padding:12px 25px; background:#4CAF50; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">➕ Tạo đề mới (không cần code)</a>
+        </div>
+
+        <div style="margin-bottom:20px;">
+            <a href="de-ngau-nhien.html" style="display:inline-block; padding:14px 28px; background:#1a1a1a; color:white; text-decoration:none; border-radius:10px; font-weight:bold; font-size:12pt;">🎲 Làm đề ngẫu nhiên</a>
+        </div>
+
+        <div id="gradeBar" class="grade-bar"></div>
+
         <div id="examContainer">
             <!-- Đề thi sẽ được hiển thị ở đây -->
         </div>
     </div>
-    
+
+    <!-- Nguồn dữ liệu đề thi (dùng chung) -->
+    <script src="danh-sach-de.js"></script>
+    <script src="github-sync.js"></script>
     <script>
         // Toggle menu
         function toggleMenu() {
@@ -396,63 +483,84 @@
             menuToggle.classList.toggle('active');
         }
         
-        // Dữ liệu đề thi theo môn
-        const examData = {
-            khtn: [
-                {
-                    title: 'Đề số 1 - KHTN 8',
-                    content: 'Bộ câu hỏi số 4 (Bài 29-34)',
-                    questions: '15 câu (Câu 1-15)',
-                    time: '30 phút',
-                    topics: 'Hệ vận động, Tiêu hóa, Dinh dưỡng, Máu & Tuần hoàn',
-                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
-                    link: 'KHTN/de-so-1/de.html'
-                },
-                {
-                    title: 'Đề số 2 - KHTN 8',
-                    content: 'Bài 29-34, 45-51',
-                    questions: '15 câu (Câu 1-15)',
-                    time: '30 phút',
-                    topics: 'Hô hấp, Xương khớp, Tiêu hóa, Máu, Sinh thái, Quần thể, Môi trường',
-                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
-                    link: 'KHTN/de-so-2/de.html'
-                },
-                {
-                    title: 'Đề số 3 - KHTN 8',
-                    content: 'Đề Kiểm Tra Cuối Kì II (Mã đề 001)',
-                    questions: '28 câu trắc nghiệm',
-                    time: '45 phút',
-                    topics: 'Điện học, Nhiệt học, Hệ vận động, Máu, Tuần hoàn, Hô hấp, Thần kinh',
-                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
-                    link: 'KHTN/de-so-3/de.html'
-                }
-            ],
-            toan: [],
-            hoa: [],
-            sinh: [
-                {
-                    title: 'Đề số 1 - Sinh học 10',
-                    content: 'Đề thi Sinh học lớp 10',
-                    questions: 'Nhiều câu hỏi',
-                    time: '45 phút',
-                    topics: 'Chương trình Sinh học 10',
-                    difficulty: 'Hỗn hợp: Nhận biết → Vận dụng cao',
-                    link: 'Sinh-10/de-so-1/de.html'
-                }
-            ],
-            vatly: []
+        // Dữ liệu đề thi lấy từ file danh-sach-de.js (dùng chung).
+        // Nếu file chưa tải được thì dùng object rỗng để tránh lỗi.
+        const examData = window.EXAM_LIST || { khtn: [], toan: [], hoa: [], sinh: [], vatly: [] };
+
+        // Gộp thêm các đề mới được tạo từ tao-de.html (lưu trong trình duyệt).
+        // Nhờ vậy đề tạo xong hiện lên ngay mà không cần thay file thủ công.
+        (function mergeLocalExams() {
+            try {
+                const raw = localStorage.getItem('EXAM_LIST_LOCAL');
+                if (!raw) return;
+                const localExams = JSON.parse(raw) || [];
+                const existingIds = new Set();
+                Object.keys(examData).forEach(k => {
+                    (examData[k] || []).forEach(e => { if (e.id) existingIds.add(e.id); });
+                });
+                localExams.forEach(ex => {
+                    if (ex.id && existingIds.has(ex.id)) return; // tránh trùng nếu đã có trong file
+                    const key = ex.subjectKey || 'khtn';
+                    if (!examData[key]) examData[key] = [];
+                    ex._local = true; // đánh dấu đề tạo bằng công cụ (sửa/xóa được)
+                    examData[key].push(ex);
+                });
+            } catch (e) {
+                console.error('Không đọc được đề từ trình duyệt:', e);
+            }
+        })();
+        
+        // Cấu hình lớp theo môn: KHTN 6-9, các môn còn lại 10-12
+        const GRADES_BY_SUBJECT = {
+            khtn: [6, 7, 8, 9],
+            toan: [10, 11, 12],
+            hoa: [10, 11, 12],
+            sinh: [10, 11, 12],
+            vatly: [10, 11, 12]
         };
+        let currentSubject = 'khtn';
+        let currentGrade = null; // null = "Tất cả"
+
+        // Suy ra lớp của 1 đề: ưu tiên field "grade", nếu thiếu thì đoán từ tiêu đề
+        function getExamGrade(exam) {
+            if (exam.grade) return parseInt(exam.grade, 10);
+            const m = String(exam.title || '').match(/\b(6|7|8|9|10|11|12)\b/);
+            return m ? parseInt(m[1], 10) : null;
+        }
+
+        // Vẽ thanh chọn lớp cho môn hiện tại
+        function renderGradeBar(subject) {
+            const bar = document.getElementById('gradeBar');
+            const grades = GRADES_BY_SUBJECT[subject] || [];
+            let html = `<div class="grade-tab ${currentGrade === null ? 'active' : ''}" onclick="selectGrade(null)">Tất cả</div>`;
+            grades.forEach(g => {
+                html += `<div class="grade-tab ${currentGrade === g ? 'active' : ''}" onclick="selectGrade(${g})">Lớp ${g}</div>`;
+            });
+            bar.innerHTML = html;
+        }
+
+        function selectGrade(g) {
+            currentGrade = g;
+            renderGradeBar(currentSubject);
+            displayExams(currentSubject);
+        }
         
         // Hiển thị đề thi
         function displayExams(subject) {
+            currentSubject = subject;
             const container = document.getElementById('examContainer');
-            const exams = examData[subject];
+            let exams = examData[subject] || [];
+            // Lọc theo lớp đang chọn
+            if (currentGrade !== null) {
+                exams = exams.filter(e => getExamGrade(e) === currentGrade);
+            }
             
             if (exams.length === 0) {
+                const gradeText = currentGrade !== null ? (' lớp ' + currentGrade) : '';
                 container.innerHTML = `
                     <div style="text-align: center; padding: 60px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);">
-                        <h2 style="color: #666; font-size: 18pt;">📚 Đề thi đang được cập nhật</h2>
-                        <p style="color: #999; margin-top: 15px;">Vui lòng quay lại sau hoặc chọn môn khác</p>
+                        <h2 style="color: #666; font-size: 18pt;">📚 Chưa có đề${gradeText}</h2>
+                        <p style="color: #999; margin-top: 15px;">Vui lòng chọn lớp khác hoặc môn khác</p>
                     </div>
                 `;
                 return;
@@ -460,21 +568,87 @@
             
             let html = '<div class="exam-grid">';
             exams.forEach(exam => {
+                // Đề mới (do trình tạo đề sinh ra) có "id" -> mở bằng lam-bai.html
+                // Đề cũ có "link" -> mở file riêng
+                const target = exam.id ? `lam-bai.html?id=${encodeURIComponent(exam.id)}` : exam.link;
+                // Đề tạo bằng công cụ (lưu trong trình duyệt) thì cho sửa/xóa - CHỈ ADMIN
+                const adminBtns = (exam._local && KiroAuth.isAdmin()) ? `
+                        <div style="margin-top:12px; display:flex; gap:10px;">
+                            <button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>
+                            <button class="admin-btn delete" onclick="event.stopPropagation(); deleteLocalExam('${exam.id}')">🗑️ Xóa</button>
+                        </div>` : '';
+                const gradeBadge = getExamGrade(exam) ? `<span class="difficulty" style="background:#e3f2fd;color:#1565c0;margin-right:8px">Lớp ${getExamGrade(exam)}</span>` : '';
                 html += `
-                    <div class="exam-card" onclick="window.location.href='${exam.link}'">
+                    <div class="exam-card" onclick="window.location.href='${target}'">
                         <h2>📝 ${exam.title}</h2>
-                        <div class="exam-info"><strong>Nội dung:</strong> ${exam.content}</div>
-                        <div class="exam-info"><strong>Số câu hỏi:</strong> ${exam.questions}</div>
-                        <div class="exam-info"><strong>Thời gian:</strong> ${exam.time}</div>
-                        <div class="exam-info"><strong>Chủ đề:</strong> ${exam.topics}</div>
-                        <span class="difficulty">${exam.difficulty}</span>
+                        <div class="exam-info"><strong>Nội dung:</strong> ${exam.content || ''}</div>
+                        <div class="exam-info"><strong>Số câu hỏi:</strong> ${exam.questions || ''}</div>
+                        <div class="exam-info"><strong>Thời gian:</strong> ${exam.time || ''}</div>
+                        <div class="exam-info"><strong>Chủ đề:</strong> ${exam.topics || ''}</div>
+                        ${gradeBadge}<span class="difficulty">${exam.difficulty || ''}</span>
                         <br>
-                        <button class="start-btn" onclick="event.stopPropagation(); window.location.href='${exam.link}'">Bắt đầu làm bài →</button>
+                        <button class="start-btn" onclick="event.stopPropagation(); window.location.href='${target}'">Bắt đầu làm bài →</button>
+                        ${adminBtns}
                     </div>
                 `;
             });
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        // ===== SỬA / XÓA ĐỀ TẠO BẰNG CÔNG CỤ (lưu trong trình duyệt) =====
+        async function deleteLocalExam(id) {
+            const exam = findLocalExam(id);
+            const title = exam ? exam.title : '';
+            // Bước 1: xác nhận xóa
+            if (!confirm('Bạn có chắc muốn XÓA đề "' + title + '"?')) return;
+
+            // Bước 2: xóa khỏi máy này trước (luôn làm được)
+            removeFromLocal(id);
+
+            // Bước 3: hỏi có đẩy việc xóa lên GitHub không
+            const pushNow = confirm('Đã xóa khỏi máy này.\n\nBạn có muốn ĐẨY việc xóa lên GitHub luôn không?\n(Để học sinh ở mọi máy không còn thấy đề này.)\n\nOK = Đẩy lên GitHub | Cancel = Chỉ xóa trên máy');
+            if (pushNow) {
+                try {
+                    const changed = await GitHubSync.deleteExam(id, title);
+                    alert(changed
+                        ? '✅ Đã xóa đề trên GitHub. Web sẽ cập nhật sau ~1 phút.'
+                        : 'ℹ️ Đề này chưa từng được đẩy lên GitHub nên không cần xóa trên đó. Đã xóa xong trên máy.');
+                } catch (e) {
+                    alert('❌ Lỗi khi xóa trên GitHub: ' + e.message + '\n\n(Đề vẫn đã được xóa trên máy này.)');
+                    if (/401|token/i.test(e.message)) GitHubSync.clearToken();
+                }
+            }
+            // Cập nhật lại màn hình
+            const active = document.querySelector('.menu-item.active');
+            displayExams(active ? active.getAttribute('data-subject') : 'khtn');
+        }
+
+        // Tìm đề local theo id (trong examData đã merge)
+        function findLocalExam(id) {
+            for (const k in examData) {
+                const f = (examData[k] || []).find(e => e.id === id && e._local);
+                if (f) return f;
+            }
+            return null;
+        }
+
+        // Xóa đề khỏi localStorage và danh sách đang hiển thị
+        function removeFromLocal(id) {
+            try {
+                const raw = localStorage.getItem('EXAM_LIST_LOCAL');
+                let localExams = raw ? (JSON.parse(raw) || []) : [];
+                localExams = localExams.filter(e => e.id !== id);
+                localStorage.setItem('EXAM_LIST_LOCAL', JSON.stringify(localExams));
+            } catch (e) { /* bỏ qua */ }
+            Object.keys(examData).forEach(k => {
+                examData[k] = (examData[k] || []).filter(e => e.id !== id);
+            });
+        }
+
+        function editLocalExam(id) {
+            // Chuyển sang trình tạo đề, mở sẵn đề cần sửa
+            window.location.href = 'tao-de.html?edit=' + encodeURIComponent(id);
         }
         
         // Xử lý click menu
@@ -484,13 +658,29 @@
                 document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
                 // Thêm active class
                 this.classList.add('active');
-                // Hiển thị đề thi
+                // Đổi môn -> reset về "Tất cả lớp"
                 const subject = this.getAttribute('data-subject');
+                currentSubject = subject;
+                currentGrade = null;
+                renderGradeBar(subject);
                 displayExams(subject);
             });
         });
         
+        // ===== Thiết lập theo vai trò đăng nhập =====
+        (function setupRole() {
+            const label = document.getElementById('accountLabel');
+            if (KiroAuth.isAdmin()) {
+                label.textContent = '👨‍🏫 Giáo viên (Quản trị)';
+                document.getElementById('adminBar').style.display = 'block';
+            } else {
+                const s = KiroAuth.getStudent();
+                label.textContent = '🧑‍🎓 ' + (s ? (s.name + ' - ' + s.class) : 'Học sinh');
+            }
+        })();
+        
         // Hiển thị đề thi KHTN mặc định
+        renderGradeBar('khtn');
         displayExams('khtn');
     </script>
 </body>

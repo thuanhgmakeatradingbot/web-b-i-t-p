@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ngân hàng câu hỏi - Giáo viên</title>
+<script>
+MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] }, options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
+.wrap{max-width:950px;margin:0 auto;padding:25px 18px 90px}
+h1{font-size:24pt;margin-bottom:5px}
+.sub{color:#666;margin-bottom:20px}
+.card{background:white;border-radius:12px;padding:22px;margin-bottom:22px;box-shadow:0 2px 10px rgba(0,0,0,0.07)}
+.card h2{font-size:14pt;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #eee}
+label{display:block;font-weight:600;margin:12px 0 5px;font-size:11pt}
+input[type=text],input[type=number],select,textarea{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:11pt;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a1a}
+textarea{resize:vertical;min-height:65px}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>div{flex:1;min-width:160px}
+.btn{padding:11px 20px;border:none;border-radius:8px;font-size:11pt;font-weight:bold;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-block}
+.btn-dark{background:#1a1a1a;color:white}.btn-green{background:#2e7d32;color:white}
+.btn-blue{background:#1565c0;color:white}.btn-red{background:#f44336;color:white}.btn-gray{background:#eee;color:#333}
+.opt-row{display:flex;align-items:center;gap:10px;margin:6px 0}.opt-row input[type=text]{flex:1}.opt-row .letter{font-weight:bold;width:22px}
+.tf-row{display:flex;align-items:center;gap:10px;margin:6px 0}.tf-row input[type=text]{flex:1}.tf-row select{width:auto;min-width:90px}
+.hint{font-size:10pt;color:#888;font-weight:400;margin-top:3px}
+.q-block{border:2px solid #e0e0e0;border-radius:10px;padding:14px;margin:10px 0;background:#fafafa}
+.q-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.q-tag{display:inline-block;padding:3px 11px;border-radius:6px;font-size:9.5pt;font-weight:bold;color:white}
+.tag-mc{background:#1565c0}.tag-truefalse{background:#7b1fa2}.tag-short{background:#ef6c00}.tag-essay{background:#2e7d32}
+.empty{color:#999;font-style:italic;padding:14px 0}
+.toolbar{position:sticky;bottom:0;background:white;border-top:2px solid #eee;padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;box-shadow:0 -2px 10px rgba(0,0,0,0.05);z-index:50}
+.note{background:#fff8e1;border-left:4px solid #ffb300;padding:14px;border-radius:8px;font-size:10.5pt;margin-bottom:18px}
+.count-badges{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.cbadge{background:#eef;border-radius:20px;padding:4px 12px;font-size:10pt}
+code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.filter-bar select{min-width:140px}
+</style>
+</head>
+<body>
+<!-- Chỉ giáo viên -->
+<script src="auth.js"></script>
+<script>if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }</script>
+
+<div class="wrap">
+  <h1>🏦 Ngân hàng câu hỏi</h1>
+  <p class="sub">Thêm câu hỏi lẻ vào kho theo môn + lớp. Sau đó học sinh có thể "Làm đề ngẫu nhiên" bốc câu từ kho này.</p>
+
+  <div class="note">
+    <strong>Cách dùng:</strong> ① Chọn môn + lớp + loại → ② Nhập câu hỏi + đáp án → ③ Bấm <strong>"Thêm vào kho"</strong>.
+    Khi xong, bấm <strong>"Đẩy lên GitHub"</strong> để lưu vĩnh viễn cho mọi máy.
+    <br>🔑 Lần đầu đẩy sẽ hỏi GitHub Token (xem hướng dẫn trong file <code>github-sync.js</code>).
+  </div>
+
+  <!-- PHÂN LOẠI -->
+  <div class="card">
+    <h2>1. Phân loại câu hỏi</h2>
+    <div class="row">
+      <div>
+        <label>Môn</label>
+        <select id="subject" onchange="updateGradeOptions()"></select>
+      </div>
+      <div>
+        <label>Lớp</label>
+        <select id="grade"></select>
+      </div>
+      <div>
+        <label>Loại câu hỏi</label>
+        <select id="qType" onchange="onTypeChange()">
+          <option value="mc">Trắc nghiệm 4 đáp án</option>
+          <option value="truefalse">Đúng / Sai</option>
+          <option value="short">Trả lời ngắn</option>
+          <option value="essay">Tự luận</option>
+        </select>
+      </div>
+    </div>
+    <label>Bài / Chủ đề</label>
+    <input type="text" id="lesson" placeholder="VD: Bài 18: Tính chất chung của kim loại" list="lessonList">
+    <datalist id="lessonList"></datalist>
+  </div>
+
+  <!-- SOẠN CÂU HỎI -->
+  <div class="card">
+    <h2>2. Nội dung câu hỏi</h2>
+    <div id="editor"></div>
+    <button class="btn btn-green" id="addQBtn" style="margin-top:14px" onclick="addQuestion()">＋ Thêm vào kho</button>
+    <button class="btn btn-gray" id="cancelQBtn" style="margin-top:14px;display:none" onclick="cancelEdit()">Hủy sửa</button>
+  </div>
+
+  <!-- KHO CÂU HỎI -->
+  <div class="card">
+    <h2>3. Câu hỏi trong kho (<span id="total">0</span>)</h2>
+    <div class="filter-bar">
+      <select id="filterSubject" onchange="renderList()"><option value="">Tất cả môn</option></select>
+      <select id="filterGrade" onchange="renderList()"><option value="">Tất cả lớp</option></select>
+      <select id="filterLesson" onchange="renderList()"><option value="">Tất cả bài</option></select>
+      <select id="filterType" onchange="renderList()"><option value="">Tất cả loại</option></select>
+    </div>
+    <div class="count-badges" id="countBadges"></div>
+    <div id="list"><div class="empty">Đang tải kho...</div></div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <button class="btn btn-dark" onclick="pushAll()">🚀 Đẩy lên GitHub</button>
+  <span id="syncStatus" style="align-self:center;font-size:10.5pt;color:#666"></span>
+  <a class="btn btn-gray" href="index.html">← Về trang chủ</a>
+</div>
+
+<script src="cau-hinh.js"></script>
+<script src="ngan-hang.js"></script>
+<script src="github-sync.js"></script>
+<script>
+const SUBJECTS = window.BANK_SUBJECTS;
+const TYPES = window.QUESTION_TYPES;
+const LOCAL_KEY = 'QUESTION_BANK_LOCAL';
+
+// Kho làm việc: gộp dữ liệu file + bản lưu cục bộ trên máy
+let bank = [];
+let editingId = null;
+
+function loadBank(){
+  const fromFile = Array.isArray(window.QUESTION_BANK) ? window.QUESTION_BANK : [];
+  let local = [];
+  try { local = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]') || []; } catch(e){ local = []; }
+  // Gộp theo id: bản local đè bản file
+  const map = {};
+  fromFile.forEach(q => { map[q.id] = q; });
+  local.forEach(q => { map[q.id] = q; });
+  bank = Object.keys(map).map(k => map[k]);
+}
+function saveLocal(){ try { localStorage.setItem(LOCAL_KEY, JSON.stringify(bank)); } catch(e){} }
+
+// ---- Đổ option môn ----
+function fillSubjects(){
+  // Chỉ hiện môn gốc (không hiện combo "KHTN tổ hợp") khi thêm câu hỏi
+  const input = Object.keys(SUBJECTS).filter(k => !SUBJECTS[k].combo);
+  const sel = document.getElementById('subject');
+  sel.innerHTML = input.map(k => `<option value="${k}">${SUBJECTS[k].icon} ${SUBJECTS[k].name}</option>`).join('');
+  const fs = document.getElementById('filterSubject');
+  // Bộ lọc thì hiện tất cả (bao gồm cả combo để xem tổng hợp)
+  fs.innerHTML = '<option value="">Tất cả môn</option>' + Object.keys(SUBJECTS).filter(k=>!SUBJECTS[k].combo).map(k => `<option value="${k}">${SUBJECTS[k].name}</option>`).join('');
+}
+function updateGradeOptions(keep){
+  const sub = document.getElementById('subject').value;
+  const grades = (SUBJECTS[sub] && SUBJECTS[sub].grades) || [];
+  const sel = document.getElementById('grade');
+  const old = keep != null ? keep : parseInt(sel.value, 10);
+  sel.innerHTML = grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
+  if (grades.indexOf(old) >= 0) sel.value = String(old);
+  // filter grade dùng full range
+  const fg = document.getElementById('filterGrade');
+  if (fg && fg.options.length <= 1){
+    const all = [6,7,8,9,10,11,12];
+    fg.innerHTML = '<option value="">Tất cả lớp</option>' + all.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
+  }
+  const ft = document.getElementById('filterType');
+  if (ft && ft.options.length <= 1){
+    ft.innerHTML = '<option value="">Tất cả loại</option>' + Object.keys(TYPES).map(t => `<option value="${t}">${TYPES[t]}</option>`).join('');
+  }
+}
+
+// ---- Editor theo loại ----
+function onTypeChange(){
+  if (editingId){ document.getElementById('qType').value = bank.find(q=>q.id===editingId).type; return; }
+  renderEditor();
+}
+function setVal(id,v){ const e=document.getElementById(id); if(e) e.value=(v==null?'':v); }
+
+function renderEditor(data){
+  const t = document.getElementById('qType').value;
+  const box = document.getElementById('editor');
+  if (t === 'mc'){
+    box.innerHTML = `
+      <label>Nội dung câu hỏi</label><textarea id="f_content" placeholder="Nhập đề bài..."></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image" placeholder="VD: hinh.png hoặc https://...">
+      <label>4 đáp án</label>
+      <div class="opt-row"><span class="letter">A.</span><input type="text" id="f_a"></div>
+      <div class="opt-row"><span class="letter">B.</span><input type="text" id="f_b"></div>
+      <div class="opt-row"><span class="letter">C.</span><input type="text" id="f_c"></div>
+      <div class="opt-row"><span class="letter">D.</span><input type="text" id="f_d"></div>
+      <label>Đáp án đúng</label>
+      <select id="f_answer"><option>A</option><option>B</option><option>C</option><option>D</option></select>`;
+    if (data){ setVal('f_content',data.content);setVal('f_image',data.image);
+      setVal('f_a',(data.options||[])[0]);setVal('f_b',(data.options||[])[1]);setVal('f_c',(data.options||[])[2]);setVal('f_d',(data.options||[])[3]);
+      document.getElementById('f_answer').value=data.answer||'A'; }
+  } else if (t === 'truefalse'){
+    box.innerHTML = `
+      <label>Nội dung dẫn</label><textarea id="f_content" placeholder="VD: Cho các phát biểu sau:"></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image">
+      <label>Các ý (mỗi ý chọn Đúng/Sai)</label><div id="tf_items"></div>
+      <button class="btn btn-gray" style="margin-top:8px" type="button" onclick="addTfItem()">＋ Thêm ý</button>`;
+    if (data){ setVal('f_content',data.content);setVal('f_image',data.image); (data.subItems||[]).forEach(si=>addTfItem(si.text,si.answer)); }
+    else { for(let i=0;i<4;i++) addTfItem(); }
+  } else if (t === 'short'){
+    box.innerHTML = `
+      <label>Nội dung câu hỏi</label><textarea id="f_content"></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image">
+      <label>Đáp án đúng</label><input type="text" id="f_answers" placeholder="VD: 12   (nhiều cách viết ngăn bằng | : 0.5|1/2)">
+      <p class="hint">Tự bỏ khoảng trắng & coi 0,5 = 0.5</p>`;
+    if (data){ setVal('f_content',data.content);setVal('f_image',data.image);setVal('f_answers',(data.answers||[]).join('|')); }
+  } else if (t === 'essay'){
+    box.innerHTML = `
+      <label>Nội dung câu hỏi tự luận</label><textarea id="f_content"></textarea>
+      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image">
+      <label>Điểm câu này</label><input type="number" id="f_points" value="1" min="0" step="0.25">`;
+    if (data){ setVal('f_content',data.content);setVal('f_image',data.image); document.getElementById('f_points').value=data.points!=null?data.points:1; }
+  }
+}
+function addTfItem(text,answer){
+  const box=document.getElementById('tf_items'); if(!box) return;
+  const idx=box.children.length; const L=['a','b','c','d','e','f'][idx]||(idx+1);
+  const row=document.createElement('div'); row.className='tf-row';
+  row.innerHTML=`<span class="letter">${L})</span><input type="text" placeholder="Nội dung ý ${L}">
+    <select><option value="true">Đúng</option><option value="false">Sai</option></select>
+    <button class="btn btn-red" type="button" onclick="this.parentNode.remove()">✕</button>`;
+  box.appendChild(row);
+  if(text!=null) row.querySelector('input').value=text;
+  if(answer!=null) row.querySelector('select').value=answer?'true':'false';
+}
+function val(id){ const e=document.getElementById(id); return e?e.value.trim():''; }
+
+function buildQuestion(){
+  const t=document.getElementById('qType').value;
+  const subjectKey=document.getElementById('subject').value;
+  const grade=parseInt(document.getElementById('grade').value,10)||null;
+  const lesson=val('lesson');
+  const base={ subjectKey, grade, lesson, type:t, content:val('f_content'), image:val('f_image') };
+  if(!base.content){ alert('Vui lòng nhập nội dung câu hỏi.'); return null; }
+  if(t==='mc'){
+    const o=[val('f_a'),val('f_b'),val('f_c'),val('f_d')];
+    if(o.some(x=>!x)){ alert('Nhập đủ 4 đáp án.'); return null; }
+    base.options=o; base.answer=document.getElementById('f_answer').value;
+  } else if(t==='truefalse'){
+    const subItems=[];
+    document.querySelectorAll('#tf_items .tf-row').forEach(r=>{
+      const tx=r.querySelector('input').value.trim(); const an=r.querySelector('select').value==='true';
+      if(tx) subItems.push({text:tx,answer:an});
+    });
+    if(!subItems.length){ alert('Nhập ít nhất 1 ý.'); return null; }
+    base.subItems=subItems;
+  } else if(t==='short'){
+    const raw=val('f_answers'); if(!raw){ alert('Nhập đáp án đúng.'); return null; }
+    base.answers=raw.split('|').map(s=>s.trim()).filter(Boolean);
+  } else if(t==='essay'){
+    base.points=parseFloat(document.getElementById('f_points').value)||1;
+  }
+  return base;
+}
+
+function addQuestion(){
+  const q=buildQuestion(); if(!q) return;
+  if(editingId){
+    const old=bank.find(x=>x.id===editingId); q.id=editingId;
+    Object.assign(old,q);
+    editingId=null;
+    document.getElementById('addQBtn').textContent='＋ Thêm vào kho';
+    document.getElementById('cancelQBtn').style.display='none';
+    document.getElementById('subject').disabled=false; document.getElementById('grade').disabled=false; document.getElementById('qType').disabled=false;
+  } else {
+    q.id='cau-'+q.subjectKey+'-'+Date.now()+'-'+Math.floor(Math.random()*1000);
+    bank.push(q);
+  }
+  saveLocal(); renderEditor(); renderList();
+}
+
+function editQuestion(id){
+  const q=bank.find(x=>x.id===id); if(!q) return;
+  editingId=id;
+  document.getElementById('subject').value=q.subjectKey; updateGradeOptions(q.grade);
+  document.getElementById('qType').value=q.type;
+  document.getElementById('lesson').value=q.lesson||'';
+  document.getElementById('subject').disabled=true; document.getElementById('grade').disabled=true; document.getElementById('qType').disabled=true;
+  renderEditor(q);
+  document.getElementById('addQBtn').textContent='💾 Lưu câu hỏi';
+  document.getElementById('cancelQBtn').style.display='inline-block';
+  document.getElementById('editor').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function cancelEdit(){
+  editingId=null;
+  document.getElementById('subject').disabled=false; document.getElementById('grade').disabled=false; document.getElementById('qType').disabled=false;
+  document.getElementById('addQBtn').textContent='＋ Thêm vào kho';
+  document.getElementById('cancelQBtn').style.display='none';
+  renderEditor();
+}
+
+async function removeQuestion(id){
+  const q=bank.find(x=>x.id===id);
+  if(!confirm('Xóa câu hỏi này khỏi kho?')) return;
+  bank=bank.filter(x=>x.id!==id); saveLocal(); renderList();
+  // Hỏi đẩy lên GitHub
+  if(confirm('Đã xóa trên máy.\nĐẩy việc xóa lên GitHub luôn không?')){
+    try{ const ch=await GitHubSync.deleteBankQuestion(id);
+      setStatus(ch?'✅ Đã xóa trên GitHub.':'ℹ️ Câu này chưa có trên GitHub.', ch?'#2e7d32':'#666');
+    }catch(e){ setStatus('❌ '+e.message,'#c62828'); if(/401|token/i.test(e.message)) GitHubSync.clearToken(); }
+  }
+}
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderList(){
+  document.getElementById('total').textContent=bank.length;
+  // Badge thống kê
+  const byType={mc:0,truefalse:0,short:0,essay:0};
+  bank.forEach(q=>{ if(byType[q.type]!=null) byType[q.type]++; });
+  document.getElementById('countBadges').innerHTML=Object.keys(TYPES).map(t=>`<span class="cbadge">${TYPES[t]}: <b>${byType[t]}</b></span>`).join('');
+
+  // Cập nhật danh sách bài cho bộ lọc + datalist
+  refreshLessonOptions();
+
+  const fS=document.getElementById('filterSubject').value;
+  const fG=document.getElementById('filterGrade').value;
+  const fL=document.getElementById('filterLesson').value;
+  const fT=document.getElementById('filterType').value;
+  let rows=bank.filter(q=>{
+    if(fS && q.subjectKey!==fS) return false;
+    if(fG && String(q.grade)!==fG) return false;
+    if(fL && (q.lesson||'')!==fL) return false;
+    if(fT && q.type!==fT) return false;
+    return true;
+  });
+  const box=document.getElementById('list');
+  if(rows.length===0){ box.innerHTML='<div class="empty">Không có câu hỏi khớp bộ lọc.</div>'; return; }
+  const tagCls={mc:'tag-mc',truefalse:'tag-truefalse',short:'tag-short',essay:'tag-essay'};
+  let html='';
+  rows.forEach(q=>{
+    let detail='';
+    if(q.type==='mc') detail='Đáp án: <b>'+q.answer+'</b>';
+    else if(q.type==='truefalse') detail=q.subItems.length+' ý ('+q.subItems.map(s=>s.answer?'Đ':'S').join('')+')';
+    else if(q.type==='short') detail='Đáp án: <b>'+escapeHtml((q.answers||[]).join(' | '))+'</b>';
+    else if(q.type==='essay') detail=q.points+' điểm';
+    const subName=(SUBJECTS[q.subjectKey]&&SUBJECTS[q.subjectKey].name)||q.subjectKey;
+    const prev=escapeHtml((q.content||'').slice(0,80))+((q.content||'').length>80?'…':'');
+    html+=`<div class="q-block">
+      <div class="q-top">
+        <span><span class="q-tag ${tagCls[q.type]}">${TYPES[q.type]}</span>
+        <span class="hint" style="margin-left:6px">${subName} • Lớp ${q.grade||'?'}${q.lesson?' • '+escapeHtml(q.lesson):''}</span></span>
+        <span>
+          <button class="btn btn-blue" onclick="editQuestion('${q.id}')">✏️ Sửa</button>
+          <button class="btn btn-red" onclick="removeQuestion('${q.id}')">✕ Xóa</button>
+        </span>
+      </div>
+      <div>${prev}</div><div class="hint">${detail}</div>
+    </div>`;
+  });
+  box.innerHTML=html;
+  if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([box]);
+}
+
+function setStatus(msg,color){ const s=document.getElementById('syncStatus'); s.textContent=msg; s.style.color=color||'#666'; }
+
+// Cập nhật danh sách "Bài" cho ô lọc + datalist gợi ý (lọc theo môn đang chọn ở bộ lọc nếu có)
+function refreshLessonOptions(){
+  const fS=document.getElementById('filterSubject').value;
+  const lessons = Array.from(new Set(
+    bank.filter(q => !fS || q.subjectKey===fS).map(q => q.lesson).filter(Boolean)
+  )).sort((a,b)=>{
+    const na=(a.match(/\d+/)||[0])[0], nb=(b.match(/\d+/)||[0])[0];
+    return (+na)-(+nb) || a.localeCompare(b);
+  });
+  const fl=document.getElementById('filterLesson');
+  const cur=fl.value;
+  fl.innerHTML='<option value="">Tất cả bài</option>'+lessons.map(l=>`<option value="${escapeHtml(l)}">${escapeHtml(l)}</option>`).join('');
+  if(lessons.indexOf(cur)>=0) fl.value=cur;
+  // datalist cho ô nhập khi soạn câu
+  const dl=document.getElementById('lessonList');
+  if(dl){
+    const allLessons=Array.from(new Set(bank.map(q=>q.lesson).filter(Boolean)));
+    dl.innerHTML=allLessons.map(l=>`<option value="${escapeHtml(l)}">`).join('');
+  }
+}
+
+async function pushAll(){
+  setStatus('⏳ Đang đẩy lên GitHub...','#666');
+  try{
+    await GitHubSync.pushBankAll(bank,'Cập nhật ngân hàng câu hỏi ('+bank.length+' câu)');
+    setStatus('✅ Đã đẩy '+bank.length+' câu lên GitHub. Web cập nhật sau ~1 phút.','#2e7d32');
+  }catch(e){
+    setStatus('❌ '+e.message,'#c62828');
+    if(/401|token/i.test(e.message)) GitHubSync.clearToken();
+  }
+}
+
+// Khởi tạo
+fillSubjects();
+updateGradeOptions();
+renderEditor();
+loadBank();
+renderList();
+</script>
+</body>
+</html>

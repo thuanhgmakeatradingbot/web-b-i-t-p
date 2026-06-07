@@ -1668,6 +1668,161 @@ KHTN_DE_1=https://web-bai-tap.vercel.app/KHTN/de-so-1/de.html
 
 ## 11. CHANGELOG & UPDATES
 
+### [UPDATED - 2025-01-XX 18:30] - ⚠️ ADD: Fullscreen warning modal for all templates + exam files
+
+**Feature Added:** Cảnh báo khi học sinh thoát fullscreen
+
+**WHY cần tính năng này:**
+- Ngăn chặn học sinh thoát fullscreen để tra cứu
+- Tạo áp lực tâm lý, giảm gian lận
+- Ghi nhận hành vi vi phạm (console log)
+- Cải thiện trải nghiệm thi online
+
+**Implementation:**
+
+1. **Modal cảnh báo (HTML):**
+```html
+<div class="fullscreen-warning-modal" id="fullscreenWarning" style="display: none;">
+    <div class="fullscreen-warning-content">
+        <h1 style="color: #f44336;">⚠️ CẢNH BÁO!</h1>
+        <p>Bạn đã thoát khỏi chế độ toàn màn hình!</p>
+        <button onclick="returnToFullscreen()">🔄 Quay lại toàn màn hình</button>
+    </div>
+</div>
+```
+
+2. **CSS Animation:**
+```css
+.fullscreen-warning-modal {
+    background: rgba(244, 67, 54, 0.95);
+    animation: shake 0.5s;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+    20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+```
+
+3. **JavaScript Logic:**
+```javascript
+let examStarted = false;
+let fullscreenExitCount = 0;
+
+function startFullscreenMonitoring() {
+    examStarted = true;
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+}
+
+function handleFullscreenChange() {
+    const isFullscreen = document.fullscreenElement || 
+                        document.webkitFullscreenElement || 
+                        document.mozFullScreenElement || 
+                        document.msFullscreenElement;
+    
+    if (examStarted && !isFullscreen) {
+        fullscreenExitCount++;
+        document.getElementById('fullscreenWarning').style.display = 'flex';
+        console.warn(`⚠️ Thoát fullscreen lần ${fullscreenExitCount}`);
+    }
+}
+
+function returnToFullscreen() {
+    document.getElementById('fullscreenWarning').style.display = 'none';
+    enterFullscreen();
+}
+```
+
+**Files changed:**
+- ✅ `KHTN/de-so-3/de.html` - Thêm fullscreen warning + gửi fullscreenExitCount lên server
+- ✅ `template-de-full-trac-nghiem.html` - Thêm fullscreen warning (không gửi lên server)
+- ✅ `template-de-trac-nghiem-tu-luan.html` - Thêm fullscreen warning (không gửi lên server)
+- ✅ `template-de-trac-nghiem-dung-sai-tu-luan.html` - Thêm fullscreen warning (không gửi lên server)
+- ✅ `google-apps-script-nang-cao.js` - Thêm cột M để lưu fullscreenExitCount
+
+**Backend changes:**
+```javascript
+// Thêm vào doPost()
+var fullscreenExitCount = data.fullscreenExitCount || 0;
+
+// Thêm vào appendRow()
+mainSheet.appendRow([
+    timestamp,           // A
+    name,                // B
+    studentClass,        // C
+    subject,             // D
+    exam,                // E
+    correct,             // F
+    wrong,               // G
+    score,               // H
+    answersText,         // I
+    explanations,        // J
+    imageLinks,          // K
+    essayText,           // L
+    fullscreenExitCount  // M - Số lần thoát fullscreen
+]);
+```
+
+**Impact:**
+- ✅ Học sinh không thể thoát fullscreen mà không bị phát hiện
+- ✅ Modal màu đỏ với animation shake tạo áp lực tâm lý
+- ✅ Console log ghi nhận số lần vi phạm
+- ✅ Đề số 3 gửi số lần thoát lên Google Sheets (cột M)
+- ✅ Templates chỉ cảnh báo, không gửi lên server
+
+**User Experience:**
+1. Học sinh bắt đầu thi → Vào fullscreen
+2. Nếu thoát fullscreen (ESC, Alt+Tab, etc.) → Modal đỏ hiện ngay
+3. Phải click "Quay lại toàn màn hình" để tiếp tục
+4. Mỗi lần thoát được ghi nhận trong console
+
+**Status:** ✅ COMPLETED
+
+---
+
+### [UPDATED - 2025-01-XX 18:00] - 🔧 FIX: Update Google Script URL + improve push script
+
+**Changes:**
+
+1. **Cập nhật URL mới:**
+   - Old: `AKfycbyiAQ96NX5ZNIhZNVOrRXzXP_9xZAHa09zVCz8iw_iC0OapfvE00yKcQ2jxzUFvHsh3`
+   - New: `AKfycbzD4yoyLOg0PbP3J52WWPK3qsPpkcD2YIXiXCx0ZR2DtQze8EH6XOxqyVzGfP5R6YzW`
+
+2. **Files updated với URL mới:**
+   - ✅ `KHTN/de-so-1/de.html`
+   - ✅ `KHTN/de-so-2/de.html`
+   - ✅ `KHTN/de-so-3/de.html`
+   - ✅ `Sinh-10/de-so-1/de.html`
+   - ✅ `template-de-full-trac-nghiem.html`
+   - ✅ `template-de-trac-nghiem-tu-luan.html`
+   - ✅ `template-de-trac-nghiem-dung-sai-tu-luan.html`
+
+3. **Cải thiện push-update.bat:**
+   - Thêm `chcp 65001` - Hỗ trợ tiếng Việt
+   - Kiểm tra Git repository trước khi push
+   - Kiểm tra commit message không rỗng
+   - Error handling tốt hơn với gợi ý fix
+   - Hiển thị lỗi rõ ràng cho từng bước
+
+4. **Tạo check-git.bat:**
+   - Kiểm tra Git version
+   - Kiểm tra repository status
+   - Kiểm tra remote repository
+   - Kiểm tra branch hiện tại
+   - Hiển thị 5 commit gần nhất
+
+**WHY cần cải thiện:**
+- User gặp lỗi khi push code
+- Cần debug tool để kiểm tra Git status
+- Cần error messages rõ ràng hơn
+
+**Status:** ✅ COMPLETED
+
+---
+
 ### [UPDATED - 2025-01-XX 17:00] - 🔥 CRITICAL FIX: mode: 'no-cors' blocking POST data
 
 **ROOT CAUSE FOUND!** 
