@@ -179,6 +179,27 @@ window.EXAM_LIST = {
       "topics": "Chương trình Sinh học 10",
       "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
       "link": "Sinh-10/de-so-1/de.html"
+    },
+    {
+      "id": "de-sinh-1781323618065",
+      "subjectKey": "sinh",
+      "subjectName": "Sinh học",
+      "grade": 11,
+      "title": "Đề thi học sinh giỏi",
+      "content": "Chỉ dành cho các bạn thi hsg sinh 11",
+      "questions": "1 tự luận",
+      "time": "45 phút",
+      "timeMinutes": 45,
+      "topics": "Cảm ứng",
+      "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
+      "items": [
+        {
+          "type": "essay",
+          "content": "Câu 1:\na. Ứng động là gì? Trình bày các kiểu ứng động?\nb. Phân biệt vận động khép lá - xòe lá ở cây phượng và cây trinh nữ?",
+          "image": "https://vi.wikipedia.org/wiki/T%E1%BA%ADp_tin:Mimosa_pudica0.jpg",
+          "points": 1
+        }
+      ]
     }
   ],
   "vatly": []
