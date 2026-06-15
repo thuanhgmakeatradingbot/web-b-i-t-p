@@ -108,6 +108,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 
 <div class="toolbar">
   <button class="btn btn-dark" onclick="pushAll()">🚀 Đẩy lên GitHub</button>
+  <button class="btn btn-gray" onclick="cleanImages()">🧹 Dọn ảnh không dùng</button>
   <span id="syncStatus" style="align-self:center;font-size:10.5pt;color:#666"></span>
   <a class="btn btn-gray" href="index.html">← Về trang chủ</a>
 </div>
@@ -383,6 +384,28 @@ async function pushAll(){
   try{
     await GitHubSync.pushBankAll(bank,'Cập nhật ngân hàng câu hỏi ('+bank.length+' câu)');
     setStatus('✅ Đã đẩy '+bank.length+' câu lên GitHub. Web cập nhật sau ~1 phút.','#2e7d32');
+  }catch(e){
+    setStatus('❌ '+e.message,'#c62828');
+    if(/401|token/i.test(e.message)) GitHubSync.clearToken();
+  }
+}
+
+// Dọn ảnh trong images/ không câu hỏi/đề nào dùng tới
+async function cleanImages(){
+  setStatus('⏳ Đang quét ảnh trên GitHub...','#666');
+  try{
+    // Bảo vệ cả dữ liệu cục bộ chưa đẩy (kho câu hỏi + đề tạo bằng công cụ)
+    let extra = '';
+    try{ extra = JSON.stringify(bank) + (localStorage.getItem('EXAM_LIST_LOCAL')||''); }catch(e){}
+    const orphans = await GitHubSync.listOrphanImages(extra);
+    if(!orphans.length){ setStatus('✅ Không có ảnh thừa — repo đã gọn.','#2e7d32'); return; }
+    const ok = confirm('Tìm thấy '+orphans.length+' ảnh không dùng:\n\n'+
+      orphans.map(o=>'• '+o.name).join('\n')+
+      '\n\nXóa hẳn các ảnh này khỏi GitHub?');
+    if(!ok){ setStatus('Đã hủy dọn ảnh.','#666'); return; }
+    setStatus('⏳ Đang xóa '+orphans.length+' ảnh...','#666');
+    const n = await GitHubSync.deleteImages(orphans);
+    setStatus('✅ Đã xóa '+n+' ảnh không dùng khỏi GitHub.','#2e7d32');
   }catch(e){
     setStatus('❌ '+e.message,'#c62828');
     if(/401|token/i.test(e.message)) GitHubSync.clearToken();

@@ -305,6 +305,58 @@ const GitHubSync = {
       await this._putRaw(this.BANK_PATH, buildBankFileText(next), sha, 'Xóa câu hỏi: ' + id);
       return true;
     });
+  },
+
+  // ===== DỌN ẢNH KHÔNG DÙNG (thư mục images/) =====
+
+  // Liệt kê file trong 1 thư mục trên repo -> mảng {name, path, sha, type}
+  async _listDir(path){
+    const { owner, repo, branch } = GITHUB_CONFIG;
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}?ref=${branch}`;
+    const res = await fetch(url, { headers: this._headers() });
+    if (res.status === 404) return [];
+    if (res.status === 401) throw new Error('Token không hợp lệ hoặc hết hạn (401). Hãy nhập lại token.');
+    if (!res.ok) throw new Error('Lỗi liệt kê thư mục: ' + res.status + ' - ' + (await res.text()));
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  },
+
+  // Xóa 1 file bất kỳ theo path + sha
+  async _deleteFile(path, sha, message){
+    const { owner, repo, branch } = GITHUB_CONFIG;
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+    const body = { message: message || ('Xóa ' + path), sha: sha, branch: branch };
+    const res = await fetch(url, { method: 'DELETE', headers: this._headers(), body: JSON.stringify(body) });
+    if (res.status === 401) throw new Error('Token không hợp lệ hoặc hết hạn (401).');
+    if (res.status === 403) throw new Error('Token thiếu quyền ghi (403). Cần quyền Contents: Read and write.');
+    if (!res.ok) throw new Error('Lỗi xóa file: ' + res.status + ' - ' + (await res.text()));
+    return res.json();
+  },
+
+  // Tìm ảnh trong images/ KHÔNG được tham chiếu ở đâu.
+  // Đối chiếu tên file với: ngan-hang.js + danh-sach-de.js trên GitHub, cộng
+  // extraRefText (dữ liệu cục bộ chưa đẩy) để không xóa nhầm ảnh đang dùng.
+  async listOrphanImages(extraRefText){
+    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
+    const files = (await this._listDir('images')).filter(f => f.type === 'file');
+    if (!files.length) return [];
+    let blob = String(extraRefText || '');
+    try { const { text } = await this._getRaw(this.BANK_PATH); blob += text; } catch(e){}
+    try { const { text } = await this._getRaw(GITHUB_CONFIG.path); blob += text; } catch(e){}
+    return files
+      .filter(f => blob.indexOf(f.name) === -1)
+      .map(f => ({ name: f.name, path: f.path, sha: f.sha }));
+  },
+
+  // Xóa danh sách ảnh (mỗi ảnh 1 commit). Trả về số ảnh đã xóa.
+  async deleteImages(items){
+    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
+    let n = 0;
+    for (const it of (items || [])){
+      await this._deleteFile(it.path, it.sha, 'Dọn ảnh không dùng: ' + it.name);
+      n++;
+    }
+    return n;
   }
 };
 
