@@ -345,7 +345,7 @@ const GitHubSync = {
     try { const { text } = await this._getRaw(GITHUB_CONFIG.path); blob += text; } catch(e){}
     return files
       .filter(f => blob.indexOf(f.name) === -1)
-      .map(f => ({ name: f.name, path: f.path, sha: f.sha }));
+      .map(f => ({ name: f.name, path: f.path, sha: f.sha, size: f.size }));
   },
 
   // Xóa danh sách ảnh (mỗi ảnh 1 commit). Trả về số ảnh đã xóa.

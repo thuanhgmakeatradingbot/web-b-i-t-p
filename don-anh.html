@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dọn ảnh không dùng - Giáo viên</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
+.wrap{max-width:1000px;margin:0 auto;padding:25px 18px 100px}
+h1{font-size:23pt;margin-bottom:5px}
+.sub{color:#666;margin-bottom:18px}
+.note{background:#fff8e1;border-left:4px solid #ffb300;padding:14px;border-radius:8px;font-size:10.5pt;margin-bottom:18px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.btn{padding:10px 18px;border:none;border-radius:8px;font-size:11pt;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block;transition:all .2s}
+.btn-dark{background:#1a1a1a;color:white}.btn-red{background:#f44336;color:white}.btn-gray{background:#eee;color:#333}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:16px}
+.img-card{position:relative;display:block;background:white;border:2px solid #e0e0e0;border-radius:10px;padding:10px;cursor:pointer;transition:all .15s}
+.img-card:hover{border-color:#1a1a1a}
+.img-card input{position:absolute;top:14px;left:14px;width:20px;height:20px;cursor:pointer;z-index:2}
+.img-card.sel{border-color:#f44336;background:#fff5f5}
+.img-card img{width:100%;height:140px;object-fit:contain;background:#fafafa;border-radius:6px;border:1px solid #eee}
+.img-name{font-size:9pt;color:#444;margin-top:8px;word-break:break-all}
+.img-size{font-size:9pt;color:#999}
+.empty{color:#777;font-style:italic;padding:40px;text-align:center;background:white;border-radius:12px}
+.toolbar{position:sticky;bottom:0;background:white;border-top:2px solid #eee;padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;align-items:center;box-shadow:0 -2px 10px rgba(0,0,0,0.05);z-index:50}
+#status{font-size:10.5pt;color:#666}
+</style>
+</head>
+<body>
+<!-- Chỉ giáo viên -->
+<script src="auth.js"></script>
+<script>if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }</script>
+
+<div class="wrap">
+  <h1>🧹 Dọn ảnh không dùng</h1>
+  <p class="sub">Các ảnh trong <code>images/</code> không câu hỏi hay đề nào dùng tới. Tick chọn ảnh muốn xóa.</p>
+
+  <div class="note">
+    Trang chỉ liệt kê ảnh <strong>không được tham chiếu</strong> ở ngân hàng câu hỏi, danh sách đề
+    (trên GitHub) và dữ liệu đang soạn dở trên máy này. Ảnh đang dùng sẽ <strong>không</strong> hiện ở đây.
+    Xóa ảnh là <strong>vĩnh viễn</strong> trên GitHub (cần Token).
+  </div>
+
+  <div class="bar">
+    <button class="btn btn-gray" onclick="selectAll(true)">☑️ Chọn tất cả</button>
+    <button class="btn btn-gray" onclick="selectAll(false)">⬜ Bỏ chọn</button>
+    <button class="btn btn-gray" onclick="load()">🔄 Quét lại</button>
+  </div>
+
+  <div id="grid" class="grid"><div class="empty">Đang tải...</div></div>
+</div>
+
+<div class="toolbar">
+  <button class="btn btn-red" id="delBtn" onclick="deleteSelected()" disabled>🗑️ Xóa ảnh đã chọn (0)</button>
+  <span id="status"></span>
+  <a class="btn btn-gray" href="ngan-hang.html">← Về ngân hàng</a>
+  <a class="btn btn-gray" href="index.html">🏠 Trang chủ</a>
+</div>
+
+<script src="github-sync.js"></script>
+<script>
+let orphans = [];
+
+function setStatus(msg, color){ const s=document.getElementById('status'); s.textContent=msg||''; s.style.color=color||'#666'; }
+function fmtSize(b){ if(b==null) return ''; if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(0)+' KB'; return (b/1048576).toFixed(1)+' MB'; }
+
+async function load(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='<div class="empty">⏳ Đang quét ảnh không dùng trên GitHub...</div>';
+  setStatus('');
+  try{
+    // Bảo vệ dữ liệu đang soạn dở (chưa đẩy) ở cả 2 trang
+    let extra='';
+    try{ extra = (localStorage.getItem('QUESTION_BANK_LOCAL')||'') + (localStorage.getItem('EXAM_LIST_LOCAL')||''); }catch(e){}
+    orphans = await GitHubSync.listOrphanImages(extra);
+    render();
+  }catch(e){
+    grid.innerHTML='<div class="empty">❌ '+e.message+'</div>';
+    setStatus('❌ '+e.message,'#c62828');
+    if(/401|token/i.test(e.message)) GitHubSync.clearToken();
+  }
+}
+
+function render(){
+  const grid=document.getElementById('grid');
+  if(!orphans.length){
+    grid.innerHTML='<div class="empty">✅ Không có ảnh thừa — thư mục ảnh đã gọn gàng.</div>';
+    updateCount(); return;
+  }
+  grid.innerHTML = orphans.map((o,i)=>`
+    <label class="img-card" id="card-${i}">
+      <input type="checkbox" class="pick" data-i="${i}" onchange="onPick(${i})">
+      <img src="${o.path}" loading="lazy" alt="${o.name}" onerror="this.style.opacity=.3">
+      <div class="img-name">${o.name}</div>
+      <div class="img-size">${fmtSize(o.size)}</div>
+    </label>`).join('');
+  setStatus('Tìm thấy '+orphans.length+' ảnh không dùng.','#666');
+  updateCount();
+}
+
+function onPick(i){
+  const c=document.querySelector('.pick[data-i="'+i+'"]');
+  document.getElementById('card-'+i).classList.toggle('sel', c.checked);
+  updateCount();
+}
+
+function selectAll(on){
+  document.querySelectorAll('.pick').forEach(c=>{ c.checked=on; c.closest('.img-card').classList.toggle('sel', on); });
+  updateCount();
+}
+
+function getSelected(){ return [...document.querySelectorAll('.pick:checked')].map(c=>orphans[+c.dataset.i]); }
+
+function updateCount(){
+  const n=document.querySelectorAll('.pick:checked').length;
+  const b=document.getElementById('delBtn');
+  b.textContent='🗑️ Xóa ảnh đã chọn ('+n+')';
+  b.disabled = n===0;
+}
+
+async function deleteSelected(){
+  const picks=getSelected();
+  if(!picks.length){ alert('Chưa chọn ảnh nào.'); return; }
+  if(!confirm('Xóa '+picks.length+' ảnh đã chọn khỏi GitHub?\nKhông thể hoàn tác.')) return;
+  const b=document.getElementById('delBtn'); b.disabled=true;
+  setStatus('⏳ Đang xóa '+picks.length+' ảnh...','#666');
+  try{
+    const n=await GitHubSync.deleteImages(picks);
+    setStatus('✅ Đã xóa '+n+' ảnh. Đang làm mới danh sách...','#2e7d32');
+    await load();
+  }catch(e){
+    setStatus('❌ '+e.message+' (một số ảnh có thể đã xóa)','#c62828');
+    if(/401|token/i.test(e.message)) GitHubSync.clearToken();
+    await load();
+  }
+}
+
+load();
+</script>
+</body>
+</html>

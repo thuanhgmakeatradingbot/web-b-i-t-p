@@ -165,7 +165,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
   <button class="btn btn-gray" id="cancelExamBtn" style="display:none" onclick="cancelEditExam()">Hủy sửa đề</button>
   <button class="btn btn-dark" onclick="downloadFile()">⬇️ Tải file danh-sach-de.js</button>
   <button class="btn btn-gray" onclick="resetCurrent()">🗑️ Xóa đề đang soạn</button>
-  <button class="btn btn-gray" onclick="cleanImages()">🧹 Dọn ảnh không dùng</button>
+  <a class="btn btn-gray" href="don-anh.html" style="text-decoration:none;display:inline-block">🧹 Dọn ảnh không dùng</a>
   <a class="btn btn-gray" href="index.html" style="text-decoration:none;display:inline-block">← Về trang chủ</a>
 </div>
 
@@ -720,29 +720,6 @@ window.EXAM_LIST = `;
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-}
-
-// ========= DỌN ẢNH KHÔNG DÙNG =========
-async function cleanImages(){
-  try{
-    // Bảo vệ cả dữ liệu đang soạn dở (đề mới + câu hỏi đang nhập) chưa đẩy lên
-    let extra = '';
-    try{
-      extra = JSON.stringify(newExams) + JSON.stringify(currentQuestions) +
-              (localStorage.getItem(LOCAL_KEY) || '');
-    }catch(e){}
-    const orphans = await GitHubSync.listOrphanImages(extra);
-    if(!orphans.length){ alert('✅ Không có ảnh thừa — repo đã gọn.'); return; }
-    const ok = confirm('Tìm thấy ' + orphans.length + ' ảnh không dùng:\n\n' +
-      orphans.map(o => '• ' + o.name).join('\n') +
-      '\n\nXóa hẳn các ảnh này khỏi GitHub?');
-    if(!ok) return;
-    const n = await GitHubSync.deleteImages(orphans);
-    alert('✅ Đã xóa ' + n + ' ảnh không dùng khỏi GitHub.');
-  }catch(e){
-    alert('❌ ' + e.message);
-    if(/401|token/i.test(e.message)) GitHubSync.clearToken();
-  }
 }
 
 // ========= TIỆN ÍCH =========
