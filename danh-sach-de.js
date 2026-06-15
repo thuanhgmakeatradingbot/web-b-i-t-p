@@ -37,33 +37,6 @@ window.EXAM_LIST = {
       "topics": "Điện học, Nhiệt học, Hệ vận động, Máu, Tuần hoàn, Hô hấp, Thần kinh",
       "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
       "link": "KHTN/de-so-3/de.html"
-    },
-    {
-      "id": "de-khtn-1780827220650",
-      "subjectKey": "khtn",
-      "subjectName": "Khoa học tự nhiên",
-      "grade": 9,
-      "title": "Test",
-      "content": "",
-      "questions": "1 trắc nghiệm",
-      "time": "45 phút",
-      "timeMinutes": 45,
-      "topics": "",
-      "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
-      "items": [
-        {
-          "type": "mc",
-          "content": "Test nè",
-          "image": "",
-          "options": [
-            "cái này sai",
-            "cái này sai",
-            "cái này sai",
-            "cái này sai"
-          ],
-          "answer": "A"
-        }
-      ]
     }
   ],
   "toan": [
