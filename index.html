@@ -571,11 +571,12 @@
                 // Đề mới (do trình tạo đề sinh ra) có "id" -> mở bằng lam-bai.html
                 // Đề cũ có "link" -> mở file riêng
                 const target = exam.id ? `lam-bai.html?id=${encodeURIComponent(exam.id)}` : exam.link;
-                // Đề tạo bằng công cụ (lưu trong trình duyệt) thì cho sửa/xóa - CHỈ ADMIN
-                const adminBtns = (exam._local && KiroAuth.isAdmin()) ? `
+                // CHỈ ADMIN: mọi đề đều có nút Xóa; nút Sửa chỉ cho đề tạo bằng công cụ.
+                const ref = exam.id || exam.link || '';
+                const adminBtns = KiroAuth.isAdmin() ? `
                         <div style="margin-top:12px; display:flex; gap:10px;">
-                            <button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>
-                            <button class="admin-btn delete" onclick="event.stopPropagation(); deleteLocalExam('${exam.id}')">🗑️ Xóa</button>
+                            ${(exam._local && exam.id) ? `<button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>` : ''}
+                            <button class="admin-btn delete" onclick="event.stopPropagation(); deleteExamCard('${encodeURIComponent(ref)}')">🗑️ Xóa</button>
                         </div>` : '';
                 const gradeBadge = getExamGrade(exam) ? `<span class="difficulty" style="background:#e3f2fd;color:#1565c0;margin-right:8px">Lớp ${getExamGrade(exam)}</span>` : '';
                 html += `
@@ -596,24 +597,26 @@
             container.innerHTML = html;
         }
 
-        // ===== SỬA / XÓA ĐỀ TẠO BẰNG CÔNG CỤ (lưu trong trình duyệt) =====
-        async function deleteLocalExam(id) {
-            const exam = findLocalExam(id);
+        // ===== XÓA ĐỀ NGAY Ở TRANG CHỦ (CHỈ ADMIN) =====
+        // ref = id của đề mới HOẶC link của đề cũ (đã encodeURIComponent ở nút).
+        async function deleteExamCard(refEnc) {
+            const ref = decodeURIComponent(refEnc);
+            const exam = findExamByRef(ref);
             const title = exam ? exam.title : '';
             // Bước 1: xác nhận xóa
-            if (!confirm('Bạn có chắc muốn XÓA đề "' + title + '"?')) return;
+            if (!confirm('Bạn có chắc muốn XÓA đề "' + title + '" khỏi trang chủ?')) return;
 
             // Bước 2: xóa khỏi máy này trước (luôn làm được)
-            removeFromLocal(id);
+            removeFromLocal(ref);
 
             // Bước 3: hỏi có đẩy việc xóa lên GitHub không
             const pushNow = confirm('Đã xóa khỏi máy này.\n\nBạn có muốn ĐẨY việc xóa lên GitHub luôn không?\n(Để học sinh ở mọi máy không còn thấy đề này.)\n\nOK = Đẩy lên GitHub | Cancel = Chỉ xóa trên máy');
             if (pushNow) {
                 try {
-                    const changed = await GitHubSync.deleteExam(id, title);
+                    const changed = await GitHubSync.deleteExam(ref, title);
                     alert(changed
                         ? '✅ Đã xóa đề trên GitHub. Web sẽ cập nhật sau ~1 phút.'
-                        : 'ℹ️ Đề này chưa từng được đẩy lên GitHub nên không cần xóa trên đó. Đã xóa xong trên máy.');
+                        : 'ℹ️ Đề này chưa có trên GitHub nên không cần xóa trên đó. Đã xóa xong trên máy.');
                 } catch (e) {
                     alert('❌ Lỗi khi xóa trên GitHub: ' + e.message + '\n\n(Đề vẫn đã được xóa trên máy này.)');
                     if (/401|token/i.test(e.message)) GitHubSync.clearToken();
@@ -624,25 +627,25 @@
             displayExams(active ? active.getAttribute('data-subject') : 'khtn');
         }
 
-        // Tìm đề local theo id (trong examData đã merge)
-        function findLocalExam(id) {
+        // Tìm đề theo tham chiếu (id hoặc link) trong examData đã merge
+        function findExamByRef(ref) {
             for (const k in examData) {
-                const f = (examData[k] || []).find(e => e.id === id && e._local);
+                const f = (examData[k] || []).find(e => e.id === ref || e.link === ref);
                 if (f) return f;
             }
             return null;
         }
 
-        // Xóa đề khỏi localStorage và danh sách đang hiển thị
-        function removeFromLocal(id) {
+        // Xóa đề khỏi localStorage và danh sách đang hiển thị (khớp id hoặc link)
+        function removeFromLocal(ref) {
             try {
                 const raw = localStorage.getItem('EXAM_LIST_LOCAL');
                 let localExams = raw ? (JSON.parse(raw) || []) : [];
-                localExams = localExams.filter(e => e.id !== id);
+                localExams = localExams.filter(e => e.id !== ref && e.link !== ref);
                 localStorage.setItem('EXAM_LIST_LOCAL', JSON.stringify(localExams));
             } catch (e) { /* bỏ qua */ }
             Object.keys(examData).forEach(k => {
-                examData[k] = (examData[k] || []).filter(e => e.id !== id);
+                examData[k] = (examData[k] || []).filter(e => e.id !== ref && e.link !== ref);
             });
         }
 

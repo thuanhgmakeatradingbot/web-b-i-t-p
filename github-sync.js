@@ -225,18 +225,19 @@ const GitHubSync = {
     return this.putFile(list, sha, message || ('Thêm/cập nhật đề: ' + (exam.title || exam.id)));
   },
 
-  // Xóa 1 đề khỏi GitHub theo id. Trả về true nếu có thay đổi.
-  async deleteExam(id, title){
+  // Xóa 1 đề khỏi GitHub theo tham chiếu (id của đề mới HOẶC link của đề cũ).
+  // Trả về true nếu có thay đổi.
+  async deleteExam(ref, title){
     if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
     const { sha, list } = await this.getFile();
     let removed = 0;
     Object.keys(list).forEach(k => {
       const before = (list[k]||[]).length;
-      list[k] = (list[k]||[]).filter(e => e.id !== id);
+      list[k] = (list[k]||[]).filter(e => e.id !== ref && e.link !== ref);
       removed += before - list[k].length;
     });
     if (removed === 0) return false; // không có trên GitHub -> khỏi tạo commit thừa
-    await this.putFile(list, sha, 'Xóa đề: ' + (title || id));
+    await this.putFile(list, sha, 'Xóa đề: ' + (title || ref));
     return true;
   },
 
