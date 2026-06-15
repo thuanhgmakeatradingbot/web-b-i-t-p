@@ -176,6 +176,22 @@ const GitHubSync = {
     return { path, dataUrl };
   },
 
+  // Thử lại khi gặp 409 (xung đột phiên bản: sha đọc lên bị cache/đã cũ).
+  // Mỗi lần thử, fn tự đọc lại sha mới nhất rồi mới ghi -> an toàn cả khi có
+  // thay đổi xen giữa.
+  async _retry409(fn, attempts = 4){
+    let lastErr;
+    for (let i = 0; i < attempts; i++){
+      try { return await fn(); }
+      catch (e){
+        lastErr = e;
+        if (!/\b409\b/.test(e.message || '')) throw e;
+        await new Promise(r => setTimeout(r, 350 * (i + 1)));
+      }
+    }
+    throw lastErr;
+  },
+
   // Lấy file hiện tại trên GitHub -> { sha, list }
   async getFile(){
     const { owner, repo, path, branch } = GITHUB_CONFIG;
@@ -213,32 +229,36 @@ const GitHubSync = {
   // Đẩy 1 đề lên GitHub (thêm mới hoặc cập nhật theo id)
   async pushExam(exam, message){
     if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const { sha, list } = await this.getFile();
-    ['khtn','toan','hoa','sinh','vatly'].forEach(k => { if (!list[k]) list[k] = []; });
-    // Xóa bản cũ cùng id (ở mọi môn) rồi thêm bản mới
-    Object.keys(list).forEach(k => { list[k] = (list[k]||[]).filter(e => e.id !== exam.id); });
-    const key = exam.subjectKey || 'khtn';
-    if (!list[key]) list[key] = [];
-    const clean = JSON.parse(JSON.stringify(exam));
-    delete clean._local; // bỏ cờ nội bộ
-    list[key].push(clean);
-    return this.putFile(list, sha, message || ('Thêm/cập nhật đề: ' + (exam.title || exam.id)));
+    return this._retry409(async () => {
+      const { sha, list } = await this.getFile();
+      ['khtn','toan','hoa','sinh','vatly'].forEach(k => { if (!list[k]) list[k] = []; });
+      // Xóa bản cũ cùng id (ở mọi môn) rồi thêm bản mới
+      Object.keys(list).forEach(k => { list[k] = (list[k]||[]).filter(e => e.id !== exam.id); });
+      const key = exam.subjectKey || 'khtn';
+      if (!list[key]) list[key] = [];
+      const clean = JSON.parse(JSON.stringify(exam));
+      delete clean._local; // bỏ cờ nội bộ
+      list[key].push(clean);
+      return this.putFile(list, sha, message || ('Thêm/cập nhật đề: ' + (exam.title || exam.id)));
+    });
   },
 
   // Xóa 1 đề khỏi GitHub theo tham chiếu (id của đề mới HOẶC link của đề cũ).
   // Trả về true nếu có thay đổi.
   async deleteExam(ref, title){
     if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const { sha, list } = await this.getFile();
-    let removed = 0;
-    Object.keys(list).forEach(k => {
-      const before = (list[k]||[]).length;
-      list[k] = (list[k]||[]).filter(e => e.id !== ref && e.link !== ref);
-      removed += before - list[k].length;
+    return this._retry409(async () => {
+      const { sha, list } = await this.getFile();
+      let removed = 0;
+      Object.keys(list).forEach(k => {
+        const before = (list[k]||[]).length;
+        list[k] = (list[k]||[]).filter(e => e.id !== ref && e.link !== ref);
+        removed += before - list[k].length;
+      });
+      if (removed === 0) return false; // không có trên GitHub -> khỏi tạo commit thừa
+      await this.putFile(list, sha, 'Xóa đề: ' + (title || ref));
+      return true;
     });
-    if (removed === 0) return false; // không có trên GitHub -> khỏi tạo commit thừa
-    await this.putFile(list, sha, 'Xóa đề: ' + (title || ref));
-    return true;
   },
 
   // ===== NGÂN HÀNG CÂU HỎI (file ngan-hang.js) =====
@@ -254,31 +274,37 @@ const GitHubSync = {
   // Đẩy toàn bộ mảng câu hỏi lên (ghi đè) - dùng khi sync nhiều thay đổi 1 lần
   async pushBankAll(arr, message){
     if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const { sha } = await this.getBank();
     const clean = JSON.parse(JSON.stringify(arr)).map(q => { delete q._local; return q; });
-    await this._putRaw(this.BANK_PATH, buildBankFileText(clean), sha, message || 'Cập nhật ngân hàng câu hỏi');
-    return true;
+    return this._retry409(async () => {
+      const { sha } = await this.getBank();
+      await this._putRaw(this.BANK_PATH, buildBankFileText(clean), sha, message || 'Cập nhật ngân hàng câu hỏi');
+      return true;
+    });
   },
 
   // Thêm/cập nhật 1 câu hỏi theo id
   async pushBankQuestion(q, message){
     if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const { sha, arr } = await this.getBank();
-    const next = arr.filter(x => x.id !== q.id);
     const clean = JSON.parse(JSON.stringify(q)); delete clean._local;
-    next.push(clean);
-    await this._putRaw(this.BANK_PATH, buildBankFileText(next), sha, message || ('Thêm/sửa câu hỏi: ' + q.id));
-    return true;
+    return this._retry409(async () => {
+      const { sha, arr } = await this.getBank();
+      const next = arr.filter(x => x.id !== q.id);
+      next.push(clean);
+      await this._putRaw(this.BANK_PATH, buildBankFileText(next), sha, message || ('Thêm/sửa câu hỏi: ' + q.id));
+      return true;
+    });
   },
 
   // Xóa 1 câu hỏi khỏi ngân hàng theo id
   async deleteBankQuestion(id){
     if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const { sha, arr } = await this.getBank();
-    const next = arr.filter(x => x.id !== id);
-    if (next.length === arr.length) return false;
-    await this._putRaw(this.BANK_PATH, buildBankFileText(next), sha, 'Xóa câu hỏi: ' + id);
-    return true;
+    return this._retry409(async () => {
+      const { sha, arr } = await this.getBank();
+      const next = arr.filter(x => x.id !== id);
+      if (next.length === arr.length) return false;
+      await this._putRaw(this.BANK_PATH, buildBankFileText(next), sha, 'Xóa câu hỏi: ' + id);
+      return true;
+    });
   }
 };
 
