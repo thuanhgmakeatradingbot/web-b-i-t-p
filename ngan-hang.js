@@ -12787,6 +12787,1606 @@ window.QUESTION_BANK = [
     ]
   },
   {
+    "id": "khtn_sinh-b36-tn1",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Hiện tượng truyền đạt các tính trạng của bố mẹ, tổ tiên cho các thế hệ con cháu được gọi là",
+    "options": [
+      "biến dị.",
+      "đột biến.",
+      "di truyền.",
+      "thường biến."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b36-tn2",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Hiện tượng con sinh ra có các đặc điểm khác nhau và khác bố mẹ được gọi là",
+    "options": [
+      "biến dị.",
+      "di truyền.",
+      "thuần chủng.",
+      "lai phân tích."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn3",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Di truyền học là khoa học nghiên cứu về",
+    "options": [
+      "cấu tạo tế bào và mô.",
+      "tính di truyền và biến dị ở sinh vật.",
+      "sự trao đổi chất và năng lượng.",
+      "cách phân loại các loài sinh vật."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-tn4",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Hiện tượng di truyền và biến dị do yếu tố nào nằm trong tế bào quy định?",
+    "options": [
+      "Màng sinh chất.",
+      "Chất tế bào.",
+      "Enzyme tiêu hóa.",
+      "Nhân tố di truyền (sau này gọi là gene)."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b36-tn5",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Đối tượng được Mendel chọn để nghiên cứu di truyền là",
+    "options": [
+      "đậu hà lan.",
+      "ruồi giấm.",
+      "chuột bạch.",
+      "cây ngô."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn6",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Người đầu tiên đặt nền móng cho di truyền học là",
+    "options": [
+      "Darwin.",
+      "Morgan.",
+      "Mendel.",
+      "Watson."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b36-tn7",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Đặc điểm về hình thái, cấu tạo, sinh lí của một cơ thể được gọi là",
+    "options": [
+      "kiểu gene.",
+      "allele.",
+      "giao tử.",
+      "tính trạng."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b36-tn8",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Hai trạng thái biểu hiện trái ngược nhau của cùng một loại tính trạng được gọi là",
+    "options": [
+      "tính trạng trội.",
+      "tính trạng tương phản.",
+      "kiểu hình.",
+      "dòng thuần."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-tn9",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Trong thí nghiệm lai một tính trạng màu hoa ở đậu hà lan, thế hệ P được Mendel sử dụng là",
+    "options": [
+      "cây thuần chủng, tương phản.",
+      "cây không thuần chủng.",
+      "cây F₁ tự thụ phấn.",
+      "cây lai phân tích."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn10",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Cây được tạo ra qua nhiều thế hệ tự thụ phấn, có đặc tính di truyền đồng nhất và ổn định được gọi là cây",
+    "options": [
+      "dị hợp.",
+      "biến dị.",
+      "đột biến.",
+      "thuần chủng."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b36-tn11",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Tính trạng được biểu hiện ở F₁ trong phép lai một tính trạng của Mendel là",
+    "options": [
+      "tính trạng lặn.",
+      "tính trạng trội.",
+      "tính trạng trung gian.",
+      "tính trạng pha trộn."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-tn12",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Tổ hợp toàn bộ các tính trạng của cơ thể sinh vật được gọi là",
+    "options": [
+      "kiểu hình.",
+      "kiểu gene.",
+      "allele.",
+      "giao tử."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn13",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Tổ hợp toàn bộ các gene trong tế bào của cơ thể sinh vật được gọi là",
+    "options": [
+      "kiểu hình.",
+      "tính trạng.",
+      "kiểu gene.",
+      "dòng thuần."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b36-tn14",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Các trạng thái biểu hiện khác nhau của cùng một gene được gọi là",
+    "options": [
+      "tính trạng.",
+      "kiểu hình.",
+      "giao tử.",
+      "allele."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b36-tn15",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Cơ thể thuần chủng về một tính trạng là cơ thể có kiểu gene quy định tính trạng đó ở trạng thái",
+    "options": [
+      "dị hợp.",
+      "đồng hợp.",
+      "đột biến.",
+      "trung gian."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-tn16",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Tính trạng lặn chỉ được biểu hiện ra kiểu hình khi cơ thể có kiểu gene",
+    "options": [
+      "đồng hợp trội.",
+      "dị hợp.",
+      "đồng hợp lặn.",
+      "đồng hợp trội hoặc dị hợp."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b36-tn17",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Trong các kí hiệu dùng trong di truyền học, kí hiệu **P** chỉ",
+    "options": [
+      "cặp bố mẹ thế hệ xuất phát.",
+      "thế hệ con lai thứ nhất.",
+      "giao tử.",
+      "phép lai."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn18",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Kí hiệu **F₁** dùng để chỉ",
+    "options": [
+      "cặp bố mẹ xuất phát.",
+      "thế hệ con lai đời thứ nhất.",
+      "giao tử đực.",
+      "thế hệ con lai đời thứ hai."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-tn19",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Trong sơ đồ lai, kí hiệu **G** dùng để chỉ",
+    "options": [
+      "kiểu gene.",
+      "kiểu hình.",
+      "thế hệ con.",
+      "giao tử."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b36-tn20",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Theo Mendel, mỗi tính trạng do bao nhiêu nhân tố di truyền quy định?",
+    "options": [
+      "Một nhân tố di truyền.",
+      "Ba nhân tố di truyền.",
+      "Một cặp nhân tố di truyền.",
+      "Vô số nhân tố di truyền."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b36-tn21",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Vì sao gene được xem là trung tâm của di truyền học?",
+    "options": [
+      "Vì gene (nhân tố di truyền) quy định hiện tượng di truyền và biến dị ở sinh vật.",
+      "Vì gene chiếm khối lượng lớn nhất trong tế bào.",
+      "Vì gene chỉ có ở thực vật.",
+      "Vì gene là nơi diễn ra hô hấp tế bào."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn22",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Quan niệm sai lầm trước Mendel cho rằng vật chất di truyền của bố mẹ sẽ",
+    "options": [
+      "tồn tại thành từng cặp riêng rẽ.",
+      "hoà trộn vào nhau như hai chất lỏng.",
+      "phân li đồng đều về các giao tử.",
+      "không truyền cho đời con."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-tn23",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Trong thí nghiệm lai màu hoa của Mendel, ở F₂ **không** xuất hiện hoa màu tím nhạt. Điều này chứng tỏ",
+    "options": [
+      "nhân tố quy định hoa trắng đã biến mất.",
+      "hoa trắng là tính trạng trội.",
+      "cây P không thuần chủng.",
+      "các nhân tố di truyền không hoà trộn vào nhau."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b36-tn24",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Ở F₁ của phép lai một tính trạng vẫn còn mang nhân tố quy định hoa trắng, nhưng không biểu hiện. Điều này cho thấy nhân tố quy định hoa trắng đã",
+    "options": [
+      "biến mất hoàn toàn.",
+      "chuyển thành nhân tố quy định hoa tím.",
+      "bị che khuất bởi nhân tố quy định hoa tím.",
+      "hoà trộn với nhân tố quy định hoa tím."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b36-tn25",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Một gene có thể có",
+    "options": [
+      "hai, ba hoặc nhiều allele khác nhau.",
+      "luôn luôn chỉ một allele.",
+      "tối đa hai allele và không bao giờ nhiều hơn.",
+      "số allele bằng số nhiễm sắc thể."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn26",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Ở đậu hà lan, allele A quy định hạt vàng (trội), allele a quy định hạt xanh (lặn). Cây có kiểu gene nào sau đây sẽ biểu hiện kiểu hình **hạt xanh**?",
+    "options": [
+      "AA.",
+      "Aa.",
+      "aa.",
+      "AA hoặc Aa."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b36-tn27",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Ở đậu hà lan, allele B quy định thân cao (trội) so với allele b quy định thân thấp (lặn). Cây thân cao có thể có kiểu gene",
+    "options": [
+      "chỉ BB.",
+      "BB hoặc Bb.",
+      "chỉ bb.",
+      "chỉ Bb."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-tn28",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Một cây đậu hà lan thuần chủng về tính trạng hoa tím (trội) có kiểu gene là",
+    "options": [
+      "Aa.",
+      "aa.",
+      "AaBb.",
+      "AA."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b36-tn29",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Phát biểu nào sau đây về đóng góp của Mendel là **đúng**?",
+    "options": [
+      "Mendel là người đầu tiên đưa ra khái niệm về nhân tố di truyền (gene), làm cơ sở cho nghiên cứu gene sau này.",
+      "Mendel là người đầu tiên đặt tên cho gene và allele.",
+      "Mendel chứng minh vật chất di truyền hoà trộn vào nhau.",
+      "Mendel nghiên cứu trên đối tượng là ruồi giấm."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b36-tn30",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "mc",
+    "content": "Khi nói \"dòng thuần\", trên thực tế người ta thường chỉ đề cập tới sự thuần chủng ở",
+    "options": [
+      "tất cả các tính trạng của cơ thể.",
+      "một hoặc một số tính trạng đang được nghiên cứu.",
+      "các tính trạng do môi trường quyết định.",
+      "các tính trạng không di truyền."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b36-ds1",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Trong một gia đình, cả bố và mẹ đều có tóc xoăn. Người con thứ nhất sinh ra có tóc xoăn giống bố mẹ; người con thứ hai lại có tóc thẳng. Một bạn dùng kiến thức di truyền học để phân tích trường hợp này.",
+    "subItems": [
+      {
+        "text": "Việc người con thứ nhất có tóc xoăn giống bố mẹ là một ví dụ về hiện tượng di truyền.",
+        "answer": true
+      },
+      {
+        "text": "Việc người con thứ hai có tóc thẳng, khác bố mẹ, là một ví dụ về hiện tượng biến dị.",
+        "answer": true
+      },
+      {
+        "text": "Vì cả hai người con đều do cùng một cặp bố mẹ sinh ra nên chắc chắn chúng phải giống hệt nhau về mọi tính trạng.",
+        "answer": false
+      },
+      {
+        "text": "Cả hiện tượng tóc xoăn được truyền lại lẫn hiện tượng tóc thẳng xuất hiện ở người con thứ hai đều do nhân tố di truyền (gene) nằm trong tế bào quy định, vì vậy gene được xem là trung tâm của di truyền học.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds2",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Một học sinh tóm tắt thí nghiệm lai màu hoa của Mendel: lấy cây đậu hà lan thuần chủng hoa tím lai với cây thuần chủng hoa trắng, thu được F₁ toàn hoa tím; cho F₁ tự thụ phấn, F₂ xuất hiện cả hoa tím và hoa trắng, không có cây nào ra hoa màu tím nhạt.",
+    "subItems": [
+      {
+        "text": "Cây P được dùng trong thí nghiệm là cây thuần chủng và mang tính trạng tương phản về màu hoa.",
+        "answer": true
+      },
+      {
+        "text": "Ngay ở F₁ đã xuất hiện cả hoa tím và hoa trắng với tỉ lệ 3 hoa tím : 1 hoa trắng.",
+        "answer": false
+      },
+      {
+        "text": "Việc F₂ xuất hiện trở lại hoa trắng cho thấy nhân tố quy định hoa trắng không hề biến mất ở F₁ mà chỉ bị che khuất.",
+        "answer": true
+      },
+      {
+        "text": "Việc F₂ không xuất hiện hoa màu tím nhạt chứng tỏ các nhân tố di truyền tồn tại riêng rẽ, không hoà trộn vào nhau; đây chính là điểm bác bỏ quan niệm \"di truyền hoà trộn\" phổ biến đương thời.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds3",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Một bạn lập bảng đối chiếu các thuật ngữ di truyền và lấy ví dụ ở đậu hà lan: \"màu hạt\" là một tính trạng; \"hạt vàng – hạt xanh\" là cặp tính trạng tương phản; cây có kiểu gene AA và cây có kiểu gene Aa đều cho hạt vàng.",
+    "subItems": [
+      {
+        "text": "\"Màu hạt\" là một tính trạng, còn \"hạt vàng\" và \"hạt xanh\" là hai trạng thái tương phản của tính trạng đó.",
+        "answer": true
+      },
+      {
+        "text": "Hai cây có kiểu gene AA và Aa tuy khác nhau về kiểu gene nhưng có thể giống nhau về kiểu hình (cùng cho hạt vàng).",
+        "answer": true
+      },
+      {
+        "text": "Vì cây Aa cho hạt vàng nên có thể kết luận allele a (quy định hạt xanh) đã bị mất đi trong cây Aa.",
+        "answer": false
+      },
+      {
+        "text": "Nếu chỉ quan sát kiểu hình hạt vàng thì chưa thể khẳng định cây đó thuần chủng hay không, vì cả kiểu gene đồng hợp trội (AA) lẫn dị hợp (Aa) đều cho cùng kiểu hình hạt vàng.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds4",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Ở đậu hà lan, người ta theo dõi tính trạng chiều cao cây: allele B quy định thân cao là trội hoàn toàn so với allele b quy định thân thấp. Một vườn thí nghiệm có các cây mang kiểu gene BB, Bb và bb.",
+    "subItems": [
+      {
+        "text": "Cây có kiểu gene BB và cây có kiểu gene Bb đều biểu hiện kiểu hình thân cao.",
+        "answer": true
+      },
+      {
+        "text": "Cây có kiểu gene dị hợp Bb là cây thuần chủng về tính trạng chiều cao.",
+        "answer": false
+      },
+      {
+        "text": "Chỉ cây có kiểu gene bb mới biểu hiện kiểu hình thân thấp.",
+        "answer": true
+      },
+      {
+        "text": "Khi chọn ngẫu nhiên một cây thân cao trong vườn, không thể chỉ dựa vào kiểu hình để biết cây đó là BB hay Bb, vì hai kiểu gene này cho cùng một kiểu hình thân cao.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds5",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin sau:\n*Ở thế kỉ XIX, nhiều nhà khoa học tin rằng vật chất di truyền của bố và mẹ sẽ hoà trộn vào nhau trong cơ thể con, giống như trộn hai cốc nước màu. Đến năm 1900, kết quả thí nghiệm của Mendel được công nhận rộng rãi và bác bỏ quan niệm này: ông cho rằng đơn vị quy định di truyền tồn tại thành từng cặp riêng rẽ và không pha trộn vào nhau.*",
+    "subItems": [
+      {
+        "text": "Theo quan niệm cũ (trước Mendel), vật chất di truyền của bố mẹ được cho là hoà trộn vào nhau ở đời con.",
+        "answer": true
+      },
+      {
+        "text": "Quan điểm của Mendel cho rằng các nhân tố di truyền tồn tại thành từng cặp và không hoà trộn vào nhau.",
+        "answer": true
+      },
+      {
+        "text": "Theo quan niệm \"hoà trộn\", khi lai hoa tím thuần chủng với hoa trắng thuần chủng thì đời con sẽ tách hẳn thành cây hoa tím và cây hoa trắng riêng biệt.",
+        "answer": false
+      },
+      {
+        "text": "Việc F₂ trong thí nghiệm của Mendel xuất hiện lại đúng kiểu hình hoa trắng của đời P (chứ không phải một màu trung gian) là một bằng chứng ủng hộ quan điểm \"không hoà trộn\" và bác bỏ quan niệm \"hoà trộn\".",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds6",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin về một số thí nghiệm lai một tính trạng của Mendel:\n*Khi lai các dòng đậu hà lan thuần chủng tương phản, Mendel thu được ở F₂ các tỉ lệ kiểu hình xấp xỉ nhau: dạng hạt 5 474 trơn : 1 850 nhăn; màu hạt 6 022 vàng : 2 001 xanh; màu hoa 705 tím : 224 trắng. Ở mọi thí nghiệm, F₁ đều chỉ biểu hiện một loại kiểu hình.*",
+    "subItems": [
+      {
+        "text": "Ở tất cả các thí nghiệm trên, F₁ đều đồng tính (chỉ biểu hiện một loại kiểu hình).",
+        "answer": true
+      },
+      {
+        "text": "Tính trạng biểu hiện ở F₁ chính là tính trạng trội.",
+        "answer": true
+      },
+      {
+        "text": "Tỉ lệ kiểu hình ở F₂ của thí nghiệm màu hạt (6 022 : 2 001) xấp xỉ 1 : 1.",
+        "answer": false
+      },
+      {
+        "text": "Vì tỉ lệ kiểu hình F₂ luôn đúng bằng 3 : 1 một cách tuyệt đối nên không cần làm thí nghiệm vẫn tính được chính xác số cây mỗi loại.",
+        "answer": false
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds7",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Một bạn lập sơ đồ lai mô tả thí nghiệm ở đậu hà lan: lai cây thuần chủng thân cao với cây thuần chủng thân thấp, F₁ thu được 100% thân cao; cho F₁ tự thụ phấn thì F₂ thu được 3 thân cao : 1 thân thấp.",
+    "subItems": [
+      {
+        "text": "Trong sơ đồ lai, kí hiệu \"P\" dùng để chỉ cặp bố mẹ thuần chủng xuất phát.",
+        "answer": true
+      },
+      {
+        "text": "F₁ biểu hiện 100% thân cao, chứng tỏ thân cao là tính trạng trội, thân thấp là tính trạng lặn.",
+        "answer": true
+      },
+      {
+        "text": "Vì F₁ toàn thân cao nên có thể kết luận tất cả các cây F₁ đều thuần chủng về tính trạng chiều cao.",
+        "answer": false
+      },
+      {
+        "text": "Sự xuất hiện trở lại của cây thân thấp ở F₂ cho thấy nhân tố quy định thân thấp đã được F₁ mang theo (ở dạng bị che khuất) rồi truyền lại cho F₂.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds8",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin sau:\n*Mendel gọi đặc điểm khác biệt giữa các cá thể đậu hà lan như màu hoa, hình dạng hạt là tính trạng. Ông cũng phân biệt: kiểu hình là tổ hợp các tính trạng biểu hiện ra bên ngoài, còn kiểu gene là tổ hợp các nhân tố di truyền bên trong tế bào quy định các tính trạng đó.*",
+    "subItems": [
+      {
+        "text": "\"Hình dạng hạt\" và \"màu hoa\" là các ví dụ về tính trạng ở đậu hà lan.",
+        "answer": true
+      },
+      {
+        "text": "Kiểu hình là những đặc điểm biểu hiện ra bên ngoài mà ta quan sát được.",
+        "answer": true
+      },
+      {
+        "text": "Hai cây có cùng kiểu hình hạt vàng thì chắc chắn có cùng kiểu gene.",
+        "answer": false
+      },
+      {
+        "text": "Một tính trạng trội có thể được tạo ra bởi nhiều kiểu gene khác nhau (đồng hợp trội hoặc dị hợp), nên cùng một kiểu hình chưa chắc tương ứng với cùng một kiểu gene.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds9",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Trong một trại giống cây trồng, kĩ thuật viên muốn duy trì một giống đậu cho hạt vàng ổn định qua nhiều thế hệ. Họ chọn lọc và cho tự thụ phấn liên tục để tạo dòng thuần.",
+    "subItems": [
+      {
+        "text": "Dòng thuần là dòng có kiểu gene đồng hợp về (các) tính trạng đang được nghiên cứu.",
+        "answer": true
+      },
+      {
+        "text": "Mục đích cho tự thụ phấn liên tục là để các thế hệ sau có đặc tính di truyền đồng nhất và ổn định, giống các thế hệ trước.",
+        "answer": true
+      },
+      {
+        "text": "Một cây hạt vàng có kiểu gene dị hợp (Aa) là cây thuần chủng về tính trạng màu hạt.",
+        "answer": false
+      },
+      {
+        "text": "Nếu trong dòng đang chọn còn sót cây dị hợp (Aa) thì khi tự thụ phấn, đời sau vẫn có thể xuất hiện cây hạt xanh (aa), nên giống chưa thực sự thuần chủng về tính trạng màu hạt.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-ds10",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin sau:\n*Mendel không hề biết đến cấu trúc DNA hay nhiễm sắc thể, nhưng từ kết quả lai đậu hà lan, ông đã suy luận ra sự tồn tại của các \"nhân tố di truyền\" tồn tại thành từng cặp, không hoà trộn. Mãi về sau, khi khoa học phát triển, người ta mới gọi nhân tố di truyền đó là gene và mỗi trạng thái của nó là allele.*",
+    "subItems": [
+      {
+        "text": "Mendel đưa ra khái niệm \"nhân tố di truyền\" dựa trên kết quả phân tích các phép lai, chứ không dựa trên việc quan sát trực tiếp gene hay nhiễm sắc thể.",
+        "answer": true
+      },
+      {
+        "text": "\"Nhân tố di truyền\" mà Mendel nói đến về sau được gọi là gene; mỗi trạng thái của gene là một allele.",
+        "answer": true
+      },
+      {
+        "text": "Vì Mendel chưa biết đến DNA nên các kết luận của ông về nhân tố di truyền đến nay đã bị bác bỏ hoàn toàn.",
+        "answer": false
+      },
+      {
+        "text": "Ý tưởng \"nhân tố di truyền tồn tại thành từng cặp, không hoà trộn\" của Mendel chính là cơ sở để các nhà khoa học sau này nghiên cứu về gene, cho thấy một giả thuyết khoa học đúng có thể đi trước rất xa so với bằng chứng vật chất trực tiếp. ---",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b36-tl1",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Di truyền là gì? Biến dị là gì? Lấy một ví dụ về hiện tượng di truyền và một ví dụ về hiện tượng biến dị ở người hoặc ở một loài vật nuôi/cây trồng quen thuộc.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl2",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Di truyền học là gì? Vì sao nói gene được xem là trung tâm của di truyền học?",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl3",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Vì sao Mendel chọn đậu hà lan làm đối tượng nghiên cứu và cho cây tự thụ phấn qua nhiều thế hệ trước khi tiến hành lai? Việc tạo dòng thuần chủng trước khi lai có ý nghĩa gì đối với kết quả thí nghiệm?",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl4",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Trình bày các bước tiến hành và kết quả thí nghiệm lai một tính trạng màu hoa của Mendel (P thuần chủng hoa tím × hoa trắng). Từ kết quả thí nghiệm, hãy chỉ ra tính trạng trội, tính trạng lặn và cặp tính trạng tương phản.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl5",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Phân biệt các thuật ngữ sau và cho ví dụ ở đậu hà lan: tính trạng và tính trạng tương phản; kiểu hình và kiểu gene.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl6",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Thế nào là tính trạng trội, tính trạng lặn? Một tính trạng trội có thể tương ứng với những kiểu gene nào? Một tính trạng lặn tương ứng với kiểu gene nào? Giải thích.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl7",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Trong thí nghiệm của Mendel, ở F₂ xuất hiện trở lại hoa trắng nhưng không xuất hiện hoa màu tím nhạt. Hãy giải thích hai hiện tượng này dựa trên quan niệm của Mendel về nhân tố di truyền.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl8",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Ở đậu hà lan, tiến hành lai giữa cây thuần chủng thân cao với cây thuần chủng thân thấp. F₁ thu được 100% cây thân cao; cho F₁ tự thụ phấn, F₂ thu được 3 thân cao : 1 thân thấp.\na) Hãy dùng các kí hiệu và thuật ngữ di truyền để mô tả thí nghiệm trên bằng sơ đồ lai (ghi rõ P, F₁, F₂).\nb) Dự đoán tính trạng trội, tính trạng lặn trong phép lai.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl9",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Ý tưởng của Mendel về \"nhân tố di truyền\" được đưa ra khi khoa học chưa biết đến gene, DNA hay nhiễm sắc thể. Vì sao ý tưởng này lại được xem là cơ sở cho những nghiên cứu về gene sau này? Qua đó, em rút ra điều gì về vai trò của giả thuyết trong nghiên cứu khoa học?",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b36-tl10",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 36: KHÁI QUÁT VỀ DI TRUYỀN HỌC",
+    "type": "essay",
+    "content": "Một người nông dân mua về một giống đậu được quảng cáo là \"thuần chủng cho hạt vàng\". Sau khi trồng và cho cây tự thụ phấn, ở đời sau ông thấy xuất hiện một số cây cho hạt xanh. Dựa vào kiến thức về dòng thuần và kiểu gene, hãy giải thích vì sao có hiện tượng này và cho biết giống đậu trên đã thực sự thuần chủng về tính trạng màu hạt hay chưa.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tn1",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Trong phép lai một tính trạng của Mendel, P là cây thuần chủng tương phản thì F₁ thu được",
+    "options": [
+      "phân li 3 trội : 1 lặn.",
+      "phân li 1 : 1.",
+      "tỉ lệ 9 : 3 : 3 : 1.",
+      "đồng tính (100% một kiểu hình)."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn2",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Trong phép lai một tính trạng, tỉ lệ kiểu hình thu được ở F₂ xấp xỉ",
+    "options": [
+      "1 trội : 1 lặn.",
+      "100% trội.",
+      "3 trội : 1 lặn.",
+      "9 : 3 : 1."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-tn3",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Tính trạng được biểu hiện ở F₁ trong phép lai một tính trạng của Mendel là tính trạng",
+    "options": [
+      "trội.",
+      "lặn.",
+      "trung gian.",
+      "pha trộn."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b37-tn4",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Theo quy luật phân li, khi giảm phân hình thành giao tử thì các allele trong một cặp sẽ",
+    "options": [
+      "cùng đi về một giao tử.",
+      "phân li đồng đều về các giao tử, mỗi giao tử chỉ chứa một allele.",
+      "hoà trộn vào nhau.",
+      "nhân đôi rồi phân chia cho bốn giao tử."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b37-tn5",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Cơ thể có kiểu gene Aa khi giảm phân bình thường cho các loại giao tử với tỉ lệ",
+    "options": [
+      "100% A.",
+      "3 A : 1 a.",
+      "1 AA : 2 Aa : 1 aa.",
+      "1 A : 1 a."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn6",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Ở phép lai Aa × Aa, tỉ lệ kiểu gene thu được ở đời con là",
+    "options": [
+      "1 AA : 1 aa.",
+      "3 AA : 1 aa.",
+      "1 AA : 2 Aa : 1 aa.",
+      "100% Aa."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-tn7",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Phép lai phân tích là phép lai giữa cơ thể mang tính trạng trội (chưa biết kiểu gene) với cơ thể mang tính trạng",
+    "options": [
+      "lặn.",
+      "trội thuần chủng.",
+      "trung gian.",
+      "dị hợp."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b37-tn8",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Mục đích (vai trò) của phép lai phân tích là",
+    "options": [
+      "tạo ra nhiều biến dị tổ hợp.",
+      "làm tăng số lượng cá thể.",
+      "tạo dòng thuần chủng.",
+      "xác định kiểu gene của cơ thể mang tính trạng trội."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn9",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Khi đem một cây hoa tím (trội) lai phân tích, nếu đời con đồng tính (100% hoa tím) thì cây hoa tím đem lai có kiểu gene",
+    "options": [
+      "dị hợp (Aa).",
+      "đồng hợp trội (AA).",
+      "đồng hợp lặn (aa).",
+      "AaBb."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b37-tn10",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Khi đem một cây thân cao (trội) lai phân tích, nếu đời con phân li 1 thân cao : 1 thân thấp thì cây thân cao đem lai có kiểu gene",
+    "options": [
+      "AA.",
+      "aa.",
+      "Aa.",
+      "AABB."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-tn11",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Trong phép lai hai tính trạng của Mendel, P thuần chủng khác nhau về hai cặp tính trạng tương phản thì F₂ phân li theo tỉ lệ kiểu hình",
+    "options": [
+      "3 : 1.",
+      "1 : 1 : 1 : 1.",
+      "1 : 2 : 1.",
+      "9 : 3 : 3 : 1."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn12",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Cơ thể dị hợp về hai cặp gene (AaBb) khi giảm phân (các cặp phân li độc lập) cho số loại giao tử là",
+    "options": [
+      "2.",
+      "4.",
+      "8.",
+      "16."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b37-tn13",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Bốn loại giao tử được tạo ra từ cơ thể có kiểu gene AaBb là",
+    "options": [
+      "AB, Ab, aB, ab.",
+      "AA, Aa, aB, bb.",
+      "AaBb, AB, ab, Aa.",
+      "Aa, Bb, AB, ab."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b37-tn14",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Nội dung quy luật phân li độc lập đề cập đến sự di truyền của",
+    "options": [
+      "một cặp tính trạng.",
+      "các tính trạng do cùng một cặp allele quy định.",
+      "các cặp tính trạng khác nhau, do các cặp allele khác nhau quy định.",
+      "tính trạng do môi trường quy định."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-tn15",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Theo quy luật phân li độc lập, trong quá trình hình thành giao tử, mỗi cặp allele sẽ",
+    "options": [
+      "phân li độc lập với cặp allele khác.",
+      "luôn đi cùng một cặp allele khác.",
+      "hoà trộn với cặp allele khác.",
+      "không phân li."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b37-tn16",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Số kiểu tổ hợp giao tử thu được ở F₂ trong phép lai hai tính trạng (F₁ AaBb × AaBb) là",
+    "options": [
+      "4.",
+      "8.",
+      "9.",
+      "16."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn17",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Phép lai nào sau đây là phép lai phân tích?",
+    "options": [
+      "AA × AA.",
+      "Aa × aa.",
+      "Aa × Aa.",
+      "AA × Aa."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b37-tn18",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Trong thí nghiệm lai một tính trạng, kiểu gene của cây F₁ (đồng tính trội) là",
+    "options": [
+      "AA.",
+      "aa.",
+      "Aa.",
+      "AaBb."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-tn19",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Khi xét riêng sự di truyền của từng tính trạng trong phép lai hai tính trạng, tỉ lệ kiểu hình của mỗi tính trạng ở F₂ là",
+    "options": [
+      "1 : 1.",
+      "3 : 1.",
+      "9 : 7.",
+      "1 : 2 : 1."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b37-tn20",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Ý nghĩa của sự phân li độc lập và tổ hợp tự do của các cặp allele là",
+    "options": [
+      "làm giảm số lượng cá thể trong loài.",
+      "làm cho các tính trạng không di truyền được.",
+      "giữ cho kiểu gene của loài không thay đổi.",
+      "tạo ra sự đa dạng, phong phú ở các loài sinh sản hữu tính."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn21",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Ở đậu hà lan, A: hạt vàng (trội) > a: hạt xanh (lặn). Phép lai cho đời con phân li 3 hạt vàng : 1 hạt xanh là",
+    "options": [
+      "AA × aa.",
+      "Aa × aa.",
+      "Aa × Aa.",
+      "AA × Aa."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-tn22",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Ở đậu hà lan, A: thân cao (trội) > a: thân thấp. Phép lai Aa × aa cho đời con có tỉ lệ kiểu hình",
+    "options": [
+      "1 cao : 1 thấp.",
+      "3 cao : 1 thấp.",
+      "100% thân cao.",
+      "100% thân thấp."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b37-tn23",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Phép lai giữa hai cây đậu cho đời con đồng loạt 100% thân cao. Phép lai phù hợp là",
+    "options": [
+      "Aa × Aa.",
+      "Aa × aa.",
+      "aa × aa.",
+      "AA × aa."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn24",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "F₁ trong thí nghiệm lai hai tính trạng (P thuần chủng vàng-trơn × xanh-nhăn) có kiểu hình",
+    "options": [
+      "100% hạt vàng, trơn.",
+      "9 vàng-trơn : 3 vàng-nhăn : 3 xanh-trơn : 1 xanh-nhăn.",
+      "100% hạt xanh, nhăn.",
+      "1 vàng-trơn : 1 xanh-nhăn."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b37-tn25",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Trong phép lai hai tính trạng, kiểu hình mang **cả hai tính trạng lặn** (xanh-nhăn) ở F₂ chiếm tỉ lệ",
+    "options": [
+      "9/16.",
+      "3/16.",
+      "1/16.",
+      "6/16."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-tn26",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Trong phép lai hai tính trạng, kiểu hình mang **cả hai tính trạng trội** (vàng-trơn) ở F₂ chiếm tỉ lệ",
+    "options": [
+      "9/16.",
+      "3/16.",
+      "1/16.",
+      "1/4."
+    ],
+    "answer": "A"
+  },
+  {
+    "id": "khtn_sinh-b37-tn27",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Cho cây hạt vàng dị hợp (Aa) tự thụ phấn. Trong số hạt vàng thu được ở đời con, tỉ lệ hạt vàng **thuần chủng (AA)** là",
+    "options": [
+      "1/4.",
+      "1/3.",
+      "1/2.",
+      "3/4."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b37-tn28",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Phép lai AaBb × aabb (phân li độc lập) cho đời con có số loại kiểu hình là",
+    "options": [
+      "2.",
+      "3.",
+      "9.",
+      "4."
+    ],
+    "answer": "D"
+  },
+  {
+    "id": "khtn_sinh-b37-tn29",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Một học sinh kết luận: \"F₁ trong phép lai một tính trạng của Mendel chắc chắn là cơ thể thuần chủng vì biểu hiện đồng tính\". Nhận định này",
+    "options": [
+      "đúng, vì F₁ đồng tính nên đồng hợp.",
+      "sai, vì F₁ đồng tính nhưng có kiểu gene dị hợp (Aa).",
+      "đúng, vì F₁ có nguồn gốc từ P thuần chủng.",
+      "sai, vì F₁ là cơ thể đồng hợp lặn."
+    ],
+    "answer": "B"
+  },
+  {
+    "id": "khtn_sinh-b37-tn30",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "mc",
+    "content": "Cơ sở tế bào học giải thích cho quy luật phân li (allele phân li về các giao tử) là quá trình",
+    "options": [
+      "nguyên phân.",
+      "thụ tinh tạo hợp tử.",
+      "giảm phân hình thành giao tử.",
+      "trao đổi chất ở tế bào."
+    ],
+    "answer": "C"
+  },
+  {
+    "id": "khtn_sinh-b37-ds1",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Một học sinh tóm tắt thí nghiệm lai một tính trạng của Mendel: lai cây đậu hà lan thuần chủng hạt trơn với cây thuần chủng hạt nhăn, F₁ thu được 100% hạt trơn; cho F₁ tự thụ phấn, F₂ thu được 5 474 hạt trơn và 1 850 hạt nhăn.",
+    "subItems": [
+      {
+        "text": "Tính trạng hạt trơn biểu hiện ở F₁ là tính trạng trội.",
+        "answer": true
+      },
+      {
+        "text": "Tỉ lệ kiểu hình ở F₂ xấp xỉ 3 hạt trơn : 1 hạt nhăn.",
+        "answer": true
+      },
+      {
+        "text": "Vì F₁ đồng loạt hạt trơn nên tất cả cây F₁ đều thuần chủng về tính trạng dạng hạt.",
+        "answer": false
+      },
+      {
+        "text": "Hạt nhăn xuất hiện trở lại ở F₂ chứng tỏ F₁ tuy biểu hiện hạt trơn nhưng vẫn mang allele quy định hạt nhăn (ở dạng dị hợp), và allele này phân li về giao tử khi F₁ tạo giao tử.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds2",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin sau:\n*Mendel cho rằng mỗi tính trạng do một cặp allele quy định, một có nguồn gốc từ bố, một từ mẹ. Khi giảm phân hình thành giao tử, hai allele trong cặp tách rời nhau và đi về các giao tử khác nhau; khi thụ tinh, các giao tử tổ hợp ngẫu nhiên tạo ra đời con.*",
+    "subItems": [
+      {
+        "text": "Mỗi cặp allele gồm một allele có nguồn gốc từ bố và một allele có nguồn gốc từ mẹ.",
+        "answer": true
+      },
+      {
+        "text": "Khi giảm phân, mỗi giao tử chỉ chứa một allele của cặp.",
+        "answer": true
+      },
+      {
+        "text": "Hai allele trong một cặp hoà trộn vào nhau trước khi đi về các giao tử.",
+        "answer": false
+      },
+      {
+        "text": "Một cây có kiểu gene Aa giảm phân bình thường sẽ cho hai loại giao tử A và a với tỉ lệ ngang nhau; nếu cây này tự thụ phấn thì sự tổ hợp ngẫu nhiên của các giao tử cho đời con tỉ lệ kiểu gene 1 AA : 2 Aa : 1 aa.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds3",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Trong vườn thực nghiệm, một kĩ thuật viên thu được một cây đậu hoa tím nhưng chưa biết nó thuần chủng hay không. Để xác định, người này đem cây hoa tím lai với cây hoa trắng và theo dõi đời con.",
+    "subItems": [
+      {
+        "text": "Phép lai mà kĩ thuật viên thực hiện (hoa tím × hoa trắng để kiểm tra kiểu gene) là một phép lai phân tích.",
+        "answer": true
+      },
+      {
+        "text": "Cây hoa trắng đem lai mang tính trạng lặn, có kiểu gene đồng hợp lặn (aa).",
+        "answer": true
+      },
+      {
+        "text": "Nếu đời con thu được 100% hoa tím thì cây hoa tím đem lai có kiểu gene dị hợp (Aa).",
+        "answer": false
+      },
+      {
+        "text": "Nếu đời con xuất hiện cả hoa tím và hoa trắng với tỉ lệ xấp xỉ 1 : 1 thì cây hoa tím đem lai có kiểu gene dị hợp (Aa), vì khi đó nó cho hai loại giao tử A và a, kết hợp với giao tử a của cây hoa trắng cho 1 Aa : 1 aa.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds4",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin về phép lai hai tính trạng của Mendel:\n*Mendel lai đậu hà lan thuần chủng hạt vàng, vỏ trơn với cây thuần chủng hạt xanh, vỏ nhăn. F₁ thu được toàn cây hạt vàng, vỏ trơn. Cho F₁ tự thụ phấn, F₂ phân li theo tỉ lệ 9 vàng-trơn : 3 vàng-nhăn : 3 xanh-trơn : 1 xanh-nhăn. (A: vàng, a: xanh; B: trơn, b: nhăn).*",
+    "subItems": [
+      {
+        "text": "Kiểu gene của cây F₁ là AaBb.",
+        "answer": true
+      },
+      {
+        "text": "Khi xét riêng tính trạng màu hạt, tỉ lệ ở F₂ là 3 vàng : 1 xanh.",
+        "answer": true
+      },
+      {
+        "text": "Kiểu hình xanh-nhăn (mang cả hai tính trạng lặn) ở F₂ chiếm tỉ lệ 3/16.",
+        "answer": false
+      },
+      {
+        "text": "Cây F₁ (AaBb) giảm phân cho 4 loại giao tử với tỉ lệ bằng nhau; sự tổ hợp tự do của các giao tử khi thụ tinh tạo 16 kiểu tổ hợp ứng với tỉ lệ kiểu hình 9 : 3 : 3 : 1.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds5",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Bạn Thuận cho rằng: vì trong phép lai hai tính trạng, tính trạng màu hạt và dạng hạt cùng được theo dõi nên chúng phải di truyền phụ thuộc vào nhau. Bạn khác phản bác dựa trên kết quả thí nghiệm của Mendel: xét riêng mỗi tính trạng ở F₂ đều cho tỉ lệ 3 : 1.",
+    "subItems": [
+      {
+        "text": "Khi xét riêng từng tính trạng ở F₂, mỗi tính trạng đều phân li theo tỉ lệ 3 trội : 1 lặn, nghiệm đúng quy luật phân li.",
+        "answer": true
+      },
+      {
+        "text": "Việc mỗi tính trạng vẫn cho tỉ lệ 3 : 1 độc lập cho thấy sự di truyền của hai tính trạng không phụ thuộc vào nhau.",
+        "answer": true
+      },
+      {
+        "text": "Tỉ lệ kiểu hình chung 9 : 3 : 3 : 1 đúng bằng tích của hai tỉ lệ riêng (3 : 1) × (3 : 1).",
+        "answer": true
+      },
+      {
+        "text": "Vì hai tính trạng di truyền độc lập nên ở F₂ chắc chắn không thể xuất hiện tổ hợp kiểu hình mới (vàng-nhăn, xanh-trơn) khác với kiểu hình của bố mẹ ban đầu.",
+        "answer": false
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds6",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Trong một trại giống, người ta lai hai dòng đậu và thu được đời con phân li theo tỉ lệ 1 vàng-trơn : 1 vàng-nhăn : 1 xanh-trơn : 1 xanh-nhăn (A: vàng > a: xanh; B: trơn > b: nhăn).",
+    "subItems": [
+      {
+        "text": "Đời con xuất hiện 4 loại kiểu hình với tỉ lệ bằng nhau (1 : 1 : 1 : 1).",
+        "answer": true
+      },
+      {
+        "text": "Một trong hai cây bố mẹ có kiểu gene đồng hợp lặn về cả hai cặp gene (aabb).",
+        "answer": true
+      },
+      {
+        "text": "Tỉ lệ 1 : 1 : 1 : 1 gợi ý đây là kết quả của một phép lai phân tích về hai cặp tính trạng.",
+        "answer": true
+      },
+      {
+        "text": "Cây bố mẹ còn lại phải có kiểu gene dị hợp về cả hai cặp (AaBb) thì mới cho được 4 loại giao tử với tỉ lệ bằng nhau, dẫn đến đời con phân li 1 : 1 : 1 : 1.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds7",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin sau:\n*Trước Mendel, nhiều người tin rằng đặc điểm của bố mẹ \"hoà trộn\" ở đời con như pha hai loại sơn. Kết quả thí nghiệm của Mendel cho thấy ở F₂, các tính trạng của đời P (như hoa trắng) xuất hiện trở lại nguyên vẹn chứ không bị pha loãng, nhờ đó bác bỏ quan niệm \"hoà trộn\".*",
+    "subItems": [
+      {
+        "text": "Theo quan niệm \"hoà trộn\", lai hoa tím thuần chủng với hoa trắng thuần chủng sẽ cho đời con màu trung gian.",
+        "answer": true
+      },
+      {
+        "text": "Kết quả của Mendel cho thấy các allele tồn tại riêng rẽ, không hoà trộn vào nhau.",
+        "answer": true
+      },
+      {
+        "text": "Việc hoa trắng xuất hiện trở lại nguyên vẹn ở F₂ cho thấy allele quy định hoa trắng không bị \"pha loãng\" hay biến đổi qua các thế hệ.",
+        "answer": true
+      },
+      {
+        "text": "Nếu quan niệm \"hoà trộn\" là đúng thì sau nhiều thế hệ, một quần thể ban đầu gồm cá thể hoa tím và hoa trắng sẽ dần chỉ còn một màu trung gian đồng nhất; thực tế các tính trạng vẫn được bảo toàn qua các thế hệ, điều này phù hợp với quy luật phân li của Mendel.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds8",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Một bạn thực hiện phép lai Aa × Aa ở đậu hà lan (A: hạt vàng trội hoàn toàn so với a: hạt xanh) và thu được 400 hạt ở đời con.",
+    "subItems": [
+      {
+        "text": "Đời con phân li theo tỉ lệ kiểu hình 3 hạt vàng : 1 hạt xanh.",
+        "answer": true
+      },
+      {
+        "text": "Số hạt xanh ở đời con vào khoảng 100 hạt.",
+        "answer": true
+      },
+      {
+        "text": "Trong số hạt vàng ở đời con, có 1/3 số hạt có kiểu gene đồng hợp trội (AA).",
+        "answer": true
+      },
+      {
+        "text": "Nếu lấy ngẫu nhiên một hạt vàng ở đời con đem gieo thành cây rồi cho tự thụ phấn, thì xác suất để cây đó cho đời sau xuất hiện hạt xanh là 2/3.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds9",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Đọc đoạn thông tin sau:\n*Lai phân tích là công cụ Mendel dùng để \"đọc\" kiểu gene ẩn của một cá thể mang tính trạng trội. Ngày nay trong chọn giống, người ta cũng dùng nguyên lí tương tự để kiểm tra xem một cây/con giống biểu hiện tính trạng tốt (trội) là thuần chủng hay còn mang allele lặn ẩn.*",
+    "subItems": [
+      {
+        "text": "Lai phân tích dùng để xác định kiểu gene của cơ thể mang tính trạng trội (đồng hợp hay dị hợp).",
+        "answer": true
+      },
+      {
+        "text": "Trong lai phân tích, cơ thể đem lai với cá thể trội cần kiểm tra là cơ thể mang tính trạng lặn.",
+        "answer": true
+      },
+      {
+        "text": "Nếu kết quả lai phân tích cho đời con đồng tính (100% trội) thì cơ thể trội cần kiểm tra là thuần chủng.",
+        "answer": true
+      },
+      {
+        "text": "Một cây hoa đỏ (trội) sau khi lai phân tích cho đời con gồm cả hoa đỏ và hoa trắng; điều này chứng tỏ cây hoa đỏ ban đầu mang allele lặn ẩn (dị hợp) nên chưa phải là giống thuần chủng về tính trạng màu hoa.",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-ds10",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "truefalse",
+    "content": "Một nhóm học sinh tiến hành phép lai hai tính trạng ở đậu hà lan: AaBb × AaBb (A: vàng > a: xanh; B: trơn > b: nhăn), các cặp gene phân li độc lập, và thu được nhiều hạt ở đời con.",
+    "subItems": [
+      {
+        "text": "Đời con có thể xuất hiện 4 loại kiểu hình khác nhau.",
+        "answer": true
+      },
+      {
+        "text": "Tỉ lệ kiểu hình vàng-trơn ở đời con chiếm 9/16.",
+        "answer": true
+      },
+      {
+        "text": "Tỉ lệ kiểu hình xanh-nhăn (aabb) ở đời con chiếm 1/16.",
+        "answer": true
+      },
+      {
+        "text": "Trong các kiểu hình ở đời con, hai kiểu hình vàng-nhăn và xanh-trơn là biến dị tổ hợp (tổ hợp lại tính trạng theo cách khác bố mẹ thuần chủng ban đầu), mỗi loại chiếm tỉ lệ 3/16. ---",
+        "answer": true
+      }
+    ]
+  },
+  {
+    "id": "khtn_sinh-b37-tl1",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Phát biểu nội dung quy luật phân li của Mendel. Trình bày ngắn gọn thí nghiệm lai một tính trạng (về màu hoa) dẫn tới quy luật này.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl2",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Bằng quan niệm về sự phân li của cặp allele, hãy giải thích vì sao trong phép lai một tính trạng, F₁ đồng tính còn F₂ lại phân li theo tỉ lệ 3 trội : 1 lặn.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl3",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Phép lai phân tích là gì? Nêu vai trò của phép lai phân tích. Trình bày cách nhận biết một cơ thể mang tính trạng trội là thuần chủng hay không thuần chủng bằng phép lai phân tích.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl4",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Phát biểu nội dung quy luật phân li độc lập. Vì sao cơ thể có kiểu gene AaBb (hai cặp gene phân li độc lập) lại tạo ra được 4 loại giao tử với tỉ lệ bằng nhau?",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl5",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Ở đậu hà lan, allele A quy định hạt vàng trội hoàn toàn so với allele a quy định hạt xanh. Cho cây hạt vàng dị hợp (Aa) tự thụ phấn.\na) Viết sơ đồ lai và xác định tỉ lệ kiểu gene, tỉ lệ kiểu hình ở đời con.\nb) Trong số hạt vàng thu được ở đời con, tỉ lệ hạt vàng thuần chủng là bao nhiêu?",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl6",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Một cây đậu hà lan thân cao (A: cao trội hoàn toàn so với a: thấp) chưa biết kiểu gene. Hãy nêu cách bố trí phép lai để xác định kiểu gene của cây thân cao này và biện luận hai khả năng kết quả có thể xảy ra.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl7",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Ở đậu hà lan, gene A quy định hạt vàng trội hoàn toàn so với a quy định hạt xanh; gene B quy định vỏ trơn trội hoàn toàn so với b quy định vỏ nhăn; hai cặp gene phân li độc lập. Cho lai hai cây thuần chủng: hạt vàng, vỏ trơn × hạt xanh, vỏ nhăn.\na) Xác định kiểu gene, kiểu hình của F₁.\nb) Cho F₁ tự thụ phấn. Xác định tỉ lệ kiểu hình ở F₂ và tỉ lệ kiểu hình mang cả hai tính trạng lặn.",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl8",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Vì sao nói sự phân li độc lập và tổ hợp tự do của các cặp allele trong giảm phân và thụ tinh là cơ sở tạo nên sự đa dạng, phong phú ở các loài sinh sản hữu tính? Khái niệm \"biến dị tổ hợp\" được giải thích như thế nào qua phép lai hai tính trạng?",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl9",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Khi lai hai dòng đậu, một bạn thu được đời con phân li theo tỉ lệ 1 vàng-trơn : 1 vàng-nhăn : 1 xanh-trơn : 1 xanh-nhăn. Hãy biện luận để xác định kiểu gene của hai cây bố mẹ đã đem lai (biết A: vàng > a: xanh; B: trơn > b: nhăn, các cặp gene phân li độc lập).",
+    "points": 1
+  },
+  {
+    "id": "khtn_sinh-b37-tl10",
+    "subjectKey": "khtn_sinh",
+    "grade": 9,
+    "lesson": "Bài 37: CÁC QUY LUẬT DI TRUYỀN CỦA MENDEL",
+    "type": "essay",
+    "content": "Một người làm vườn có một cây hoa màu đỏ (đỏ trội hoàn toàn so với trắng) rất đẹp và muốn nhân giống để tất cả cây con đều cho hoa đỏ. Dựa vào kiến thức về quy luật phân li và phép lai phân tích, hãy tư vấn cho người làm vườn: cần kiểm tra điều gì ở cây hoa đỏ trước khi nhân giống, và vì sao nếu cây hoa đỏ đó là thể dị hợp thì việc cho tự thụ phấn sẽ không thu được toàn bộ cây con hoa đỏ.",
+    "points": 1
+  },
+  {
     "id": "khtn_sinh-b38-tn1",
     "subjectKey": "khtn_sinh",
     "grade": 9,
