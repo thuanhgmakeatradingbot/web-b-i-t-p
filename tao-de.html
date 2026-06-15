@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tạo đề mới - Không cần code</title>
+<script>
+MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] }, options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] } };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
@@ -167,6 +171,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 <!-- Tải danh sách đề hiện có để gộp thêm -->
 <script src="danh-sach-de.js"></script>
 <script src="github-sync.js"></script>
+<script src="rich-text.js"></script>
 <script>
 // ========= TRẠNG THÁI =========
 // Bản sao danh sách đề hiện có (giữ nguyên đề cũ, kể cả đề dùng "link")
@@ -237,9 +242,8 @@ function renderEditor(data){
   if (t === 'mc'){
     box.innerHTML = `
       <label>Nội dung câu hỏi</label>
-      <textarea id="mc_content" placeholder="Nhập đề bài..."></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label>
-      <input type="text" id="mc_image" placeholder="VD: hinh1.png (đặt cùng thư mục) hoặc https://...">
+      <textarea id="mc_content" class="rich" placeholder="Nhập đề bài..."></textarea>
+      ${imageFieldHtml('mc_image')}
       <label>4 đáp án</label>
       <div class="opt-row"><span class="letter">A.</span><input type="text" id="mc_a" placeholder="Đáp án A"></div>
       <div class="opt-row"><span class="letter">B.</span><input type="text" id="mc_b" placeholder="Đáp án B"></div>
@@ -263,9 +267,8 @@ function renderEditor(data){
   else if (t === 'truefalse'){
     box.innerHTML = `
       <label>Nội dung dẫn (phần chung của câu)</label>
-      <textarea id="tf_content" placeholder="VD: Cho đường tròn (C)... Xét các phát biểu sau:"></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label>
-      <input type="text" id="tf_image" placeholder="VD: hinh1.png hoặc https://...">
+      <textarea id="tf_content" class="rich" placeholder="VD: Cho đường tròn (C)... Xét các phát biểu sau:"></textarea>
+      ${imageFieldHtml('tf_image')}
       <label>Các ý a, b, c, d (mỗi ý chọn Đúng/Sai)</label>
       <div id="tf_items"></div>
       <button class="btn btn-gray" style="margin-top:8px" onclick="addTfItem()">＋ Thêm ý</button>`;
@@ -280,9 +283,8 @@ function renderEditor(data){
   else if (t === 'short'){
     box.innerHTML = `
       <label>Nội dung câu hỏi</label>
-      <textarea id="sh_content" placeholder="Nhập đề bài..."></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label>
-      <input type="text" id="sh_image" placeholder="VD: hinh1.png hoặc https://...">
+      <textarea id="sh_content" class="rich" placeholder="Nhập đề bài..."></textarea>
+      ${imageFieldHtml('sh_image')}
       <label>Đáp án đúng</label>
       <input type="text" id="sh_answers" placeholder="VD: 12   (nhiều cách viết thì ngăn bằng dấu | , ví dụ: 0.5|1/2)">
       <p class="hint">Hệ thống tự bỏ khoảng trắng & coi dấu phẩy = dấu chấm (0,5 = 0.5).</p>`;
@@ -295,9 +297,8 @@ function renderEditor(data){
   else if (t === 'essay'){
     box.innerHTML = `
       <label>Nội dung câu hỏi tự luận</label>
-      <textarea id="es_content" placeholder="Nhập đề bài tự luận..."></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label>
-      <input type="text" id="es_image" placeholder="VD: hinh1.png hoặc https://...">
+      <textarea id="es_content" class="rich" placeholder="Nhập đề bài tự luận..."></textarea>
+      ${imageFieldHtml('es_image')}
       <label>Điểm câu này</label>
       <input type="number" id="es_points" value="1" min="0" step="0.25">
       <p class="hint">Tự luận do giáo viên chấm sau. Điểm tự luận sẽ trừ vào phần tự động để tổng = 10.</p>`;
@@ -307,6 +308,8 @@ function renderEditor(data){
       document.getElementById('es_points').value = data.points != null ? data.points : 1;
     }
   }
+  attachToolbarsIn(box);
+  if (data && data.image) showImagePreview(t + '_image', data.image);
 }
 
 function addTfItem(text, answer){
@@ -533,7 +536,7 @@ function closeReview(){
 // Dựng bản xem trước giống hệt cách trình bày khi làm bài
 function renderExamPreview(ex){
   const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const nl = s => esc(s).replace(/\n/g,'<br>');
+  const nl = s => (window.renderRich ? renderRich(s) : esc(s).replace(/\n/g,'<br>'));
   let h = '';
   h += `<div style="text-align:center;border-bottom:2px solid #eee;padding-bottom:12px;margin-bottom:18px">
           <div style="font-size:16pt;font-weight:bold">${esc(ex.title)}</div>
@@ -557,7 +560,7 @@ function renderExamPreview(ex){
       h += `<div style="border:1px solid #e0e0e0;border-radius:8px;padding:14px;margin:10px 0;background:#fafafa">`;
       h += `<div style="font-weight:bold;margin-bottom:6px">Câu ${i+1}.</div>`;
       h += `<div style="margin-bottom:8px">${nl(q.content)}</div>`;
-      if (q.image) h += `<div style="color:#1565c0;font-size:10pt">🖼️ Hình: ${esc(q.image)}</div>`;
+      if (q.image) h += `<div style="margin:6px 0"><img src="${esc(q.image)}" alt="hình" style="max-width:100%;max-height:260px;border:1px solid #ddd;border-radius:8px" onerror="this.style.display='none';this.nextSibling.style.display='inline'"><span style="display:none;color:#1565c0;font-size:10pt">🖼️ Hình: ${esc(q.image)}</span></div>`;
 
       if (q.type === 'mc'){
         (q.options||[]).forEach((opt, oi) => {

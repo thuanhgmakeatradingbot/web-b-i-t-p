@@ -119,6 +119,7 @@ input,textarea{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:te
 
 <!-- Cấu hình + dữ liệu đề -->
 <script src="danh-sach-de.js"></script>
+<script src="rich-text.js"></script>
 <script>
 // ====== CẤU HÌNH ======
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgaG9f9xxns2K90ai9l_nMadsQjh8hAY5fvjVsF5oljNkIrwxuWW1nFjHT2XjC44Ik/exec';
@@ -130,7 +131,7 @@ function escapeHtml(s){
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 // Cho phép xuống dòng trong nội dung do giáo viên gõ
-function textToHtml(s){ return escapeHtml(s).replace(/\n/g,'<br>'); }
+function textToHtml(s){ return window.renderRich ? renderRich(s) : escapeHtml(s).replace(/\n/g,'<br>'); }
 
 // ====== TỰ ĐIỀN HỌ TÊN + LỚP TỪ TÀI KHOẢN ĐĂNG NHẬP ======
 function getStudentInfoAny(){

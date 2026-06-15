@@ -128,6 +128,53 @@ const GitHubSync = {
     if (!res.ok) throw new Error('Lỗi ghi file GitHub: ' + res.status + ' - ' + (await res.text()));
     return res.json();
   },
+  // Ghi file NHỊ PHÂN (ảnh): content đã là base64 thuần, không bọc UTF-8.
+  async _putRawBase64(path, base64Content, sha, message){
+    const { owner, repo, branch } = GITHUB_CONFIG;
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+    const body = { message: message || ('Thêm ảnh ' + path), content: base64Content, branch: branch };
+    if (sha) body.sha = sha;
+    const res = await fetch(url, { method: 'PUT', headers: this._headers(), body: JSON.stringify(body) });
+    if (res.status === 401) throw new Error('Token không hợp lệ hoặc hết hạn (401).');
+    if (res.status === 403) throw new Error('Token thiếu quyền ghi (403). Cần quyền Contents: Read and write.');
+    if (res.status === 409) throw new Error('Xung đột phiên bản (409). Thử lại lần nữa.');
+    if (!res.ok) throw new Error('Lỗi ghi file GitHub: ' + res.status + ' - ' + (await res.text()));
+    return res.json();
+  },
+
+  // Đọc file ảnh thành { base64, dataUrl, ext }
+  _readImageFile(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Không đọc được file ảnh.'));
+      reader.onload = () => {
+        const dataUrl = reader.result;            // "data:image/png;base64,AAAA..."
+        const comma = dataUrl.indexOf(',');
+        const base64 = dataUrl.slice(comma + 1);
+        const mime = (dataUrl.slice(5, comma).split(';')[0] || 'image/png');
+        const ext = (mime.split('/')[1] || 'png').replace('jpeg', 'jpg').replace('+xml', '');
+        resolve({ base64, dataUrl, ext });
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+
+  // Tải 1 ảnh từ máy lên thư mục images/ trên GitHub.
+  // Trả về { path, dataUrl }: path để lưu vào câu hỏi, dataUrl để xem trước ngay.
+  async uploadImage(file){
+    if (!file) throw new Error('Chưa chọn ảnh.');
+    if (!/^image\//.test(file.type)) throw new Error('File không phải ảnh.');
+    if (file.size > 3 * 1024 * 1024 &&
+        !confirm('Ảnh khá lớn (' + (file.size/1024/1024).toFixed(1) + ' MB) có thể tải chậm/bị từ chối. Vẫn tải lên?')){
+      throw new Error('Đã hủy: ảnh quá lớn.');
+    }
+    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
+    const { base64, dataUrl, ext } = await this._readImageFile(file);
+    const rand = Math.floor(Math.random() * 1e6);
+    const path = 'images/img-' + Date.now() + '-' + rand + '.' + ext;
+    await this._putRawBase64(path, base64, null, 'Thêm ảnh câu hỏi: ' + path);
+    return { path, dataUrl };
+  },
 
   // Lấy file hiện tại trên GitHub -> { sha, list }
   async getFile(){
@@ -233,3 +280,6 @@ const GitHubSync = {
     return true;
   }
 };
+
+// Gắn vào window để các file khác (vd rich-text.js) gọi được qua window.GitHubSync
+window.GitHubSync = GitHubSync;

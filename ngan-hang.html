@@ -115,6 +115,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 <script src="cau-hinh.js"></script>
 <script src="ngan-hang.js"></script>
 <script src="github-sync.js"></script>
+<script src="rich-text.js"></script>
 <script>
 const SUBJECTS = window.BANK_SUBJECTS;
 const TYPES = window.QUESTION_TYPES;
@@ -177,8 +178,8 @@ function renderEditor(data){
   const box = document.getElementById('editor');
   if (t === 'mc'){
     box.innerHTML = `
-      <label>Nội dung câu hỏi</label><textarea id="f_content" placeholder="Nhập đề bài..."></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image" placeholder="VD: hinh.png hoặc https://...">
+      <label>Nội dung câu hỏi</label><textarea id="f_content" class="rich" placeholder="Nhập đề bài..."></textarea>
+      ${imageFieldHtml('f_image')}
       <label>4 đáp án</label>
       <div class="opt-row"><span class="letter">A.</span><input type="text" id="f_a"></div>
       <div class="opt-row"><span class="letter">B.</span><input type="text" id="f_b"></div>
@@ -191,26 +192,28 @@ function renderEditor(data){
       document.getElementById('f_answer').value=data.answer||'A'; }
   } else if (t === 'truefalse'){
     box.innerHTML = `
-      <label>Nội dung dẫn</label><textarea id="f_content" placeholder="VD: Cho các phát biểu sau:"></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image">
+      <label>Nội dung dẫn</label><textarea id="f_content" class="rich" placeholder="VD: Cho các phát biểu sau:"></textarea>
+      ${imageFieldHtml('f_image')}
       <label>Các ý (mỗi ý chọn Đúng/Sai)</label><div id="tf_items"></div>
       <button class="btn btn-gray" style="margin-top:8px" type="button" onclick="addTfItem()">＋ Thêm ý</button>`;
     if (data){ setVal('f_content',data.content);setVal('f_image',data.image); (data.subItems||[]).forEach(si=>addTfItem(si.text,si.answer)); }
     else { for(let i=0;i<4;i++) addTfItem(); }
   } else if (t === 'short'){
     box.innerHTML = `
-      <label>Nội dung câu hỏi</label><textarea id="f_content"></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image">
+      <label>Nội dung câu hỏi</label><textarea id="f_content" class="rich"></textarea>
+      ${imageFieldHtml('f_image')}
       <label>Đáp án đúng</label><input type="text" id="f_answers" placeholder="VD: 12   (nhiều cách viết ngăn bằng | : 0.5|1/2)">
       <p class="hint">Tự bỏ khoảng trắng & coi 0,5 = 0.5</p>`;
     if (data){ setVal('f_content',data.content);setVal('f_image',data.image);setVal('f_answers',(data.answers||[]).join('|')); }
   } else if (t === 'essay'){
     box.innerHTML = `
-      <label>Nội dung câu hỏi tự luận</label><textarea id="f_content"></textarea>
-      <label>Link hình ảnh (không bắt buộc)</label><input type="text" id="f_image">
+      <label>Nội dung câu hỏi tự luận</label><textarea id="f_content" class="rich"></textarea>
+      ${imageFieldHtml('f_image')}
       <label>Điểm câu này</label><input type="number" id="f_points" value="1" min="0" step="0.25">`;
     if (data){ setVal('f_content',data.content);setVal('f_image',data.image); document.getElementById('f_points').value=data.points!=null?data.points:1; }
   }
+  attachToolbarsIn(box);
+  if (data && data.image) showImagePreview('f_image', data.image);
 }
 function addTfItem(text,answer){
   const box=document.getElementById('tf_items'); if(!box) return;
