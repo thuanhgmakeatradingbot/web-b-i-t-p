@@ -9,16 +9,6 @@
 window.EXAM_LIST = {
   "khtn": [
     {
-      "title": "Đề số 1 - KHTN 8",
-      "grade": 8,
-      "content": "Bộ câu hỏi số 4 (Bài 29-34)",
-      "questions": "15 câu (Câu 1-15)",
-      "time": "30 phút",
-      "topics": "Hệ vận động, Tiêu hóa, Dinh dưỡng, Máu & Tuần hoàn",
-      "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
-      "link": "KHTN/de-so-1/de.html"
-    },
-    {
       "title": "Đề số 2 - KHTN 8",
       "grade": 8,
       "content": "Bài 29-34, 45-51",
