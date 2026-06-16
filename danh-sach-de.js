@@ -17,16 +17,6 @@ window.EXAM_LIST = {
       "topics": "Hô hấp, Xương khớp, Tiêu hóa, Máu, Sinh thái, Quần thể, Môi trường",
       "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
       "link": "KHTN/de-so-2/de.html"
-    },
-    {
-      "title": "Đề số 3 - KHTN 8",
-      "grade": 8,
-      "content": "Đề Kiểm Tra Cuối Kì II (Mã đề 001)",
-      "questions": "28 câu trắc nghiệm",
-      "time": "45 phút",
-      "topics": "Điện học, Nhiệt học, Hệ vận động, Máu, Tuần hoàn, Hô hấp, Thần kinh",
-      "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
-      "link": "KHTN/de-so-3/de.html"
     }
   ],
   "toan": [
