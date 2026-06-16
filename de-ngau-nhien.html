@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Làm đề ngẫu nhiên</title>
+<script src="mathjax-config.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
@@ -28,6 +30,16 @@ select:focus,input:focus{outline:none;border-color:#1a1a1a}
 .bar{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
 .warn{color:#c62828;font-size:10.5pt;margin-top:10px;display:none}
 .summary{background:#f0f7ff;border-radius:8px;padding:12px 15px;margin-top:12px;font-size:11pt;color:#1565c0}
+.scope-box{margin-top:12px}
+.mini-bar{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.mini-btn{padding:6px 12px;font-size:10.5pt;font-weight:600;border:1px solid #ccc;border-radius:7px;background:#fff;color:#333;cursor:pointer}
+.mini-btn:hover{background:#eef}
+.lesson-checks{max-height:230px;overflow:auto;border:2px solid #ddd;border-radius:8px;padding:6px 4px;margin-top:6px}
+.lesson-check{display:flex;align-items:flex-start;gap:9px;padding:7px 9px;border-radius:6px;cursor:pointer;font-size:10.5pt}
+.lesson-check:hover{background:#f5f7ff}
+.lesson-check input{width:auto;margin-top:3px;flex:none}
+.lesson-check.on{background:#eef5ff}
+.scope-count{font-size:10pt;color:#888;margin-top:6px}
 </style>
 </head>
 <body>
@@ -50,8 +62,35 @@ select:focus,input:focus{outline:none;border-color:#1a1a1a}
         <select id="grade" onchange="onSubjectGrade()"></select>
       </div>
     </div>
-    <label>Phạm vi bài (chọn để giới hạn, hoặc để "Tất cả các bài")</label>
-    <select id="lesson" onchange="renderTypeInputs()"><option value="">Tất cả các bài</option></select>
+    <label>Phạm vi bài</label>
+    <select id="lessonMode" onchange="onLessonModeChange()">
+      <option value="all">Tất cả các bài</option>
+      <option value="range">Khoảng bài (từ … đến …)</option>
+      <option value="specific">Chọn bài cụ thể</option>
+    </select>
+
+    <div id="rangeBox" class="scope-box" style="display:none">
+      <div class="row">
+        <div>
+          <label>Từ bài</label>
+          <select id="lessonFrom" onchange="renderTypeInputs()"></select>
+        </div>
+        <div>
+          <label>Đến bài</label>
+          <select id="lessonTo" onchange="renderTypeInputs()"></select>
+        </div>
+      </div>
+      <div class="scope-count" id="rangeCount"></div>
+    </div>
+
+    <div id="specificBox" class="scope-box" style="display:none">
+      <div class="mini-bar">
+        <button type="button" class="mini-btn" onclick="setAllSpecific(true)">✓ Chọn tất cả</button>
+        <button type="button" class="mini-btn" onclick="setAllSpecific(false)">✗ Bỏ chọn hết</button>
+      </div>
+      <div id="lessonChecks" class="lesson-checks"></div>
+      <div class="scope-count" id="specificCount"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -100,23 +139,101 @@ function fillGrades(){
   document.getElementById('grade').innerHTML = grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
 }
 
-// Danh sách bài theo môn + lớp đang chọn
-function fillLessons(){
+// Danh sách bài (đã sắp theo số bài) của môn + lớp đang chọn
+let CURRENT_LESSONS = [];
+
+function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+
+// Lấy & sắp xếp các bài theo môn + lớp đang chọn
+function computeLessons(){
   const keys = getSubjectKeys(document.getElementById('subject').value);
   const grade = document.getElementById('grade').value;
-  const lessons = Array.from(new Set(
+  return Array.from(new Set(
     BANK.filter(q => keys.includes(q.subjectKey) && String(q.grade) === String(grade))
         .map(q => q.lesson).filter(Boolean)
   )).sort((a,b)=>{
     const na=(a.match(/\d+/)||[0])[0], nb=(b.match(/\d+/)||[0])[0];
     return (+na)-(+nb) || a.localeCompare(b);
   });
-  const sel = document.getElementById('lesson');
-  const cur = sel.value;
-  sel.innerHTML = '<option value="">Tất cả các bài</option>' + lessons.map(l => `<option value="${l.replace(/"/g,'&quot;')}">${l}</option>`).join('');
-  if (lessons.indexOf(cur) >= 0) sel.value = cur;
 }
-function getLesson(){ return document.getElementById('lesson').value; }
+
+// Dựng lại danh sách bài cho cả 3 chế độ (gọi khi đổi môn/lớp)
+function fillLessons(){
+  CURRENT_LESSONS = computeLessons();
+
+  // Chế độ "khoảng bài": 2 ô từ – đến
+  const opts = CURRENT_LESSONS.map((l,i) => `<option value="${i}">${escAttr(l)}</option>`).join('');
+  const from = document.getElementById('lessonFrom');
+  const to = document.getElementById('lessonTo');
+  if (from && to){
+    from.innerHTML = opts;
+    to.innerHTML = opts;
+    from.value = '0';
+    to.value = String(Math.max(0, CURRENT_LESSONS.length - 1));
+  }
+
+  // Chế độ "chọn bài cụ thể": danh sách checkbox
+  const checks = document.getElementById('lessonChecks');
+  if (checks){
+    checks.innerHTML = CURRENT_LESSONS.length
+      ? CURRENT_LESSONS.map((l,i) =>
+          `<label class="lesson-check"><input type="checkbox" class="lchk" value="${i}" onchange="onSpecificToggle(this)"> <span>${escAttr(l)}</span></label>`
+        ).join('')
+      : '<div class="scope-count">Chưa có bài nào trong kho cho môn/lớp này.</div>';
+  }
+  onLessonModeChange();
+}
+
+// Trả về danh sách bài đang được giới hạn:
+//   null  = không giới hạn (lấy tất cả các bài)
+//   []    = không bài nào (chế độ "cụ thể" mà chưa tick) -> 0 câu
+//   [..]  = chỉ các bài này
+function getAllowedLessons(){
+  const mode = (document.getElementById('lessonMode') || {}).value || 'all';
+  if (mode === 'all' || CURRENT_LESSONS.length === 0) return null;
+  if (mode === 'range'){
+    let i = parseInt(document.getElementById('lessonFrom').value, 10) || 0;
+    let j = parseInt(document.getElementById('lessonTo').value, 10) || 0;
+    if (i > j) { const t = i; i = j; j = t; }   // tự đảo nếu chọn ngược
+    return CURRENT_LESSONS.slice(i, j + 1);
+  }
+  // specific
+  const checked = [...document.querySelectorAll('#lessonChecks .lchk:checked')]
+    .map(cb => CURRENT_LESSONS[+cb.value]).filter(Boolean);
+  return checked; // có thể là [] nếu chưa tick bài nào
+}
+
+// Hiện/ẩn box theo chế độ + cập nhật nhãn đếm
+function onLessonModeChange(){
+  const mode = document.getElementById('lessonMode').value;
+  document.getElementById('rangeBox').style.display = (mode === 'range') ? 'block' : 'none';
+  document.getElementById('specificBox').style.display = (mode === 'specific') ? 'block' : 'none';
+  renderTypeInputs();
+}
+
+function onSpecificToggle(cb){
+  cb.closest('.lesson-check').classList.toggle('on', cb.checked);
+  renderTypeInputs();
+}
+
+function setAllSpecific(on){
+  document.querySelectorAll('#lessonChecks .lchk').forEach(cb => {
+    cb.checked = on;
+    cb.closest('.lesson-check').classList.toggle('on', on);
+  });
+  renderTypeInputs();
+}
+
+// Nhãn mô tả phạm vi đang chọn (dùng cho tiêu đề đề & phần đếm)
+function scopeLabel(){
+  const allowed = getAllowedLessons();
+  if (allowed === null) return 'Tất cả các bài';
+  if (allowed.length === 0) return 'Chưa chọn bài nào';
+  if (allowed.length === 1) return allowed[0];
+  const mode = document.getElementById('lessonMode').value;
+  if (mode === 'range') return allowed[0] + '  →  ' + allowed[allowed.length - 1];
+  return allowed.length + ' bài đã chọn';
+}
 
 // Đếm số câu có sẵn theo môn+lớp+loại
 // Nếu môn là combo (KHTN tổ hợp), gộp các môn con
@@ -126,15 +243,19 @@ function getSubjectKeys(sub){
   return [sub];
 }
 
-function available(subject, grade, type){
+function poolFor(subject, grade, type){
   const keys = getSubjectKeys(subject);
-  const lesson = getLesson();
+  const allowed = getAllowedLessons();           // null = tất cả
+  const set = allowed === null ? null : new Set(allowed);
   return BANK.filter(q =>
     keys.includes(q.subjectKey) &&
     String(q.grade) === String(grade) &&
     q.type === type &&
-    (!lesson || q.lesson === lesson)
-  ).length;
+    (set === null || set.has(q.lesson))
+  );
+}
+function available(subject, grade, type){
+  return poolFor(subject, grade, type).length;
 }
 
 function renderTypeInputs(){
@@ -153,7 +274,21 @@ function renderTypeInputs(){
       </div>`;
   });
   document.getElementById('typeInputs').innerHTML = html;
+  updateScopeLabels();
   updateSummary();
+}
+
+// Cập nhật dòng đếm nhỏ dưới mỗi chế độ phạm vi
+function updateScopeLabels(){
+  const allowed = getAllowedLessons();
+  const rc = document.getElementById('rangeCount');
+  const sc = document.getElementById('specificCount');
+  if (rc) rc.textContent = (allowed && allowed.length)
+    ? ('Gồm ' + allowed.length + ' bài: ' + allowed[0] + ' → ' + allowed[allowed.length-1]) : '';
+  if (sc){
+    const n = (allowed || []).length;
+    sc.textContent = n ? ('Đã chọn ' + n + ' bài') : 'Chưa chọn bài nào — hãy tick ít nhất 1 bài.';
+  }
 }
 
 function onSubjectGrade(){
@@ -200,24 +335,28 @@ function startRandom(){
 
   if (total === 0){ warn.textContent = 'Vui lòng chọn ít nhất 1 câu.'; warn.style.display = 'block'; return; }
 
+  // Chế độ "chọn bài cụ thể" nhưng chưa tick bài nào
+  const allowed = getAllowedLessons();
+  if (allowed !== null && allowed.length === 0){
+    warn.textContent = 'Hãy chọn ít nhất 1 bài để bốc đề (chế độ "Chọn bài cụ thể").';
+    warn.style.display = 'block'; return;
+  }
+
   // Kiểm tra đủ câu cho từng loại
   for (const t of Object.keys(TYPES)){
     const av = available(sub, grade, t);
     if (c[t] > av){
-      warn.textContent = 'Loại "' + TYPES[t] + '" không đủ câu trong kho (cần ' + c[t] + ', có ' + av + ').';
+      warn.textContent = 'Loại "' + TYPES[t] + '" không đủ câu trong phạm vi đã chọn (cần ' + c[t] + ', có ' + av + ').';
       warn.style.display = 'block';
       return;
     }
   }
 
-  // Bốc ngẫu nhiên từng loại
+  // Bốc ngẫu nhiên từng loại (trong phạm vi bài đã chọn)
   let items = [];
-  const keys = getSubjectKeys(sub);
-  const lesson = getLesson();
   Object.keys(TYPES).forEach(t => {
     if (c[t] > 0){
-      const pool = BANK.filter(q => keys.includes(q.subjectKey) && String(q.grade) === String(grade) && q.type === t && (!lesson || q.lesson === lesson));
-      items = items.concat(shuffle(pool).slice(0, c[t]));
+      items = items.concat(shuffle(poolFor(sub, grade, t)).slice(0, c[t]));
     }
   });
   // Trộn thứ tự các câu trong đề
@@ -225,6 +364,7 @@ function startRandom(){
 
   const timeMinutes = parseInt(document.getElementById('timeMinutes').value, 10) || 45;
   const subjName = (SUBJECTS[sub] && SUBJECTS[sub].name) || sub;
+  const scope = scopeLabel();
 
   const exam = {
     id: 'random-' + Date.now(),
@@ -232,7 +372,8 @@ function startRandom(){
     subjectKey: sub,
     subjectName: subjName,
     grade: parseInt(grade, 10),
-    title: 'Đề ngẫu nhiên - ' + subjName + ' - Lớp ' + grade,
+    title: 'Đề ngẫu nhiên - ' + subjName + ' - Lớp ' + grade +
+           (allowed === null ? '' : ' (' + scope + ')'),
     timeMinutes: timeMinutes,
     items: items
   };

@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tạo đề mới - Không cần code</title>
-<script>
-MathJax = { tex: { inlineMath: [['$','$'],['\\(','\\)']] }, options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] } };
-</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<script src="mathjax-config.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+<!-- MathLive: bảng công thức trực quan (kiểu máy tính) cho ô soạn đề & đáp án -->
+<script defer src="https://cdn.jsdelivr.net/npm/mathlive"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.6}
@@ -246,10 +246,10 @@ function renderEditor(data){
       <textarea id="mc_content" class="rich" placeholder="Nhập đề bài..."></textarea>
       ${imageFieldHtml('mc_image')}
       <label>4 đáp án</label>
-      <div class="opt-row"><span class="letter">A.</span><input type="text" id="mc_a" placeholder="Đáp án A"></div>
-      <div class="opt-row"><span class="letter">B.</span><input type="text" id="mc_b" placeholder="Đáp án B"></div>
-      <div class="opt-row"><span class="letter">C.</span><input type="text" id="mc_c" placeholder="Đáp án C"></div>
-      <div class="opt-row"><span class="letter">D.</span><input type="text" id="mc_d" placeholder="Đáp án D"></div>
+      <div class="opt-row"><span class="letter">A.</span><input type="text" id="mc_a" class="rich-math" placeholder="Đáp án A"></div>
+      <div class="opt-row"><span class="letter">B.</span><input type="text" id="mc_b" class="rich-math" placeholder="Đáp án B"></div>
+      <div class="opt-row"><span class="letter">C.</span><input type="text" id="mc_c" class="rich-math" placeholder="Đáp án C"></div>
+      <div class="opt-row"><span class="letter">D.</span><input type="text" id="mc_d" class="rich-math" placeholder="Đáp án D"></div>
       <label>Đáp án đúng</label>
       <select id="mc_answer">
         <option value="A">A</option><option value="B">B</option>
@@ -287,7 +287,7 @@ function renderEditor(data){
       <textarea id="sh_content" class="rich" placeholder="Nhập đề bài..."></textarea>
       ${imageFieldHtml('sh_image')}
       <label>Đáp án đúng</label>
-      <input type="text" id="sh_answers" placeholder="VD: 12   (nhiều cách viết thì ngăn bằng dấu | , ví dụ: 0.5|1/2)">
+      <input type="text" id="sh_answers" class="rich-math" placeholder="VD: 12   (nhiều cách viết thì ngăn bằng dấu | , ví dụ: 0.5|1/2)">
       <p class="hint">Hệ thống tự bỏ khoảng trắng & coi dấu phẩy = dấu chấm (0,5 = 0.5).</p>`;
     if (data){
       setVal('sh_content', data.content);
@@ -322,12 +322,14 @@ function addTfItem(text, answer){
   row.className = 'tf-row';
   row.innerHTML = `
     <span class="letter">${letters[idx] || (idx+1)})</span>
-    <input type="text" placeholder="Nội dung ý ${letters[idx] || (idx+1)}">
+    <input type="text" class="rich-math" placeholder="Nội dung ý ${letters[idx] || (idx+1)}">
     <select><option value="true">Đúng</option><option value="false">Sai</option></select>
     <button class="btn btn-red" type="button" onclick="this.parentNode.remove()">✕</button>`;
   box.appendChild(row);
   if (text != null) row.querySelector('input[type=text]').value = text;
   if (answer != null) row.querySelector('select').value = answer ? 'true' : 'false';
+  // Gắn nút Công thức + xem trước cho ý vừa thêm (an toàn nếu gọi lại: có khoá).
+  if (window.attachToolbarsIn) attachToolbarsIn(row);
 }
 
 // ========= THÊM / SỬA CÂU HỎI =========
@@ -428,11 +430,12 @@ function renderQList(){
   let html = '';
   currentQuestions.forEach((q, i) => {
     let detail = '';
+    const nl = s => (window.renderRich ? renderRich(s) : escapeHtml(s));
     if (q.type === 'mc') detail = `Đáp án đúng: <strong>${q.answer}</strong>`;
     else if (q.type === 'truefalse') detail = `${q.subItems.length} ý (${q.subItems.map(s=>s.answer?'Đ':'S').join(', ')})`;
-    else if (q.type === 'short') detail = `Đáp án: <strong>${escapeHtml(q.answers.join(' | '))}</strong>`;
+    else if (q.type === 'short') detail = `Đáp án: <strong>${nl(q.answers.join(' | '))}</strong>`;
     else if (q.type === 'essay') detail = `${q.points} điểm`;
-    const preview = escapeHtml((q.content || '').slice(0, 90)) + ((q.content||'').length > 90 ? '…' : '');
+    const preview = nl((q.content || '').slice(0, 90)) + ((q.content||'').length > 90 ? '…' : '');
     html += `
       <div class="q-block">
         <div class="q-top">
@@ -447,6 +450,7 @@ function renderQList(){
       </div>`;
   });
   box.innerHTML = html;
+  if (window.typesetMath) typesetMath(box);
 }
 function removeQuestion(i){
   if (editingQIndex === i) cancelEditQuestion();
@@ -526,7 +530,7 @@ function openReview(examId){
   const btn = document.getElementById('confirmPushBtn');
   btn.disabled = false; btn.textContent = '🚀 Xác nhận & Đẩy lên GitHub';
   document.getElementById('reviewModal').style.display = 'flex';
-  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([document.getElementById('reviewBody')]);
+  if (window.typesetMath) typesetMath(document.getElementById('reviewBody'));
 }
 
 function closeReview(){

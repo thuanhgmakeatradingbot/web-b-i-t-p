@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kết quả học sinh - Giáo viên</title>
+<script src="mathjax-config.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f8f9fa;color:#1a1a1a;line-height:1.5}
@@ -46,6 +48,26 @@ tr:hover{background:#f5f9ff}
 .img-link img{max-width:200px;max-height:200px;border:1px solid #ddd;border-radius:8px;display:block}
 .notice{background:#fff8e1;border-left:4px solid #ffb300;padding:14px;border-radius:8px;font-size:10.5pt;margin-bottom:18px}
 code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
+/* Chi tiết câu hỏi đầy đủ */
+.scope-box{background:#eef5ff;border:1px solid #cfe0ff;border-radius:8px;padding:10px 14px;margin:10px 0 16px;font-size:10.5pt}
+.scope-box .lesson-chip{margin:3px 4px 0 0}
+.qd-sec{font-weight:bold;font-size:11.5pt;margin:20px 0 8px;padding:8px 12px;background:#f0f0f0;border-left:4px solid #1a1a1a;border-radius:4px}
+.qd-block{border:1px solid #e3e3e3;border-radius:10px;padding:14px 16px;margin:12px 0;background:#fff}
+.qd-head{font-weight:bold;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lesson-chip{display:inline-block;background:#ede7f6;color:#5e35b1;border:1px solid #d1c4e9;border-radius:20px;padding:1px 10px;font-size:9.5pt;font-weight:600}
+.qd-content{margin:4px 0 10px;line-height:1.7}
+.qd-content img{max-width:100%;border:1px solid #ddd;border-radius:8px;margin-top:6px}
+.qd-opt{display:block;padding:7px 11px;margin:5px 0;border:1.5px solid #e0e0e0;border-radius:8px;font-size:10.5pt}
+.qd-opt.correct{background:#e6f4ea;border-color:#a8d5b5}
+.qd-opt.wrongpick{background:#fce8e6;border-color:#f0b4ae}
+.qd-opt .badge{font-weight:bold;font-size:9.5pt;margin-left:6px}
+.qd-opt.correct .badge{color:#188038}
+.qd-opt.wrongpick .badge{color:#d93025}
+.qd-verdict{margin-top:8px;font-size:10.5pt}
+.qd-verdict .ok{color:#188038;font-weight:bold}
+.qd-verdict .no{color:#d93025;font-weight:bold}
+.qd-tf{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px dashed #eee;font-size:10.5pt}
+.qd-tf:last-child{border-bottom:none}
 </style>
 </head>
 <body>
@@ -207,6 +229,108 @@ function renderTable(rows){
   c._rows = rows;
 }
 
+// Định dạng nội dung: **đậm**, *nghiêng*, giữ $...$ cho MathJax (giống renderRich).
+function richText(s){
+  let t = esc(s);
+  const math = [];
+  t = t.replace(/\$[^$\n]+\$/g, m => { math.push(m); return '' + (math.length-1) + ''; });
+  t = t.replace(/\n/g, '<br>');
+  t = t.replace(/\*\*([^\n]+?)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+  t = t.replace(/(\d+)/g, (_, k) => math[+k]);
+  return t;
+}
+function normShort(s){ return String(s==null?'':s).trim().toLowerCase().replace(/\s+/g,'').replace(',', '.'); }
+function lessonNum(l){ const m = String(l).match(/\d+/); return m ? +m[0] : 9999; }
+
+// Đọc chi tiết câu hỏi (định dạng mới) từ cột explanations. null nếu không có/không hợp lệ.
+function parseQuestionsDetail(raw){
+  if (!raw) return null;
+  let obj;
+  try { obj = (typeof raw === 'string') ? JSON.parse(raw) : raw; } catch(e){ return null; }
+  let arr = (obj && Array.isArray(obj.q)) ? obj.q : (Array.isArray(obj) ? obj : null);
+  if (!arr || !arr.length) return null;
+  if (!arr.some(x => x && (x.content !== undefined || x.options || x.items))) return null;
+  return arr;
+}
+
+// Hộp "Phạm vi bài": liệt kê các bài (lesson) xuất hiện trong đề.
+function renderScopeBox(detail){
+  const lessons = [];
+  detail.forEach(q => { if (q.lesson && lessons.indexOf(q.lesson) < 0) lessons.push(q.lesson); });
+  if (!lessons.length) return '';
+  lessons.sort((a,b) => (lessonNum(a) - lessonNum(b)) || String(a).localeCompare(b));
+  const chips = lessons.map(l => `<span class="lesson-chip">${esc(l)}</span>`).join(' ');
+  return `<div class="scope-box"><b>📚 Phạm vi bài (${lessons.length} bài):</b><br>${chips}</div>`;
+}
+
+// Render 1 câu hỏi. Trả {html, ok, auto} để cộng dồn số ý đúng (chấm tự động).
+function renderOneQuestion(q){
+  const chip = q.lesson ? `<span class="lesson-chip">${esc(q.lesson)}</span>` : '';
+  const img = q.image ? `<br><img src="${esc(q.image)}" alt="hình">` : '';
+  let h = `<div class="qd-block"><div class="qd-head">Câu ${q.no}. ${chip}</div>`;
+  h += `<div class="qd-content">${richText(q.content)}${img}</div>`;
+  let ok = 0, auto = 0;
+
+  if (q.sec === 'mc'){
+    auto = 1;
+    (q.options || []).forEach(o => {
+      const isCorrect = o.L === q.correct;
+      const isPick = o.L === q.student;
+      const cls = isCorrect ? 'correct' : (isPick ? 'wrongpick' : '');
+      let badge = '';
+      if (isCorrect) badge = `<span class="badge">✓ Đáp án đúng${isPick ? ' • HS chọn' : ''}</span>`;
+      else if (isPick) badge = `<span class="badge">✗ HS chọn</span>`;
+      h += `<span class="qd-opt ${cls}">${esc(o.L)}. ${richText(o.text)}${badge}</span>`;
+    });
+    const good = q.student && q.student === q.correct; if (good) ok = 1;
+    h += `<div class="qd-verdict">Học sinh chọn: <b>${q.student ? esc(q.student) : '(bỏ trống)'}</b> • Đáp án đúng: <b>${esc(q.correct)}</b> ${good ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</div>`;
+  }
+  else if (q.sec === 'tf'){
+    const lab = c => (String(c) === 'true' ? 'Đúng' : 'Sai');
+    (q.items || []).forEach((si, idx) => {
+      auto++;
+      const good = si.student !== '' && si.student === si.correct; if (good) ok++;
+      h += `<div class="qd-tf"><span>${String.fromCharCode(97 + idx)}) ${richText(si.text)}</span>
+        <span style="white-space:nowrap">HS: <b>${si.student ? lab(si.student) : '—'}</b> • ĐA: <b>${lab(si.correct)}</b> ${good ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</span></div>`;
+    });
+  }
+  else if (q.sec === 'short'){
+    auto = 1;
+    const accepts = q.accepts || [];
+    const good = q.student !== '' && accepts.map(normShort).includes(normShort(q.student)); if (good) ok = 1;
+    h += `<div class="qd-verdict">Học sinh trả lời: <b>${q.student ? esc(q.student) : '(bỏ trống)'}</b> • Đáp án: <b>${esc(accepts.join('  /  '))}</b> ${good ? '<span class="ok">✓</span>' : '<span class="no">✗</span>'}</div>`;
+  }
+  else if (q.sec === 'essay'){
+    h += `<div class="essay-block">${q.student ? esc(q.student) : '<i>(không có bài làm)</i>'}</div>`;
+    h += `<div class="qd-verdict" style="color:#888">✍️ Tự luận — giáo viên chấm tay</div>`;
+  }
+  h += `</div>`;
+  return { html: h, ok, auto };
+}
+
+// Render toàn bộ chi tiết theo phần (TN / Đúng-Sai / ngắn / tự luận).
+function renderQuestionsDetail(detail){
+  const SEC = [
+    { k:'mc',    t:'PHẦN I. Trắc nghiệm nhiều phương án' },
+    { k:'tf',    t:'PHẦN II. Đúng/Sai' },
+    { k:'short', t:'PHẦN III. Trả lời ngắn' },
+    { k:'essay', t:'PHẦN IV. Tự luận' }
+  ];
+  let body = '', totalOk = 0, totalAuto = 0;
+  SEC.forEach(s => {
+    const qs = detail.filter(q => q.sec === s.k);
+    if (!qs.length) return;
+    body += `<div class="qd-sec">${s.t} (${qs.length} câu)</div>`;
+    qs.forEach(q => { const r = renderOneQuestion(q); body += r.html; totalOk += r.ok; totalAuto += r.auto; });
+  });
+  let head = '';
+  if (totalAuto > 0){
+    head = `<div style="margin:4px 0 6px;font-size:11.5pt">Chấm tự động: <span style="color:#188038;font-weight:bold">✓ Đúng ${totalOk}</span> / ${totalAuto} ý</div>`;
+  }
+  return head + body;
+}
+
 function showDetail(i){
   const r = (document.getElementById('content')._rows || [])[i];
   if (!r) return;
@@ -215,46 +339,54 @@ function showDetail(i){
   h += `<p><b>Đề:</b> ${esc(r.exam)} &nbsp; | &nbsp; <b>Điểm:</b> <span style="color:#2e7d32;font-weight:bold">${esc(r.score)}</span></p>`;
   h += `<p style="color:#666;font-size:10pt">${esc(r.timestamp)}</p><hr style="margin:12px 0">`;
 
-  // Câu trả lời (đối chiếu đáp án đúng -> tô xanh/đỏ)
-  let correctMap = {};
-  try { correctMap = JSON.parse(r.correctAnswers || '{}'); } catch(e){ correctMap = {}; }
-  const hasKey = Object.keys(correctMap).length > 0;
+  // ƯU TIÊN: chi tiết đầy đủ từng câu (định dạng mới) lưu ở cột "explanations".
+  const detail = parseQuestionsDetail(r.explanations);
+  if (detail){
+    h += renderScopeBox(detail);
+    h += renderQuestionsDetail(detail);
+  } else {
+    // ----- TƯƠNG THÍCH NGƯỢC: bài nộp cũ chỉ có "q1: A" -----
+    // Câu trả lời (đối chiếu đáp án đúng -> tô xanh/đỏ)
+    let correctMap = {};
+    try { correctMap = JSON.parse(r.correctAnswers || '{}'); } catch(e){ correctMap = {}; }
+    const hasKey = Object.keys(correctMap).length > 0;
 
-  h += `<h3 style="margin:8px 0">📝 Câu trả lời</h3><div>`;
-  const ans = String(r.answers || '');
-  if (ans){
-    let nCorrect = 0, nWrong = 0;
-    ans.split(',').forEach(part => {
-      const seg = part.trim();
-      if (!seg) return;
-      const ci = seg.indexOf(':');
-      const key = ci >= 0 ? seg.slice(0, ci).trim() : seg;
-      let stu = ci >= 0 ? seg.slice(ci + 1).trim() : '';
-      if (stu === '') stu = '∅';
+    h += `<h3 style="margin:8px 0">📝 Câu trả lời</h3><div>`;
+    const ans = String(r.answers || '');
+    if (ans){
+      let nCorrect = 0, nWrong = 0;
+      ans.split(',').forEach(part => {
+        const seg = part.trim();
+        if (!seg) return;
+        const ci = seg.indexOf(':');
+        const key = ci >= 0 ? seg.slice(0, ci).trim() : seg;
+        let stu = ci >= 0 ? seg.slice(ci + 1).trim() : '';
+        if (stu === '') stu = '∅';
 
-      if (hasKey && correctMap[key] !== undefined){
-        const correct = String(correctMap[key]);
-        const ok = stu === correct;
-        if (ok) nCorrect++; else nWrong++;
-        h += `<span class="ans-tag ${ok ? 'ok' : 'no'}">${esc(key)}: ${esc(stu)} ${ok
-          ? '✓'
-          : '✗ <span class="corr">(đúng: ' + esc(correct) + ')</span>'}</span>`;
-      } else {
-        h += `<span class="ans-tag">${esc(seg)}</span>`;
+        if (hasKey && correctMap[key] !== undefined){
+          const correct = String(correctMap[key]);
+          const ok = stu === correct;
+          if (ok) nCorrect++; else nWrong++;
+          h += `<span class="ans-tag ${ok ? 'ok' : 'no'}">${esc(key)}: ${esc(stu)} ${ok
+            ? '✓'
+            : '✗ <span class="corr">(đúng: ' + esc(correct) + ')</span>'}</span>`;
+        } else {
+          h += `<span class="ans-tag">${esc(seg)}</span>`;
+        }
+      });
+      if (hasKey){
+        h += `<div style="margin-top:10px;font-size:11pt">
+                <span style="color:#188038;font-weight:bold">✓ Đúng: ${nCorrect}</span> &nbsp;&nbsp;
+                <span style="color:#d93025;font-weight:bold">✗ Sai: ${nWrong}</span>
+              </div>`;
       }
-    });
-    if (hasKey){
-      h += `<div style="margin-top:10px;font-size:11pt">
-              <span style="color:#188038;font-weight:bold">✓ Đúng: ${nCorrect}</span> &nbsp;&nbsp;
-              <span style="color:#d93025;font-weight:bold">✗ Sai: ${nWrong}</span>
-            </div>`;
-    }
-  } else { h += '<i>(trống)</i>'; }
-  h += `</div>`;
+    } else { h += '<i>(trống)</i>'; }
+    h += `</div>`;
 
-  // Tự luận
-  if (r.essays && String(r.essays).trim()){
-    h += `<h3 style="margin:14px 0 6px">✍️ Tự luận</h3><div class="essay-block">${esc(r.essays)}</div>`;
+    // Tự luận
+    if (r.essays && String(r.essays).trim()){
+      h += `<h3 style="margin:14px 0 6px">✍️ Tự luận</h3><div class="essay-block">${esc(r.essays)}</div>`;
+    }
   }
 
   // Ảnh bài làm (link Drive, dạng "q5: https://... | q6: https://...")
@@ -274,6 +406,7 @@ function showDetail(i){
   }
 
   document.getElementById('detailBody').innerHTML = h;
+  if (window.typesetMath) typesetMath(document.getElementById('detailBody'));
   document.getElementById('detailModal').style.display = 'flex';
 }
 function closeDetail(){ document.getElementById('detailModal').style.display = 'none'; }

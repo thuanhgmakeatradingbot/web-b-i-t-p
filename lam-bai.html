@@ -4,13 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Làm bài</title>
-<script>
-MathJax = {
-  tex: { inlineMath: [['$','$'],['\\(','\\)']], displayMath: [['$$','$$']] },
-  options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
-};
-</script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<script src="mathjax-config.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;background:#f8f9fa}
@@ -26,10 +21,12 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;bac
 .question-content{margin:12px 0;line-height:1.8;color:#333}
 .question-content img{max-width:100%;margin-top:10px;border-radius:8px;border:1px solid #ddd}
 .options{margin:20px 0}
-.option{display:block;margin:12px 0;padding:15px;background:white;border:2px solid #ddd;border-radius:8px;cursor:pointer;transition:all 0.3s}
+.option{display:block;margin:12px 0;padding:15px;background:white;border:2px solid #ddd;border-radius:8px;cursor:pointer;transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .09s ease}
 .option:hover{background:#f5f5f5;border-color:#1a1a1a}
+.option:active{transform:scale(.992)}
 .option input[type=radio]{margin-right:12px}
-.option.selected{background:#e8e8e8;border-color:#1a1a1a;font-weight:bold}
+/* Chọn đáp án: dùng nền + viền + bóng (KHÔNG in đậm) để mượt, không bị nhảy chữ */
+.option.selected{background:#eaf2ff;border-color:#1565c0;color:#0d3c8b;box-shadow:0 2px 10px rgba(21,101,192,.16)}
 .true-false-group{margin:15px 0;padding:15px;background:white;border:1px solid #ddd;border-radius:8px}
 .true-false-item{margin:10px 0;padding:10px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid #f0f0f0}
 .true-false-item:last-child{border-bottom:none}
@@ -471,7 +468,7 @@ function renderExam(ex){
   </div>`;
 
   document.getElementById('root').innerHTML = html;
-  if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise();
+  if (window.typesetMath) typesetMath(document.getElementById('root'));
   attachHandlers();
 
   // Điền sẵn họ tên + lớp từ tài khoản đã đăng nhập, và khóa lại
@@ -737,10 +734,54 @@ async function submitExam(){
   else
     document.getElementById('totalScore').textContent = autoTotalStr + ' / 10';
 
+  // Chi tiết từng câu (nội dung + phương án + HS chọn + đáp án đúng + thuộc bài)
+  // để trang Kết quả hiển thị rõ, không chỉ "q1: A".
+  const questionsDetail = buildQuestionsDetail(items, answers);
+
   document.getElementById('loadingModal').style.display = 'flex';
-  await saveToGoogleSheets(name, cls, autoTotalStr, answers, correctMap, correctCount, wrongCount);
+  await saveToGoogleSheets(name, cls, autoTotalStr, answers, correctMap, correctCount, wrongCount, questionsDetail);
   document.getElementById('loadingModal').style.display = 'none';
   document.getElementById('resultModal').style.display = 'flex';
+}
+
+// Dựng chi tiết bài làm theo đúng thứ tự hiển thị (TN -> Đúng/Sai -> ngắn -> tự luận),
+// đánh số lại trong từng phần. Mảng này được lưu nguyên văn (JSON) vào cột
+// "explanations" của Google Sheets — vốn đang bỏ trống — nên KHÔNG cần sửa
+// Google Apps Script. Trang ket-qua.html đọc lại để hiện đầy đủ câu hỏi.
+function buildQuestionsDetail(items, answers){
+  const letters = ['A','B','C','D','E','F'];
+  const byType = t => items.filter(q => q.type === t);
+  const out = [];
+  byType('mc').forEach((q, i) => {
+    out.push({
+      sec: 'mc', no: i + 1, type: 'mc', lesson: q.lesson || '', content: q.content || '',
+      image: q.image || '',
+      options: (q.options || []).map((o, oi) => ({ L: letters[oi], text: o })),
+      correct: q.answer || '', student: answers[q._name] || ''
+    });
+  });
+  byType('truefalse').forEach((q, i) => {
+    out.push({
+      sec: 'tf', no: i + 1, type: 'truefalse', lesson: q.lesson || '', content: q.content || '',
+      image: q.image || '',
+      items: (q.subItems || []).map((si, idx) => ({
+        text: si.text, correct: String(si.answer), student: answers[(q._names || [])[idx]] || ''
+      }))
+    });
+  });
+  byType('short').forEach((q, i) => {
+    out.push({
+      sec: 'short', no: i + 1, type: 'short', lesson: q.lesson || '', content: q.content || '',
+      image: q.image || '', accepts: q.answers || [], student: answers[q._name] || ''
+    });
+  });
+  byType('essay').forEach((q, i) => {
+    out.push({
+      sec: 'essay', no: i + 1, type: 'essay', lesson: q.lesson || '', content: q.content || '',
+      image: q.image || '', student: answers[q._name] || ''
+    });
+  });
+  return out;
 }
 
 // Chuẩn hoá đáp án trả lời ngắn: bỏ khoảng trắng, đổi dấu phẩy thập phân -> chấm, thường hoá
@@ -815,13 +856,16 @@ function reviewAnswers(){
     // Tự luận: giáo viên chấm, không hiện đáp án
   });
 
+  // Render lại công thức trong phần nhận xét/đáp án vừa chèn
+  if (window.typesetMath) typesetMath();
+
   // Cuộn lên đầu đề để xem lại từ câu 1
   const firstSection = document.querySelector('.section-title');
   if (firstSection) firstSection.scrollIntoView({ behavior:'smooth', block:'start' });
   else window.scrollTo({ top: 0, behavior:'smooth' });
 }
 
-async function saveToGoogleSheets(name, cls, total, answers, correctMap, correctCount, wrongCount){
+async function saveToGoogleSheets(name, cls, total, answers, correctMap, correctCount, wrongCount, questionsDetail){
   const data = {
     timestamp: new Date().toLocaleString('vi-VN'),
     name: name,
@@ -834,6 +878,11 @@ async function saveToGoogleSheets(name, cls, total, answers, correctMap, correct
     answers: JSON.stringify(answers),
     correctAnswers: JSON.stringify(correctMap || {})
   };
+  // Chi tiết từng câu (nội dung + phương án + lựa chọn) -> lưu vào cột "explanations".
+  // Bọc trong { v, q } để trang kết quả nhận diện đúng định dạng mới.
+  if (Array.isArray(questionsDetail) && questionsDetail.length){
+    try { data.explanations = JSON.stringify({ v: 1, q: questionsDetail }); } catch(e){}
+  }
   // Đính kèm ảnh bài làm (nếu có) để server lưu lên Drive
   if (Object.keys(essayImageStore).length > 0){
     data.essayImages = JSON.stringify(essayImageStore);
