@@ -144,16 +144,6 @@ window.EXAM_LIST = {
   "hoa": [],
   "sinh": [
     {
-      "title": "Đề số 1 - Sinh học 10",
-      "grade": 10,
-      "content": "Đề thi Sinh học lớp 10",
-      "questions": "Nhiều câu hỏi",
-      "time": "45 phút",
-      "topics": "Chương trình Sinh học 10",
-      "difficulty": "Hỗn hợp: Nhận biết → Vận dụng cao",
-      "link": "Sinh-10/de-so-1/de.html"
-    },
-    {
       "id": "de-sinh-1781504333964",
       "subjectKey": "sinh",
       "subjectName": "Sinh học",
