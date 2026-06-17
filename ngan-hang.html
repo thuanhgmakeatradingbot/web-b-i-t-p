@@ -53,8 +53,8 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 
   <div class="note">
     <strong>Cách dùng:</strong> ① Chọn môn + lớp + loại → ② Nhập câu hỏi + đáp án → ③ Bấm <strong>"Thêm vào kho"</strong>.
-    Khi xong, bấm <strong>"Đẩy lên GitHub"</strong> để lưu vĩnh viễn cho mọi máy.
-    <br>🔑 Lần đầu đẩy sẽ hỏi GitHub Token (xem hướng dẫn trong file <code>github-sync.js</code>).
+    Khi xong, bấm <strong>"Lưu mã hóa qua API"</strong> để lưu bằng token admin trên server.
+    <br>🔐 Không nhập GitHub Token trong trình duyệt. Nếu chạy trên Vercel, GitHub Token phải nằm trong Environment Variables.
   </div>
 
   <!-- PHÂN LOẠI -->
@@ -107,7 +107,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 </div>
 
 <div class="toolbar">
-  <button class="btn btn-dark" onclick="pushAll()">🚀 Đẩy lên GitHub</button>
+  <button class="btn btn-dark" onclick="pushAll()">Lưu mã hóa qua API</button>
   <a class="btn btn-gray" href="don-anh.html">🧹 Dọn ảnh không dùng</a>
   <span id="syncStatus" style="align-self:center;font-size:10.5pt;color:#666"></span>
   <a class="btn btn-gray" href="index.html">← Về trang chủ</a>
@@ -126,15 +126,28 @@ const LOCAL_KEY = 'QUESTION_BANK_LOCAL';
 let bank = [];
 let editingId = null;
 
-function loadBank(){
-  const fromFile = Array.isArray(window.QUESTION_BANK) ? window.QUESTION_BANK : [];
-  let local = [];
-  try { local = JSON.parse(localStorage.getItem(LOCAL_KEY) || '[]') || []; } catch(e){ local = []; }
-  // Gộp theo id: bản local đè bản file
-  const map = {};
-  fromFile.forEach(q => { map[q.id] = q; });
-  local.forEach(q => { map[q.id] = q; });
-  bank = Object.keys(map).map(k => map[k]);
+async function adminFetch(url, options){
+  if (!(await KiroAuth.verifyAdmin())) {
+    alert('Phien admin khong hop le hoac da het han. Vui long dang nhap lai.');
+    window.location.href = 'login.html';
+    throw new Error('Admin token invalid.');
+  }
+  const opts = options || {};
+  opts.headers = Object.assign({}, opts.headers || {}, KiroAuth.adminHeaders());
+  if (opts.body && !opts.headers['Content-Type']) opts.headers['Content-Type'] = 'application/json';
+  const res = await fetch(url, opts);
+  const data = await res.json();
+  if (res.status === 401) {
+    KiroAuth.clearAdmin();
+    window.location.href = 'login.html';
+  }
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Loi API admin.');
+  return data;
+}
+
+async function loadBank(){
+  const data = await adminFetch('/api/admin-bank', { cache: 'no-store' });
+  bank = Array.isArray(data.bank) ? data.bank : [];
 }
 function saveLocal(){ try { localStorage.setItem(LOCAL_KEY, JSON.stringify(bank)); } catch(e){} }
 
@@ -295,15 +308,11 @@ function cancelEdit(){
 }
 
 async function removeQuestion(id){
-  const q=bank.find(x=>x.id===id);
-  if(!confirm('Xóa câu hỏi này khỏi kho?')) return;
-  bank=bank.filter(x=>x.id!==id); saveLocal(); renderList();
-  // Hỏi đẩy lên GitHub
-  if(confirm('Đã xóa trên máy.\nĐẩy việc xóa lên GitHub luôn không?')){
-    try{ const ch=await GitHubSync.deleteBankQuestion(id);
-      setStatus(ch?'✅ Đã xóa trên GitHub.':'ℹ️ Câu này chưa có trên GitHub.', ch?'#2e7d32':'#666');
-    }catch(e){ setStatus('❌ '+e.message,'#c62828'); if(/401|token/i.test(e.message)) GitHubSync.clearToken(); }
-  }
+  if(!confirm('Xoa cau hoi nay khoi kho dang chinh?')) return;
+  bank = bank.filter(x => x.id !== id);
+  saveLocal();
+  renderList();
+  setStatus('Da xoa tren ban dang chinh. Bam Luu ma hoa de cap nhat server.','#666');
 }
 
 function escapeHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -382,22 +391,33 @@ function refreshLessonOptions(){
 }
 
 async function pushAll(){
-  setStatus('⏳ Đang đẩy lên GitHub...','#666');
-  try{
-    await GitHubSync.pushBankAll(bank,'Cập nhật ngân hàng câu hỏi ('+bank.length+' câu)');
-    setStatus('✅ Đã đẩy '+bank.length+' câu lên GitHub. Web cập nhật sau ~1 phút.','#2e7d32');
-  }catch(e){
-    setStatus('❌ '+e.message,'#c62828');
-    if(/401|token/i.test(e.message)) GitHubSync.clearToken();
+  setStatus('Dang luu ngan hang ma hoa...','#666');
+  try {
+    const data = await adminFetch('/api/admin-bank', {
+      method: 'POST',
+      body: JSON.stringify({ bank })
+    });
+    setStatus('Da luu ma hoa ' + data.count + ' cau (' + ((data.saved && data.saved.mode) || 'server') + '). Neu chay tren Vercel, web se cap nhat sau khi redeploy xong.','#2e7d32');
+    try { localStorage.removeItem(LOCAL_KEY); } catch(e){}
+  } catch(e) {
+    setStatus('Loi luu: ' + e.message, '#c62828');
   }
 }
 
-// Khởi tạo
-fillSubjects();
-updateGradeOptions();
-renderEditor();
-loadBank();
-renderList();
+// Khoi tao
+(async function init(){
+  fillSubjects();
+  updateGradeOptions();
+  renderEditor();
+  try {
+    await loadBank();
+    renderList();
+    setStatus('Da tai ngan hang ma hoa: ' + bank.length + ' cau.','#2e7d32');
+  } catch(e) {
+    setStatus('Khong tai duoc ngan hang: ' + e.message, '#c62828');
+    renderList();
+  }
+})();
 </script>
 </body>
 </html>

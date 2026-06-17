@@ -79,9 +79,10 @@ function doStudentLogin(){
   }
 }
 
-function doAdminLogin(){
+async function doAdminLogin(){
   const pass = document.getElementById('aPass').value;
-  if (KiroAuth.loginAdmin(pass)){
+  const ok = await KiroAuth.loginAdmin(pass);
+  if (ok){
     window.location.href = 'index.html';
   } else {
     document.getElementById('aErr').style.display = 'block';

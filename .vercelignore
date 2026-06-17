@@ -1,0 +1,18 @@
+# Legacy static exam pages include client-side answers.
+# They are kept locally for reference, but should not be deployed publicly.
+KHTN/
+Toan-10/
+Sinh-10/
+
+# Answer documents are not needed in the public deployment.
+*.docx
+
+# Local secrets stay on this machine only.
+.env
+.env.local
+.env.*
+
+# Local dev/tunnel helpers are not part of the public deployment.
+.tools/
+dev-server.js
+*.log

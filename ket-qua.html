@@ -127,12 +127,6 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 </div>
 
 <script>
-// ====== CẤU HÌNH ======
-// URL Google Apps Script (giống trong lam-bai.html)
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgaG9f9xxns2K90ai9l_nMadsQjh8hAY5fvjVsF5oljNkIrwxuWW1nFjHT2XjC44Ik/exec';
-// Khóa bí mật - PHẢI GIỐNG biến RESULTS_SECRET trong Google Apps Script
-const RESULTS_SECRET = 'thaythuan-2026';
-
 let allRows = [];
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -140,11 +134,18 @@ function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,
 async function loadResults(){
   document.getElementById('content').innerHTML = '<div class="msg"><div class="spin"></div>Đang tải kết quả...</div>';
   try {
-    const url = GOOGLE_SCRIPT_URL + '?action=results&secret=' + encodeURIComponent(RESULTS_SECRET);
-    const res = await fetch(url);
+    if (!(await KiroAuth.verifyAdmin())) {
+      KiroAuth.clearAdmin();
+      window.location.href = 'login.html';
+      return;
+    }
+    const res = await fetch('/api/results', {
+      headers: KiroAuth.adminHeaders(),
+      cache: 'no-store'
+    });
     const data = await res.json();
-    if (data.status !== 'success'){
-      throw new Error(data.message || 'Không đọc được kết quả.');
+    if (!res.ok || data.status !== 'success'){
+      throw new Error(data.error || data.message || 'Không đọc được kết quả.');
     }
     allRows = data.rows || [];
     buildFilters();
@@ -153,7 +154,7 @@ async function loadResults(){
   } catch(err){
     document.getElementById('content').innerHTML =
       '<div class="msg" style="color:#c62828">❌ ' + esc(err.message) +
-      '<br><br>Kiểm tra lại: URL Apps Script, khóa bí mật, và đã Deploy bản mới chưa.</div>';
+      '<br><br>Kiểm tra lại: GOOGLE_SCRIPT_URL và RESULTS_SECRET trong biến môi trường server/Vercel.</div>';
   }
 }
 
@@ -428,13 +429,6 @@ function exportCSV(){
   a.download = 'ket-qua-hoc-sinh.csv';
   a.click();
   URL.revokeObjectURL(a.href);
-}
-
-// Cảnh báo nếu chưa cấu hình
-if (GOOGLE_SCRIPT_URL.indexOf('AKfyc') < 0 || RESULTS_SECRET === ''){
-  const n = document.getElementById('configNotice');
-  n.style.display = 'block';
-  n.innerHTML = '⚠️ Chưa cấu hình. Hãy điền <code>GOOGLE_SCRIPT_URL</code> và <code>RESULTS_SECRET</code> trong file ket-qua.html cho khớp với Apps Script.';
 }
 
 loadResults();

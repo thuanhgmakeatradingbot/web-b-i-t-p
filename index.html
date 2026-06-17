@@ -470,7 +470,6 @@
 
     <!-- Nguồn dữ liệu đề thi (dùng chung) -->
     <script src="danh-sach-de.js"></script>
-    <script src="github-sync.js"></script>
     <script>
         // Toggle menu
         function toggleMenu() {
@@ -487,8 +486,27 @@
         // Nếu file chưa tải được thì dùng object rỗng để tránh lỗi.
         const examData = window.EXAM_LIST || { khtn: [], toan: [], hoa: [], sinh: [], vatly: [] };
 
-        // Gộp thêm các đề mới được tạo từ tao-de.html (lưu trong trình duyệt).
-        // Nhờ vậy đề tạo xong hiện lên ngay mà không cần thay file thủ công.
+        async function adminFetch(url, options){
+            if (!(await KiroAuth.verifyAdmin())) {
+                alert('Phiên admin không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.');
+                window.location.href = 'login.html';
+                throw new Error('Admin token invalid.');
+            }
+            const opts = options || {};
+            opts.headers = Object.assign({}, opts.headers || {}, KiroAuth.adminHeaders());
+            if (opts.body && !opts.headers['Content-Type']) opts.headers['Content-Type'] = 'application/json';
+            const res = await fetch(url, opts);
+            const data = await res.json();
+            if (res.status === 401) {
+                KiroAuth.clearAdmin();
+                window.location.href = 'login.html';
+            }
+            if (!res.ok || !data.ok) throw new Error(data.error || 'Lỗi API admin.');
+            return data;
+        }
+
+        // Gộp thêm các đề mới bảo mật được tạo từ tao-de.html (lưu trong trình duyệt).
+        // Bỏ qua mọi đề cũ dạng link tĩnh.
         (function mergeLocalExams() {
             try {
                 const raw = localStorage.getItem('EXAM_LIST_LOCAL');
@@ -499,6 +517,7 @@
                     (examData[k] || []).forEach(e => { if (e.id) existingIds.add(e.id); });
                 });
                 localExams.forEach(ex => {
+                    if (!ex.id) return;
                     if (ex.id && existingIds.has(ex.id)) return; // tránh trùng nếu đã có trong file
                     const key = ex.subjectKey || 'khtn';
                     if (!examData[key]) examData[key] = [];
@@ -550,6 +569,9 @@
             currentSubject = subject;
             const container = document.getElementById('examContainer');
             let exams = examData[subject] || [];
+            if (!KiroAuth.isAdmin()) {
+                exams = exams.filter(e => e.id);
+            }
             // Lọc theo lớp đang chọn
             if (currentGrade !== null) {
                 exams = exams.filter(e => getExamGrade(e) === currentGrade);
@@ -568,11 +590,10 @@
             
             let html = '<div class="exam-grid">';
             exams.forEach(exam => {
-                // Đề mới (do trình tạo đề sinh ra) có "id" -> mở bằng lam-bai.html
-                // Đề cũ có "link" -> mở file riêng
-                const target = exam.id ? `lam-bai.html?id=${encodeURIComponent(exam.id)}` : exam.link;
+                if (!exam.id) return;
+                const target = `lam-bai.html?id=${encodeURIComponent(exam.id)}`;
                 // CHỈ ADMIN: mọi đề đều có nút Xóa; nút Sửa chỉ cho đề tạo bằng công cụ.
-                const ref = exam.id || exam.link || '';
+                const ref = exam.id;
                 const adminBtns = KiroAuth.isAdmin() ? `
                         <div style="margin-top:12px; display:flex; gap:10px;">
                             ${(exam._local && exam.id) ? `<button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>` : ''}
@@ -598,7 +619,7 @@
         }
 
         // ===== XÓA ĐỀ NGAY Ở TRANG CHỦ (CHỈ ADMIN) =====
-        // ref = id của đề mới HOẶC link của đề cũ (đã encodeURIComponent ở nút).
+        // ref = id của đề bảo mật.
         async function deleteExamCard(refEnc) {
             const ref = decodeURIComponent(refEnc);
             const exam = findExamByRef(ref);
@@ -606,46 +627,43 @@
             // Bước 1: xác nhận xóa
             if (!confirm('Bạn có chắc muốn XÓA đề "' + title + '" khỏi trang chủ?')) return;
 
-            // Bước 2: xóa khỏi máy này trước (luôn làm được)
-            removeFromLocal(ref);
-
-            // Bước 3: hỏi có đẩy việc xóa lên GitHub không
-            const pushNow = confirm('Đã xóa khỏi máy này.\n\nBạn có muốn ĐẨY việc xóa lên GitHub luôn không?\n(Để học sinh ở mọi máy không còn thấy đề này.)\n\nOK = Đẩy lên GitHub | Cancel = Chỉ xóa trên máy');
-            if (pushNow) {
-                try {
-                    const changed = await GitHubSync.deleteExam(ref, title);
-                    alert(changed
-                        ? '✅ Đã xóa đề trên GitHub. Web sẽ cập nhật sau ~1 phút.'
-                        : 'ℹ️ Đề này chưa có trên GitHub nên không cần xóa trên đó. Đã xóa xong trên máy.');
-                } catch (e) {
-                    alert('❌ Lỗi khi xóa trên GitHub: ' + e.message + '\n\n(Đề vẫn đã được xóa trên máy này.)');
-                    if (/401|token/i.test(e.message)) GitHubSync.clearToken();
-                }
+            try {
+                const data = await adminFetch('/api/admin-exam', {
+                    method: 'POST',
+                    body: JSON.stringify({ deleteRef: ref })
+                });
+                removeFromLocal(ref);
+                alert(data.removed
+                    ? 'Đã xóa đề khỏi danh sách chính.'
+                    : 'Đề này không có trong danh sách chính. Đã xóa khỏi máy này nếu có.');
+            } catch (e) {
+                alert('Lỗi khi xóa đề: ' + e.message);
+                return;
             }
             // Cập nhật lại màn hình
             const active = document.querySelector('.menu-item.active');
             displayExams(active ? active.getAttribute('data-subject') : 'khtn');
         }
 
-        // Tìm đề theo tham chiếu (id hoặc link) trong examData đã merge
+        // Tìm đề theo id trong examData đã merge.
         function findExamByRef(ref) {
             for (const k in examData) {
-                const f = (examData[k] || []).find(e => e.id === ref || e.link === ref);
+                const f = (examData[k] || []).find(e => e.id === ref);
                 if (f) return f;
             }
             return null;
         }
 
-        // Xóa đề khỏi localStorage và danh sách đang hiển thị (khớp id hoặc link)
+        // Xóa đề khỏi localStorage và danh sách đang hiển thị.
         function removeFromLocal(ref) {
             try {
                 const raw = localStorage.getItem('EXAM_LIST_LOCAL');
                 let localExams = raw ? (JSON.parse(raw) || []) : [];
-                localExams = localExams.filter(e => e.id !== ref && e.link !== ref);
+                localExams = localExams.filter(e => e.id !== ref);
                 localStorage.setItem('EXAM_LIST_LOCAL', JSON.stringify(localExams));
             } catch (e) { /* bỏ qua */ }
             Object.keys(examData).forEach(k => {
-                examData[k] = (examData[k] || []).filter(e => e.id !== ref && e.link !== ref);
+                examData[k] = (examData[k] || []).filter(e => e.id !== ref);
             });
         }
 
@@ -671,20 +689,24 @@
         });
         
         // ===== Thiết lập theo vai trò đăng nhập =====
-        (function setupRole() {
+        async function setupRole() {
             const label = document.getElementById('accountLabel');
-            if (KiroAuth.isAdmin()) {
-                label.textContent = '👨‍🏫 Giáo viên (Quản trị)';
+            const adminOk = await KiroAuth.verifyAdmin();
+            if (adminOk) {
+                label.textContent = 'Giao vien (Quan tri)';
                 document.getElementById('adminBar').style.display = 'block';
             } else {
+                document.getElementById('adminBar').style.display = 'none';
                 const s = KiroAuth.getStudent();
-                label.textContent = '🧑‍🎓 ' + (s ? (s.name + ' - ' + s.class) : 'Học sinh');
+                label.textContent = (s ? (s.name + ' - ' + s.class) : 'Hoc sinh');
             }
-        })();
+        }
         
-        // Hiển thị đề thi KHTN mặc định
-        renderGradeBar('khtn');
-        displayExams('khtn');
+        (async function initHome(){
+            await setupRole();
+            renderGradeBar('khtn');
+            displayExams('khtn');
+        })();
     </script>
 </body>
 </html>

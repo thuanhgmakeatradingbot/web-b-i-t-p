@@ -112,22 +112,19 @@ select:focus,input:focus{outline:none;border-color:#1a1a1a}
 </div>
 
 <script src="cau-hinh.js"></script>
-<script src="ngan-hang.js"></script>
 <script>
 const SUBJECTS = window.BANK_SUBJECTS;
 const TYPES = window.QUESTION_TYPES;
 
 // Gộp ngân hàng từ file + bản lưu cục bộ (nếu giáo viên vừa thêm mà chưa đẩy)
-function getBank(){
-  const fromFile = Array.isArray(window.QUESTION_BANK) ? window.QUESTION_BANK : [];
-  let local = [];
-  try { local = JSON.parse(localStorage.getItem('QUESTION_BANK_LOCAL') || '[]') || []; } catch(e){}
-  const map = {};
-  fromFile.forEach(q => map[q.id] = q);
-  local.forEach(q => map[q.id] = q);
-  return Object.keys(map).map(k => map[k]);
+let BANK = [];
+
+async function loadBankMeta(){
+  const res = await fetch('/api/bank-meta', { cache: 'no-store' });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Khong tai duoc metadata ngan hang.');
+  BANK = Array.isArray(data.items) ? data.items : [];
 }
-const BANK = getBank();
 
 function fillSubjects(){
   document.getElementById('subject').innerHTML =
@@ -325,7 +322,7 @@ function shuffle(arr){
   return a;
 }
 
-function startRandom(){
+async function startRandom(){
   const sub = document.getElementById('subject').value;
   const grade = document.getElementById('grade').value;
   const c = getCounts();
@@ -353,45 +350,55 @@ function startRandom(){
   }
 
   // Bốc ngẫu nhiên từng loại (trong phạm vi bài đã chọn)
-  let items = [];
-  Object.keys(TYPES).forEach(t => {
-    if (c[t] > 0){
-      items = items.concat(shuffle(poolFor(sub, grade, t)).slice(0, c[t]));
-    }
-  });
-  // Trộn thứ tự các câu trong đề
-  items = shuffle(items);
-
   const timeMinutes = parseInt(document.getElementById('timeMinutes').value, 10) || 45;
   const subjName = (SUBJECTS[sub] && SUBJECTS[sub].name) || sub;
   const scope = scopeLabel();
 
-  const exam = {
-    id: 'random-' + Date.now(),
-    random: true,
-    subjectKey: sub,
-    subjectName: subjName,
-    grade: parseInt(grade, 10),
-    title: 'Đề ngẫu nhiên - ' + subjName + ' - Lớp ' + grade +
-           (allowed === null ? '' : ' (' + scope + ')'),
-    timeMinutes: timeMinutes,
-    items: items
-  };
-
-  // Lưu vào sessionStorage để lam-bai.html đọc
-  try { sessionStorage.setItem('RANDOM_EXAM', JSON.stringify(exam)); }
-  catch(e){ warn.textContent = 'Không tạo được đề (bộ nhớ đầy).'; warn.style.display = 'block'; return; }
+  try {
+    const res = await fetch('/api/start-exam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject: sub,
+        subjectName: subjName,
+        grade,
+        counts: c,
+        allowedLessons: allowed,
+        scopeLabel: scope,
+        timeMinutes
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Khong tao duoc de.');
+    sessionStorage.setItem('RANDOM_EXAM', JSON.stringify({
+      exam: data.exam,
+      attemptToken: data.attemptToken
+    }));
+  } catch(e){
+    warn.textContent = 'Khong tao duoc de: ' + e.message;
+    warn.style.display = 'block';
+    return;
+  }
 
   window.location.href = 'lam-bai.html?random=1';
 }
 
 // Khởi tạo
-fillSubjects();
-fillGrades();
-fillLessons();
-renderTypeInputs();
-document.getElementById('subject').addEventListener('change', () => { fillGrades(); fillLessons(); renderTypeInputs(); });
-document.getElementById('grade').addEventListener('change', () => { fillLessons(); renderTypeInputs(); });
+(async function init(){
+  const warn = document.getElementById('warn');
+  try {
+    fillSubjects();
+    fillGrades();
+    await loadBankMeta();
+    fillLessons();
+    renderTypeInputs();
+    document.getElementById('subject').addEventListener('change', () => { fillGrades(); fillLessons(); renderTypeInputs(); });
+    document.getElementById('grade').addEventListener('change', () => { fillLessons(); renderTypeInputs(); });
+  } catch(e) {
+    warn.textContent = 'Khong tai duoc ngan hang cau hoi: ' + e.message;
+    warn.style.display = 'block';
+  }
+})();
 </script>
 </body>
 </html>

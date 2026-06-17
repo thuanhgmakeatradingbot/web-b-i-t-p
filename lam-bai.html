@@ -118,9 +118,6 @@ input,textarea{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:te
 <script src="danh-sach-de.js"></script>
 <script src="rich-text.js"></script>
 <script>
-// ====== CẤU HÌNH ======
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzgaG9f9xxns2K90ai9l_nMadsQjh8hAY5fvjVsF5oljNkIrwxuWW1nFjHT2XjC44Ik/exec';
-
 // ====== TIỆN ÍCH ======
 function getParam(name){ return new URLSearchParams(location.search).get(name); }
 function escapeHtml(s){
@@ -239,29 +236,60 @@ function findExamById(id){
 const examId = getParam('id');
 const isRandom = getParam('random') === '1';
 let exam = null;
-
-if (isRandom){
-  // Đề ngẫu nhiên được tạo từ de-ngau-nhien.html, lưu trong sessionStorage
-  try { exam = JSON.parse(sessionStorage.getItem('RANDOM_EXAM') || 'null'); }
-  catch(e){ exam = null; }
-} else {
-  exam = examId ? findExamById(examId) : null;
-}
-
 let EXAM_TIME_MINUTES = 45;
 let examStarted = false;
+let secureMode = false;
+let attemptToken = '';
 
-if (!exam || !Array.isArray(exam.items)){
+function showExamNotFound(message){
   document.getElementById('root').innerHTML =
-    '<div class="notfound"><h1 style="color:#f44336">⚠️ Không tìm thấy đề</h1>'
-    + '<p style="margin:15px 0;color:#666">Đề thi không tồn tại hoặc dữ liệu chưa được tải.</p>'
-    + '<a href="index.html" class="back-btn">← Quay về Menu</a></div>';
-} else {
+    '<div class="notfound"><h1 style="color:#f44336">Khong tim thay de</h1>'
+    + '<p style="margin:15px 0;color:#666">' + escapeHtml(message || 'De thi khong ton tai hoac du lieu chua duoc tai.') + '</p>'
+    + '<a href="index.html" class="back-btn">Quay ve Menu</a></div>';
+}
+
+async function loadExamFromApi(id){
+  const res = await fetch('/api/exam?id=' + encodeURIComponent(id), { cache: 'no-store' });
+  const data = await res.json();
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Khong tai duoc de.');
+  secureMode = true;
+  attemptToken = data.attemptToken || '';
+  return data.exam;
+}
+
+async function bootExam(){
+  if (isRandom){
+    try {
+      const saved = JSON.parse(sessionStorage.getItem('RANDOM_EXAM') || 'null');
+      if (saved && saved.exam && saved.attemptToken){
+        exam = saved.exam;
+        attemptToken = saved.attemptToken;
+        secureMode = true;
+      } else {
+        exam = null;
+      }
+    } catch(e){ exam = null; }
+  } else if (examId) {
+    try {
+      exam = await loadExamFromApi(examId);
+    } catch(e) {
+      showExamNotFound(e.message);
+      return;
+    }
+  }
+
+  if (!exam || !Array.isArray(exam.items)){
+    showExamNotFound();
+    return;
+  }
+
   EXAM_TIME_MINUTES = parseInt(exam.timeMinutes, 10) || 45;
   renderExam(exam);
 }
 
-// ====== DỰNG ĐỀ ======
+bootExam();
+
+// ====== DUNG DE ======
 function renderExam(ex){
   const items = ex.items;
 
@@ -455,7 +483,7 @@ function renderExam(ex){
       <div class="score-breakdown" id="breakdown"></div>
       <p style="font-size:11pt;color:#666">Bài làm đã được gửi đến giáo viên</p>
       <div style="margin:15px 0">
-        <button onclick="reviewAnswers()" class="back-btn" style="background:#1565c0">🔍 Xem lại bài (đáp án đúng)</button>
+        <button id="reviewAnswersBtn" onclick="reviewAnswers()" class="back-btn" style="background:#1565c0">🔍 Xem lại bài (đáp án đúng)</button>
       </div>
       <div class="contact-info">
         <p>📞 Liên hệ để có file đáp án:</p>
@@ -643,6 +671,59 @@ function startTimer(){
 }
 
 // ====== CHẤM ĐIỂM & NỘP BÀI ======
+function showSecureResult(result){
+  let bd = '';
+  const b = result.breakdown || {};
+  if (b.mc && b.mc.count) bd += `<div style="margin:8px 0;font-size:12pt">Trac nghiem: <strong>${Number(b.mc.score || 0).toFixed(2)} diem</strong></div>`;
+  if (b.truefalse && b.truefalse.count) bd += `<div style="margin:8px 0;font-size:12pt">Dung/Sai: <strong>${Number(b.truefalse.score || 0).toFixed(2)} diem</strong></div>`;
+  if (b.short && b.short.count) bd += `<div style="margin:8px 0;font-size:12pt">Tra loi ngan: <strong>${Number(b.short.score || 0).toFixed(2)} diem</strong></div>`;
+  if (result.hasEssay) bd += `<div style="margin:8px 0;font-size:12pt">Tu luan (${Number(result.essayPoints || 0).toFixed(2)} diem): <strong>Giao vien cham sau</strong></div>`;
+  document.getElementById('breakdown').innerHTML = bd;
+
+  if (result.hasEssay)
+    document.getElementById('totalScore').textContent = result.score + ' / ' + Number(result.autoPortion || 0).toFixed(2) + 'd (tu dong)';
+  else
+    document.getElementById('totalScore').textContent = result.score + ' / 10';
+
+  const reviewBtn = document.getElementById('reviewAnswersBtn');
+  if (reviewBtn) reviewBtn.style.display = 'none';
+  document.getElementById('resultModal').style.display = 'flex';
+}
+
+async function submitSecureExam(name, cls, btn){
+  submitted = true;
+  clearProgress();
+  if (timerInterval) clearInterval(timerInterval);
+
+  const answers = collectAnswers();
+  document.querySelectorAll('#examForm input, #examForm textarea').forEach(el => { el.disabled = true; });
+  lastAnswers = answers;
+
+  document.getElementById('loadingModal').style.display = 'flex';
+  try {
+    const res = await fetch('/api/submit-exam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        attemptToken,
+        answers,
+        student: { name, class: cls },
+        essayImages: essayImageStore
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Khong nop duoc bai.');
+    document.getElementById('loadingModal').style.display = 'none';
+    showSecureResult(data);
+  } catch(e) {
+    submitted = false;
+    document.querySelectorAll('#examForm input, #examForm textarea').forEach(el => { el.disabled = false; });
+    if (btn){ btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+    document.getElementById('loadingModal').style.display = 'none';
+    alert('Khong nop duoc bai: ' + e.message);
+  }
+}
+
 async function submitExam(){
   // Đảm bảo đã điền tên từ tài khoản (phòng trường hợp ô trống)
   fillStudentInfo();
@@ -657,6 +738,14 @@ async function submitExam(){
 
   const btn = document.querySelector('.submit-btn');
   if (btn){ btn.disabled = true; btn.style.opacity = '0.5'; btn.style.cursor = 'not-allowed'; }
+
+  if (!secureMode || !attemptToken){
+    alert('Đề này không có token bảo mật nên không thể nộp bài. Vui lòng mở đề từ trang chủ hoặc tạo lại đề ngẫu nhiên.');
+    if (btn){ btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+    return;
+  }
+  await submitSecureExam(name, cls, btn);
+  return;
 
   submitted = true;       // dừng tự lưu
   clearProgress();        // xóa bài làm dở vì đã nộp
@@ -866,33 +955,7 @@ function reviewAnswers(){
 }
 
 async function saveToGoogleSheets(name, cls, total, answers, correctMap, correctCount, wrongCount, questionsDetail){
-  const data = {
-    timestamp: new Date().toLocaleString('vi-VN'),
-    name: name,
-    class: cls,
-    subject: exam.subjectName || '',
-    exam: exam.title || '',
-    correct: correctCount || 0,
-    wrong: wrongCount || 0,
-    score: total,
-    answers: JSON.stringify(answers),
-    correctAnswers: JSON.stringify(correctMap || {})
-  };
-  // Chi tiết từng câu (nội dung + phương án + lựa chọn) -> lưu vào cột "explanations".
-  // Bọc trong { v, q } để trang kết quả nhận diện đúng định dạng mới.
-  if (Array.isArray(questionsDetail) && questionsDetail.length){
-    try { data.explanations = JSON.stringify({ v: 1, q: questionsDetail }); } catch(e){}
-  }
-  // Đính kèm ảnh bài làm (nếu có) để server lưu lên Drive
-  if (Object.keys(essayImageStore).length > 0){
-    data.essayImages = JSON.stringify(essayImageStore);
-  }
-  try {
-    await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: JSON.stringify(data) });
-    console.log('✅ Đã lưu kết quả vào Google Sheets');
-  } catch (e) {
-    console.error('❌ Lỗi khi lưu:', e);
-  }
+  throw new Error('Direct Google Sheets submit is disabled. Use /api/submit-exam.');
 }
 </script>
 </body>

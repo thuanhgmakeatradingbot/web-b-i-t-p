@@ -16,7 +16,7 @@
    2. Token name: tùy ý. Expiration: chọn thời hạn.
    3. Repository access: "Only select repositories" -> chọn repo web-b-i-t-p
    4. Permissions -> Repository permissions -> Contents: Read and write
-   5. Generate token -> COPY (chuỗi bắt đầu bằng github_pat_...)
+   5. Generate token -> COPY token vừa tạo
    6. Vào trình tạo đề, dán token khi được hỏi.
    ============================================================ */
 
@@ -87,14 +87,24 @@ const GitHubSync = {
   hasToken(){ return !!this.getToken(); },
   clearToken(){ try { localStorage.removeItem(GITHUB_CONFIG.tokenKey); } catch(e){} },
 
+  async _adminApi(body){
+    if (!window.KiroAuth || !(await KiroAuth.verifyAdmin())) {
+      throw new Error('Phiên admin không hợp lệ hoặc đã hết hạn.');
+    }
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, KiroAuth.adminHeaders());
+    const res = await fetch('/api/admin-image', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body || {})
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Lỗi API admin-image.');
+    return data;
+  },
+
   // Đảm bảo có token; nếu chưa có thì hỏi 1 lần
   ensureToken(){
-    let t = this.getToken();
-    if (!t){
-      t = prompt('Dán GitHub Token (chỉ nhập 1 lần, lưu trên máy này).\nHướng dẫn tạo token xem trong file github-sync.js:');
-      if (t) this.setToken(t.trim());
-    }
-    return this.getToken();
+    throw new Error('Nhập GitHub Token trong trình duyệt đã bị khóa. Hãy dùng API admin và đặt GITHUB_TOKEN trên server/Vercel.');
   },
 
   _headers(){
@@ -168,12 +178,9 @@ const GitHubSync = {
         !confirm('Ảnh khá lớn (' + (file.size/1024/1024).toFixed(1) + ' MB) có thể tải chậm/bị từ chối. Vẫn tải lên?')){
       throw new Error('Đã hủy: ảnh quá lớn.');
     }
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
     const { base64, dataUrl, ext } = await this._readImageFile(file);
-    const rand = Math.floor(Math.random() * 1e6);
-    const path = 'images/img-' + Date.now() + '-' + rand + '.' + ext;
-    await this._putRawBase64(path, base64, null, 'Thêm ảnh câu hỏi: ' + path);
-    return { path, dataUrl };
+    const data = await this._adminApi({ action: 'upload', base64, ext });
+    return { path: data.path, dataUrl };
   },
 
   // Thử lại khi gặp 409 (xung đột phiên bản: sha đọc lên bị cache/đã cũ).
@@ -228,25 +235,13 @@ const GitHubSync = {
 
   // Đẩy 1 đề lên GitHub (thêm mới hoặc cập nhật theo id)
   async pushExam(exam, message){
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    return this._retry409(async () => {
-      const { sha, list } = await this.getFile();
-      ['khtn','toan','hoa','sinh','vatly'].forEach(k => { if (!list[k]) list[k] = []; });
-      // Xóa bản cũ cùng id (ở mọi môn) rồi thêm bản mới
-      Object.keys(list).forEach(k => { list[k] = (list[k]||[]).filter(e => e.id !== exam.id); });
-      const key = exam.subjectKey || 'khtn';
-      if (!list[key]) list[key] = [];
-      const clean = JSON.parse(JSON.stringify(exam));
-      delete clean._local; // bỏ cờ nội bộ
-      list[key].push(clean);
-      return this.putFile(list, sha, message || ('Thêm/cập nhật đề: ' + (exam.title || exam.id)));
-    });
+    throw new Error('Chuc nang day de truc tiep da bi khoa vi file public se lo dap an. Hay dung API/server ma hoa.');
   },
 
   // Xóa 1 đề khỏi GitHub theo tham chiếu (id của đề mới HOẶC link của đề cũ).
   // Trả về true nếu có thay đổi.
   async deleteExam(ref, title){
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
+    throw new Error('Chức năng xóa đề trực tiếp qua GitHub đã bị khóa. Hãy dùng API admin.');
     return this._retry409(async () => {
       const { sha, list } = await this.getFile();
       let removed = 0;
@@ -273,31 +268,17 @@ const GitHubSync = {
 
   // Đẩy toàn bộ mảng câu hỏi lên (ghi đè) - dùng khi sync nhiều thay đổi 1 lần
   async pushBankAll(arr, message){
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const clean = JSON.parse(JSON.stringify(arr)).map(q => { delete q._local; return q; });
-    return this._retry409(async () => {
-      const { sha } = await this.getBank();
-      await this._putRaw(this.BANK_PATH, buildBankFileText(clean), sha, message || 'Cập nhật ngân hàng câu hỏi');
-      return true;
-    });
+    throw new Error('Chuc nang day ngan hang truc tiep da bi khoa vi file public se lo dap an. Hay dung API/server ma hoa.');
   },
 
   // Thêm/cập nhật 1 câu hỏi theo id
   async pushBankQuestion(q, message){
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const clean = JSON.parse(JSON.stringify(q)); delete clean._local;
-    return this._retry409(async () => {
-      const { sha, arr } = await this.getBank();
-      const next = arr.filter(x => x.id !== q.id);
-      next.push(clean);
-      await this._putRaw(this.BANK_PATH, buildBankFileText(next), sha, message || ('Thêm/sửa câu hỏi: ' + q.id));
-      return true;
-    });
+    throw new Error('Chuc nang day ngan hang truc tiep da bi khoa vi file public se lo dap an. Hay dung API/server ma hoa.');
   },
 
   // Xóa 1 câu hỏi khỏi ngân hàng theo id
   async deleteBankQuestion(id){
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
+    throw new Error('Chức năng xóa câu hỏi trực tiếp qua GitHub đã bị khóa. Hãy dùng API admin.');
     return this._retry409(async () => {
       const { sha, arr } = await this.getBank();
       const next = arr.filter(x => x.id !== id);
@@ -337,26 +318,14 @@ const GitHubSync = {
   // Đối chiếu tên file với: ngan-hang.js + danh-sach-de.js trên GitHub, cộng
   // extraRefText (dữ liệu cục bộ chưa đẩy) để không xóa nhầm ảnh đang dùng.
   async listOrphanImages(extraRefText){
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    const files = (await this._listDir('images')).filter(f => f.type === 'file');
-    if (!files.length) return [];
-    let blob = String(extraRefText || '');
-    try { const { text } = await this._getRaw(this.BANK_PATH); blob += text; } catch(e){}
-    try { const { text } = await this._getRaw(GITHUB_CONFIG.path); blob += text; } catch(e){}
-    return files
-      .filter(f => blob.indexOf(f.name) === -1)
-      .map(f => ({ name: f.name, path: f.path, sha: f.sha, size: f.size }));
+    const data = await this._adminApi({ action: 'orphans', extraRefText: String(extraRefText || '') });
+    return data.items || [];
   },
 
   // Xóa danh sách ảnh (mỗi ảnh 1 commit). Trả về số ảnh đã xóa.
   async deleteImages(items){
-    if (!this.ensureToken()) throw new Error('Bạn chưa nhập token.');
-    let n = 0;
-    for (const it of (items || [])){
-      await this._deleteFile(it.path, it.sha, 'Dọn ảnh không dùng: ' + it.name);
-      n++;
-    }
-    return n;
+    const data = await this._adminApi({ action: 'delete', items: items || [] });
+    return data.deleted || 0;
   }
 };
 

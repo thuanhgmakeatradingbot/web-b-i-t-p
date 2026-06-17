@@ -68,8 +68,8 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 
   <div class="note">
     <strong>Quy trình mới:</strong> ① Điền thông tin đề → ② Thêm từng câu hỏi → ③ Bấm <strong>"Lưu đề & Xem lại"</strong>
-    → ④ Kiểm tra đề trong bảng xem lại → ⑤ Bấm <strong>"Xác nhận & Đẩy lên GitHub"</strong>. Xong! Web tự cập nhật cho mọi người.
-    <br>🔑 Lần đầu đẩy, hệ thống sẽ hỏi <strong>GitHub Token</strong> (chỉ nhập 1 lần, lưu trên máy này). Cách tạo token xem trong file <code>github-sync.js</code>.
+    → ④ Kiểm tra đề trong bảng xem lại → ⑤ Bấm <strong>"Lưu mã hóa qua API"</strong>. Xong! Web tự cập nhật sau khi Vercel redeploy.
+    <br>🔐 Chỉ cần đăng nhập admin. Token bảo vệ được server cấp sau khi nhập đúng mật khẩu; không nhập GitHub Token hay mã API trong trình duyệt.
     <br>Công thức toán: gõ trong dấu <code>$...$</code>, ví dụ <code>$x^2 + 1$</code>. Xuống dòng cứ Enter bình thường.
   </div>
 
@@ -148,14 +148,14 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 <div id="reviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;justify-content:center;align-items:center;padding:20px">
   <div style="background:white;border-radius:14px;max-width:820px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3)">
     <div style="position:sticky;top:0;background:#1a1a1a;color:white;padding:18px 25px;display:flex;justify-content:space-between;align-items:center">
-      <h2 style="font-size:15pt;margin:0">👀 Xem lại đề trước khi đẩy lên GitHub</h2>
+      <h2 style="font-size:15pt;margin:0">Xem lại đề trước khi lưu mã hóa</h2>
       <button class="btn btn-gray" onclick="closeReview()">✕ Đóng</button>
     </div>
     <div id="reviewBody" style="padding:25px"></div>
     <div style="position:sticky;bottom:0;background:#f8f9fa;border-top:1px solid #eee;padding:15px 25px;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap">
       <span id="reviewStatus" style="flex:1;align-self:center;font-size:10.5pt;color:#666"></span>
       <button class="btn btn-gray" onclick="closeReview()">Sửa lại</button>
-      <button class="btn btn-green" id="confirmPushBtn" onclick="confirmPush()">🚀 Xác nhận & Đẩy lên GitHub</button>
+      <button class="btn btn-green" id="confirmPushBtn" onclick="confirmPush()">Lưu mã hóa qua API</button>
     </div>
   </div>
 </div>
@@ -175,7 +175,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 <script src="rich-text.js"></script>
 <script>
 // ========= TRẠNG THÁI =========
-// Bản sao danh sách đề hiện có (giữ nguyên đề cũ, kể cả đề dùng "link")
+// Bản sao danh sách đề bảo mật hiện có.
 const baseList = JSON.parse(JSON.stringify(window.EXAM_LIST || { khtn:[], toan:[], hoa:[], sinh:[], vatly:[] }));
 ['khtn','toan','hoa','sinh','vatly'].forEach(k => { if (!baseList[k]) baseList[k] = []; });
 
@@ -185,6 +185,25 @@ let editingQIndex = -1;    // -1 = đang thêm mới; >=0 = đang sửa câu h�
 let editingExamIndex = -1; // -1 = đang tạo đề mới; >=0 = đang sửa đề thứ i
 
 const LOCAL_KEY = 'EXAM_LIST_LOCAL'; // nơi lưu đề mới trong trình duyệt
+
+async function adminFetch(url, options){
+  if (!(await KiroAuth.verifyAdmin())) {
+    alert('Phien admin khong hop le hoac da het han. Vui long dang nhap lai.');
+    window.location.href = 'login.html';
+    throw new Error('Admin token invalid.');
+  }
+  const opts = options || {};
+  opts.headers = Object.assign({}, opts.headers || {}, KiroAuth.adminHeaders());
+  if (opts.body && !opts.headers['Content-Type']) opts.headers['Content-Type'] = 'application/json';
+  const res = await fetch(url, opts);
+  const data = await res.json();
+  if (res.status === 401) {
+    KiroAuth.clearAdmin();
+    window.location.href = 'login.html';
+  }
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Loi API admin.');
+  return data;
+}
 
 const SUBJECT_NAMES = {
   khtn: 'Khoa học tự nhiên', toan: 'Toán học', hoa: 'Hóa học',
@@ -528,7 +547,7 @@ function openReview(examId){
   document.getElementById('reviewBody').innerHTML = renderExamPreview(ex);
   document.getElementById('reviewStatus').textContent = '';
   const btn = document.getElementById('confirmPushBtn');
-  btn.disabled = false; btn.textContent = '🚀 Xác nhận & Đẩy lên GitHub';
+  btn.disabled = false; btn.textContent = 'Luu ma hoa qua API';
   document.getElementById('reviewModal').style.display = 'flex';
   if (window.typesetMath) typesetMath(document.getElementById('reviewBody'));
 }
@@ -600,23 +619,24 @@ async function confirmPush(){
   if (!ex){ closeReview(); return; }
   const btn = document.getElementById('confirmPushBtn');
   const status = document.getElementById('reviewStatus');
-  btn.disabled = true; btn.textContent = '⏳ Đang đẩy lên GitHub...';
-  status.style.color = '#666'; status.textContent = 'Đang kết nối GitHub...';
+  btn.disabled = true; btn.textContent = 'Dang luu ma hoa...';
+  status.style.color = '#666'; status.textContent = 'Dang gui de len API admin...';
   try {
-    await GitHubSync.pushExam(ex, 'Thêm/cập nhật đề: ' + ex.title);
+    const data = await adminFetch('/api/admin-exam', {
+      method: 'POST',
+      body: JSON.stringify({ exam: ex })
+    });
     status.style.color = '#2e7d32';
-    status.textContent = '✅ Đã đẩy lên GitHub thành công! Web sẽ cập nhật sau ~1 phút.';
-    btn.textContent = '✅ Đã đẩy xong';
+    status.textContent = 'Da luu de ma hoa (' + ((data.saved && data.saved[0] && data.saved[0].mode) || 'server') + '). Neu chay tren Vercel, web se cap nhat sau khi redeploy xong.';
+    btn.textContent = 'Da luu xong';
   } catch(err){
     status.style.color = '#c62828';
-    status.textContent = '❌ ' + err.message;
-    btn.disabled = false; btn.textContent = '🚀 Thử đẩy lại';
-    // Nếu token sai thì xóa để lần sau hỏi lại
-    if (/401|token/i.test(err.message)) GitHubSync.clearToken();
+    status.textContent = 'Loi: ' + err.message;
+    btn.disabled = false; btn.textContent = 'Thu luu lai';
   }
 }
 
-// Bắt đầu sửa đề thứ i (chỉ sửa được đề tạo bằng công cụ này)
+// Bat dau sua de
 function editExam(i){
   const ex = newExams[i];
   if (!ex) return;
@@ -658,7 +678,7 @@ function renderExamList(){
           <span class="hint">${SUBJECT_NAMES[ex.subjectKey]}${ex.grade ? ' • Lớp ' + ex.grade : ''} • ${ex.items.length} câu • ${ex.time}</span>
         </div>
         <span>
-          <button class="btn btn-green" onclick="openReview('${ex.id}')">👀 Xem lại & Đẩy</button>
+          <button class="btn btn-green" onclick="openReview('${ex.id}')">Xem lai & Luu API</button>
           <button class="btn btn-blue" onclick="editExam(${i})">✏️ Sửa</button>
           <button class="btn btn-red" onclick="removeExam(${i})">✕ Xóa</button>
         </span>
@@ -707,8 +727,7 @@ function downloadFile(){
    DANH SÁCH ĐỀ THI - NGUỒN DỮ LIỆU DUY NHẤT
    ------------------------------------------------------------
    - File này được sinh tự động bởi tao-de.html.
-   - Đề mới mở bằng lam-bai.html?id=...
-   - Đề cũ (có "link") mở file riêng như trước.
+   - Đề mở bằng lam-bai.html?id=...
    ============================================================ */
 
 window.EXAM_LIST = `;

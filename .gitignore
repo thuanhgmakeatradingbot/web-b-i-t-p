@@ -29,10 +29,13 @@ npm-debug.log*
 
 # Node modules (nếu có)
 node_modules/
+.tools/
 
 # Environment variables
 .env
 .env.local
+.env.*
+!.env.example
 
 # Backup files
 *.bak
