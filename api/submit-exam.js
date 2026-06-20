@@ -24,6 +24,7 @@ async function saveToGoogleSheets(payload, student, answers, score) {
   if (!url) return { ok: false, skipped: true };
 
   const data = {
+    secret: process.env.RESULTS_SECRET || '',
     timestamp: new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
     name: student.name || '',
     class: student.class || '',

@@ -17,6 +17,8 @@ h1{font-size:22pt}
 .btn-gray{background:#eee;color:#333}
 .btn-blue{background:#1565c0;color:white}
 .btn-green{background:#2e7d32;color:white}
+.btn-red{background:#c62828;color:white}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .filters{display:flex;gap:12px;flex-wrap:wrap;background:white;padding:16px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:18px;align-items:flex-end}
 .filters .f{display:flex;flex-direction:column;gap:4px}
 .filters label{font-size:10pt;font-weight:600;color:#555}
@@ -106,6 +108,8 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
       <input type="text" id="fName" placeholder="Gõ tên..." oninput="applyFilters()">
     </div>
     <button class="btn btn-green" onclick="exportCSV()">⬇️ Xuất Excel (CSV)</button>
+    <button class="btn btn-red" id="deleteSelectedBtn" onclick="deleteSelectedResults()" disabled>Xóa đã chọn (0)</button>
+    <button class="btn btn-red" id="deleteAllBtn" onclick="deleteAllResults()">Xóa toàn bộ</button>
   </div>
 
   <div class="stats" id="stats" style="display:none"></div>
@@ -128,6 +132,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 
 <script>
 let allRows = [];
+let selectedRows = new Set();
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -147,7 +152,12 @@ async function loadResults(){
     if (!res.ok || data.status !== 'success'){
       throw new Error(data.error || data.message || 'Không đọc được kết quả.');
     }
-    allRows = data.rows || [];
+    allRows = (data.rows || []).map((row, index) => ({
+      ...row,
+      rowNumber: Number(row.rowNumber) || (index + 2)
+    }));
+    selectedRows.clear();
+    updateDeleteControls();
     buildFilters();
     document.getElementById('filters').style.display = 'flex';
     applyFilters();
@@ -211,10 +221,12 @@ function renderTable(rows){
   const c = document.getElementById('content');
   if (rows.length === 0){ c.innerHTML = '<div class="msg">Chưa có bài nộp nào khớp bộ lọc.</div>'; return; }
   let html = `<table><thead><tr>
+    <th><input type="checkbox" aria-label="Chọn tất cả kết quả đang hiển thị" onchange="toggleVisibleRows(this.checked)"></th>
     <th>#</th><th>Thời gian</th><th>Họ tên</th><th>Lớp</th><th>Môn</th><th>Đề</th><th>Điểm</th><th>Chi tiết</th>
   </tr></thead><tbody>`;
   rows.forEach((r, i) => {
     html += `<tr>
+      <td><input type="checkbox" aria-label="Chọn kết quả" ${selectedRows.has(r.rowNumber) ? 'checked' : ''} onchange="toggleResultRow(${r.rowNumber}, this.checked)"></td>
       <td>${i+1}</td>
       <td>${esc(r.timestamp)}</td>
       <td>${esc(r.name)}</td>
@@ -228,6 +240,79 @@ function renderTable(rows){
   html += '</tbody></table>';
   c.innerHTML = html;
   c._rows = rows;
+}
+
+function updateDeleteControls(){
+  const selectedBtn = document.getElementById('deleteSelectedBtn');
+  const allBtn = document.getElementById('deleteAllBtn');
+  if (selectedBtn){
+    selectedBtn.disabled = selectedRows.size === 0;
+    selectedBtn.textContent = `Xóa đã chọn (${selectedRows.size})`;
+  }
+  if (allBtn) allBtn.disabled = allRows.length === 0;
+}
+
+function toggleResultRow(rowNumber, checked){
+  if (checked) selectedRows.add(rowNumber);
+  else selectedRows.delete(rowNumber);
+  updateDeleteControls();
+}
+
+function toggleVisibleRows(checked){
+  getFiltered().forEach(row => {
+    if (checked) selectedRows.add(row.rowNumber);
+    else selectedRows.delete(row.rowNumber);
+  });
+  updateDeleteControls();
+  renderTable(getFiltered());
+}
+
+async function requestDeleteResults(payload){
+  if (!(await KiroAuth.verifyAdmin())) {
+    KiroAuth.clearAdmin();
+    window.location.href = 'login.html';
+    return;
+  }
+
+  const selectedBtn = document.getElementById('deleteSelectedBtn');
+  const allBtn = document.getElementById('deleteAllBtn');
+  selectedBtn.disabled = true;
+  allBtn.disabled = true;
+  try {
+    const res = await fetch('/api/results', {
+      method: 'DELETE',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, KiroAuth.adminHeaders()),
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.status !== 'success') {
+      throw new Error(data.error || data.message || 'Không xóa được kết quả.');
+    }
+    alert(`Đã xóa ${Number(data.deleted) || 0} kết quả.`);
+    await loadResults();
+  } catch (error) {
+    alert(
+      error.message +
+      '\n\nNếu Apps Script chưa hỗ trợ xóa, hãy cập nhật theo file google-apps-script-results-snippet.js rồi triển khai phiên bản mới.'
+    );
+    updateDeleteControls();
+  }
+}
+
+function deleteSelectedResults(){
+  const rows = Array.from(selectedRows);
+  if (!rows.length) return;
+  if (!confirm(`Xóa vĩnh viễn ${rows.length} kết quả đã chọn?\nThao tác này không thể hoàn tác.`)) return;
+  requestDeleteResults({ scope: 'selected', rowNumbers: rows });
+}
+
+function deleteAllResults(){
+  if (!allRows.length) return;
+  const phrase = prompt(
+    `Bạn sắp xóa vĩnh viễn toàn bộ ${allRows.length} kết quả.\nNhập XOA TAT CA để xác nhận:`
+  );
+  if (phrase !== 'XOA TAT CA') return;
+  requestDeleteResults({ scope: 'all' });
 }
 
 // Định dạng nội dung: **đậm**, *nghiêng*, giữ $...$ cho MathJax (giống renderRich).

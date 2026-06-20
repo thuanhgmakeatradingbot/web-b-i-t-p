@@ -260,7 +260,7 @@ function buildQuestion(){
       const tx=r.querySelector('input').value.trim(); const an=r.querySelector('select').value==='true';
       if(tx) subItems.push({text:tx,answer:an});
     });
-    if(!subItems.length){ alert('Nhập ít nhất 1 ý.'); return null; }
+    if(subItems.length!==4){ alert('Câu Đúng/Sai phải có đủ đúng 4 ý a, b, c, d.'); return null; }
     base.subItems=subItems;
   } else if(t==='short'){
     const raw=val('f_answers'); if(!raw){ alert('Nhập đáp án đúng.'); return null; }

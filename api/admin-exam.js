@@ -2,6 +2,7 @@ const { encryptJsonPayload } = require('./_lib/crypto-store');
 const { getExamList, resetExamListCache } = require('./_lib/exam-list-store');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 const { buildPublicExamListText, requireAdmin, saveTextFile } = require('./_lib/admin-store');
+const { validateExamList } = require('./_lib/question-validation');
 
 function upsertExam(examList, exam) {
   const key = exam.subjectKey || 'khtn';
@@ -47,6 +48,7 @@ module.exports = async function handler(req, res) {
     } else {
       return sendJson(res, 400, { ok: false, error: 'Missing exam or examList.' });
     }
+    validateExamList(examList);
 
     const encrypted = encryptJsonPayload(examList, 'QUESTION_BANK_SECRET');
     const savedEncrypted = await saveTextFile(
@@ -63,6 +65,6 @@ module.exports = async function handler(req, res) {
     resetExamListCache(examList);
     sendJson(res, 200, { ok: true, removed, saved: [savedEncrypted, savedPublic] });
   } catch (error) {
-    sendJson(res, 500, { ok: false, error: error.message });
+    sendJson(res, error.statusCode || 500, { ok: false, error: error.message });
   }
 };

@@ -15,4 +15,5 @@ Sinh-10/
 # Local dev/tunnel helpers are not part of the public deployment.
 .tools/
 dev-server.js
+google-apps-script-results-snippet.js
 *.log

@@ -377,7 +377,7 @@ function buildQuestionFromForm(){
       const ans = r.querySelector('select').value === 'true';
       if (text) subItems.push({ text, answer: ans });
     });
-    if (subItems.length === 0){ alert('Vui lòng nhập ít nhất 1 ý đúng/sai.'); return null; }
+    if (subItems.length !== 4){ alert('Câu Đúng/Sai phải có đủ đúng 4 ý a, b, c, d.'); return null; }
     return { type: 'truefalse', content, image: val('tf_image'), subItems };
   }
   else if (t === 'short'){
