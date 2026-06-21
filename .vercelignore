@@ -16,4 +16,5 @@ Sinh-10/
 .tools/
 dev-server.js
 google-apps-script-results-snippet.js
+google-apps-script-hoan-chinh.js
 *.log
