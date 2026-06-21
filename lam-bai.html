@@ -45,6 +45,9 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;bac
 .result-content{background:white;padding:50px;border-radius:15px;text-align:center;max-width:550px;width:90%}
 .result-score{font-size:40pt;font-weight:bold;color:#4CAF50;margin:20px 0}
 .score-breakdown{margin:20px 0;text-align:left;background:#f8f9fa;padding:15px;border-radius:8px}
+.answer-password-input{width:100%;padding:13px 14px;border:2px solid #ddd;border-radius:8px;font-size:12pt;margin:18px 0 8px}
+.answer-password-input:focus{outline:none;border-color:#1565c0}
+.answer-password-error{min-height:24px;color:#c62828;font-size:10.5pt}
 .back-btn{display:inline-block;margin:15px 10px;padding:15px 35px;background:#1a1a1a;color:white;text-decoration:none;border-radius:8px;font-weight:bold;border:none;cursor:pointer;transition:all 0.3s}
 .back-btn:hover{background:#333}
 .start-modal{display:flex;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:10000;justify-content:center;align-items:center}
@@ -483,7 +486,7 @@ function renderExam(ex){
       <div class="score-breakdown" id="breakdown"></div>
       <p style="font-size:11pt;color:#666">Bài làm đã được gửi đến giáo viên</p>
       <div style="margin:15px 0">
-        <button id="reviewAnswersBtn" onclick="reviewAnswers()" class="back-btn" style="background:#1565c0">🔍 Xem lại bài (đáp án đúng)</button>
+        <button id="reviewAnswersBtn" onclick="openAnswerPassword()" class="back-btn" style="background:#1565c0">🔍 Xem đáp án</button>
       </div>
       <div class="contact-info">
         <p>📞 Liên hệ để có file đáp án:</p>
@@ -492,6 +495,24 @@ function renderExam(ex){
       </div>
       <a href="index.html" class="back-btn">← Quay về Menu</a>
       <button onclick="location.reload()" class="back-btn" style="background:#4CAF50">Làm lại</button>
+    </div>
+  </div>
+
+  <div class="result-modal" id="answerPasswordModal" style="z-index:2100">
+    <div class="result-content" style="max-width:430px;padding:35px">
+      <h2>Nhập mật khẩu xem đáp án</h2>
+      <p style="margin-top:10px;color:#666;font-size:10.5pt">Mật khẩu do giáo viên cung cấp.</p>
+      <input
+        type="password"
+        id="answerReviewPassword"
+        class="answer-password-input"
+        autocomplete="current-password"
+        placeholder="Mật khẩu"
+        onkeydown="if(event.key==='Enter') unlockAnswers()"
+      >
+      <div class="answer-password-error" id="answerPasswordError"></div>
+      <button type="button" id="unlockAnswersBtn" class="back-btn" style="background:#1565c0" onclick="unlockAnswers()">Mở đáp án</button>
+      <button type="button" class="back-btn" style="background:#666" onclick="closeAnswerPassword()">Hủy</button>
     </div>
   </div>`;
 
@@ -686,8 +707,91 @@ function showSecureResult(result){
     document.getElementById('totalScore').textContent = result.score + ' / 10';
 
   const reviewBtn = document.getElementById('reviewAnswersBtn');
-  if (reviewBtn) reviewBtn.style.display = 'none';
+  if (reviewBtn) reviewBtn.style.display = 'inline-block';
   document.getElementById('resultModal').style.display = 'flex';
+}
+
+function openAnswerPassword(){
+  document.getElementById('resultModal').style.display = 'none';
+  document.getElementById('answerPasswordModal').style.display = 'flex';
+  const input = document.getElementById('answerReviewPassword');
+  const error = document.getElementById('answerPasswordError');
+  if (error) error.textContent = '';
+  if (input){
+    input.value = '';
+    setTimeout(() => input.focus(), 0);
+  }
+}
+
+function closeAnswerPassword(){
+  document.getElementById('answerPasswordModal').style.display = 'none';
+  document.getElementById('resultModal').style.display = 'flex';
+}
+
+function applySecureReview(detail){
+  const rows = Array.isArray(detail) ? detail : [];
+  const mc = rows.filter(item => item && item.sec === 'mc');
+  const tf = rows.filter(item => item && item.sec === 'tf');
+  const sh = rows.filter(item => item && item.sec === 'short');
+
+  exam.items.filter(q => q.type === 'mc').forEach((q, index) => {
+    q.answer = mc[index] ? mc[index].correct : '';
+  });
+  exam.items.filter(q => q.type === 'truefalse').forEach((q, index) => {
+    const reviewItems = tf[index] && Array.isArray(tf[index].items) ? tf[index].items : [];
+    (q.subItems || []).forEach((item, subIndex) => {
+      item.answer = reviewItems[subIndex] ? String(reviewItems[subIndex].correct) === 'true' : false;
+    });
+  });
+  exam.items.filter(q => q.type === 'short').forEach((q, index) => {
+    q.answers = sh[index] && Array.isArray(sh[index].accepts) ? sh[index].accepts : [];
+  });
+}
+
+async function unlockAnswers(){
+  const input = document.getElementById('answerReviewPassword');
+  const error = document.getElementById('answerPasswordError');
+  const button = document.getElementById('unlockAnswersBtn');
+  const password = input ? input.value : '';
+  if (!password){
+    if (error) error.textContent = 'Vui lòng nhập mật khẩu.';
+    return;
+  }
+
+  if (button){
+    button.disabled = true;
+    button.textContent = 'Đang kiểm tra...';
+  }
+  if (error) error.textContent = '';
+
+  try {
+    const res = await fetch('/api/review-exam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        attemptToken,
+        answers: lastAnswers,
+        password
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || 'Không mở được đáp án.');
+
+    applySecureReview(data.questionsDetail);
+    document.getElementById('answerPasswordModal').style.display = 'none';
+    reviewAnswers();
+  } catch (unlockError) {
+    if (error) error.textContent = unlockError.message;
+    if (input){
+      input.value = '';
+      input.focus();
+    }
+  } finally {
+    if (button){
+      button.disabled = false;
+      button.textContent = 'Mở đáp án';
+    }
+  }
 }
 
 async function submitSecureExam(name, cls, btn){
