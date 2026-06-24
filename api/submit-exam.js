@@ -19,7 +19,13 @@ function resolveItems(payload) {
   return [];
 }
 
-async function saveToGoogleSheets(payload, student, answers, score) {
+function normalizeExitCount(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(Math.floor(n), 999);
+}
+
+async function saveToGoogleSheets(payload, student, answers, score, meta) {
   const url = process.env.GOOGLE_SCRIPT_URL || '';
   if (!url) return { ok: false, skipped: true };
 
@@ -35,7 +41,8 @@ async function saveToGoogleSheets(payload, student, answers, score) {
     score: score.autoTotalStr,
     answers: JSON.stringify(answers || {}),
     correctAnswers: JSON.stringify(score.correctMap || {}),
-    explanations: JSON.stringify({ v: 1, q: score.questionsDetail || [] })
+    explanations: JSON.stringify({ v: 1, q: score.questionsDetail || [] }),
+    fullscreenExitCount: normalizeExitCount(meta && meta.fullscreenExitCount)
   };
 
   if (student.essayImages && Object.keys(student.essayImages).length) {
@@ -79,6 +86,9 @@ module.exports = async function handler(req, res) {
     const answers = body.answers && typeof body.answers === 'object' ? body.answers : {};
     const student = body.student && typeof body.student === 'object' ? body.student : {};
     student.essayImages = body.essayImages && typeof body.essayImages === 'object' ? body.essayImages : {};
+    const meta = {
+      fullscreenExitCount: normalizeExitCount(body.fullscreenExitCount)
+    };
 
     const items = resolveItems(payload);
     if (!items.length) return sendJson(res, 404, { ok: false, error: 'Attempt questions not found.' });
@@ -86,7 +96,7 @@ module.exports = async function handler(req, res) {
     const score = scoreExamItems(items, answers);
     let saved = { ok: false };
     try {
-      saved = await saveToGoogleSheets(payload, student, answers, score);
+      saved = await saveToGoogleSheets(payload, student, answers, score, meta);
     } catch (error) {
       saved = { ok: false, error: error.message };
     }
@@ -102,6 +112,7 @@ module.exports = async function handler(req, res) {
       hasEssay: score.hasEssay,
       correctCount: score.correctCount,
       wrongCount: score.wrongCount,
+      fullscreenExitCount: meta.fullscreenExitCount,
       breakdown: score.breakdown
     });
   } catch (error) {

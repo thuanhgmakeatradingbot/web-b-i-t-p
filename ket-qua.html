@@ -32,6 +32,8 @@ th,td{padding:10px 12px;text-align:left;border-bottom:1px solid #eee;font-size:1
 th{background:#1a1a1a;color:white;position:sticky;top:0;cursor:pointer;white-space:nowrap}
 tr:hover{background:#f5f9ff}
 .score-cell{font-weight:bold;color:#2e7d32}
+.exit-cell{font-weight:bold;color:#666}
+.exit-cell.warn{color:#c62828}
 .detail-btn{padding:5px 12px;background:#e3f2fd;color:#1565c0;border:none;border-radius:6px;cursor:pointer;font-weight:bold;font-size:10pt}
 .msg{text-align:center;padding:50px;color:#666}
 .spin{border:6px solid #ddd;border-top:6px solid #1565c0;border-radius:50%;width:50px;height:50px;animation:sp 1s linear infinite;margin:20px auto}
@@ -135,6 +137,11 @@ let allRows = [];
 let selectedRows = new Set();
 
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function fullscreenExitCount(row){
+  const n = Number(row && row.fullscreenExitCount);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.floor(n);
+}
 
 async function loadResults(){
   document.getElementById('content').innerHTML = '<div class="msg"><div class="spin"></div>Đang tải kết quả...</div>';
@@ -210,11 +217,16 @@ function renderStats(rows){
   const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
   const max = scores.length ? Math.max(...scores) : 0;
   const min = scores.length ? Math.min(...scores) : 0;
+  const exitCounts = rows.map(fullscreenExitCount);
+  const totalExits = exitCounts.reduce((a,b)=>a+b,0);
+  const maxExits = exitCounts.length ? Math.max(...exitCounts) : 0;
   box.innerHTML = `
     <div class="stat"><div class="num">${n}</div><div class="lbl">Lượt nộp</div></div>
     <div class="stat"><div class="num">${avg.toFixed(2)}</div><div class="lbl">Điểm trung bình</div></div>
     <div class="stat"><div class="num">${max.toFixed(2)}</div><div class="lbl">Cao nhất</div></div>
-    <div class="stat"><div class="num">${min.toFixed(2)}</div><div class="lbl">Thấp nhất</div></div>`;
+    <div class="stat"><div class="num">${min.toFixed(2)}</div><div class="lbl">Thấp nhất</div></div>
+    <div class="stat"><div class="num">${totalExits}</div><div class="lbl">Tổng thoát fullscreen</div></div>
+    <div class="stat"><div class="num">${maxExits}</div><div class="lbl">Thoát nhiều nhất</div></div>`;
 }
 
 function renderTable(rows){
@@ -222,9 +234,10 @@ function renderTable(rows){
   if (rows.length === 0){ c.innerHTML = '<div class="msg">Chưa có bài nộp nào khớp bộ lọc.</div>'; return; }
   let html = `<table><thead><tr>
     <th><input type="checkbox" aria-label="Chọn tất cả kết quả đang hiển thị" onchange="toggleVisibleRows(this.checked)"></th>
-    <th>#</th><th>Thời gian</th><th>Họ tên</th><th>Lớp</th><th>Môn</th><th>Đề</th><th>Điểm</th><th>Chi tiết</th>
+    <th>#</th><th>Thời gian</th><th>Họ tên</th><th>Lớp</th><th>Môn</th><th>Đề</th><th>Điểm</th><th>Thoát FS</th><th>Chi tiết</th>
   </tr></thead><tbody>`;
   rows.forEach((r, i) => {
+    const exits = fullscreenExitCount(r);
     html += `<tr>
       <td><input type="checkbox" aria-label="Chọn kết quả" ${selectedRows.has(r.rowNumber) ? 'checked' : ''} onchange="toggleResultRow(${r.rowNumber}, this.checked)"></td>
       <td>${i+1}</td>
@@ -234,6 +247,7 @@ function renderTable(rows){
       <td>${esc(r.subject)}</td>
       <td>${esc(r.exam)}</td>
       <td class="score-cell">${esc(r.score)}</td>
+      <td class="exit-cell ${exits ? 'warn' : ''}">${exits}</td>
       <td><button class="detail-btn" onclick="showDetail(${i})">Xem</button></td>
     </tr>`;
   });
@@ -422,7 +436,8 @@ function showDetail(i){
   if (!r) return;
   document.getElementById('detailTitle').textContent = (r.name || '') + ' - ' + (r.class || '');
   let h = '';
-  h += `<p><b>Đề:</b> ${esc(r.exam)} &nbsp; | &nbsp; <b>Điểm:</b> <span style="color:#2e7d32;font-weight:bold">${esc(r.score)}</span></p>`;
+  const exits = fullscreenExitCount(r);
+  h += `<p><b>Đề:</b> ${esc(r.exam)} &nbsp; | &nbsp; <b>Điểm:</b> <span style="color:#2e7d32;font-weight:bold">${esc(r.score)}</span> &nbsp; | &nbsp; <b>Thoát fullscreen:</b> <span style="color:${exits ? '#c62828' : '#666'};font-weight:bold">${exits}</span> lần</p>`;
   h += `<p style="color:#666;font-size:10pt">${esc(r.timestamp)}</p><hr style="margin:12px 0">`;
 
   // ƯU TIÊN: chi tiết đầy đủ từng câu (định dạng mới) lưu ở cột "explanations".
@@ -501,10 +516,10 @@ function closeDetail(){ document.getElementById('detailModal').style.display = '
 function exportCSV(){
   const rows = getFiltered();
   if (rows.length === 0){ alert('Không có dữ liệu để xuất.'); return; }
-  const header = ['Thời gian','Họ tên','Lớp','Môn','Đề','Điểm','Câu trả lời','Tự luận','Ảnh'];
+  const header = ['Thời gian','Họ tên','Lớp','Môn','Đề','Điểm','Thoát fullscreen','Câu trả lời','Tự luận','Ảnh'];
   const lines = [header.join(',')];
   rows.forEach(r => {
-    const cells = [r.timestamp, r.name, r.class, r.subject, r.exam, r.score, r.answers, r.essays, r.images]
+    const cells = [r.timestamp, r.name, r.class, r.subject, r.exam, r.score, fullscreenExitCount(r), r.answers, r.essays, r.images]
       .map(v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"');
     lines.push(cells.join(','));
   });

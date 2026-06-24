@@ -57,7 +57,7 @@ function handleResultsGet_(e) {
     return resultsJson_({ status: 'success', rows: [] });
   }
 
-  var values = sheet.getRange(2, 1, lastRow - 1, 13).getDisplayValues();
+  var values = sheet.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
   var rows = values.map(function(row, index) {
     return {
       rowNumber: index + 2,
@@ -73,7 +73,8 @@ function handleResultsGet_(e) {
       explanations: row[9],
       images: row[10],
       essays: row[11],
-      correctAnswers: row[12]
+      correctAnswers: row[12],
+      fullscreenExitCount: row[14] || '0'
     };
   });
 

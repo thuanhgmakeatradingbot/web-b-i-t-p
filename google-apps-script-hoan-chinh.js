@@ -38,9 +38,27 @@ function isResultsAuthorized_(providedSecret) {
   return expectedSecret !== '' && String(providedSecret || '') === expectedSecret;
 }
 
+function normalizeFullscreenExitCount_(value) {
+  var n = Number(value);
+  if (!isFinite(n) || n < 0) return 0;
+  return Math.min(Math.floor(n), 999);
+}
+
 function getResultsSheet_() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   return ss.getSheetByName(RESULTS_SHEET_NAME) || ss.getActiveSheet();
+}
+
+function ensureResultsColumns_(sheet) {
+  var headers = [
+    { col: 13, name: 'Đáp án đúng (JSON)' },
+    { col: 14, name: 'Ảnh preview' },
+    { col: 15, name: 'Thoát fullscreen' }
+  ];
+  headers.forEach(function(item) {
+    var cell = sheet.getRange(1, item.col);
+    if (!cell.getValue()) cell.setValue(item.name);
+  });
 }
 
 // ===== LẤY (HOẶC TẠO) THƯ MỤC ẢNH TRÊN DRIVE =====
@@ -100,6 +118,7 @@ function doPost(e) {
     
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var mainSheet = ss.getSheetByName('Kết quả') || ss.getActiveSheet();
+    ensureResultsColumns_(mainSheet);
     
     // Parse dữ liệu
     var data = {};
@@ -149,6 +168,7 @@ function doPost(e) {
     var correct = data.correct || 0;
     var wrong = data.wrong || 0;
     var score = data.score || 0;
+    var fullscreenExitCount = normalizeFullscreenExitCount_(data.fullscreenExitCount);
     
     // Parse answers
     var answersObj = {};
@@ -195,7 +215,9 @@ function doPost(e) {
       explanations,
       imageLinks,
       essayText,
-      data.correctAnswers || ''   // Cột M: đáp án đúng (JSON) - dùng cho trang kết quả
+      data.correctAnswers || '',  // Cột M: đáp án đúng (JSON) - dùng cho trang kết quả
+      '',                         // Cột N: ảnh preview bằng =IMAGE()
+      fullscreenExitCount         // Cột O: số lần thoát fullscreen
     ]);
     
     // Tô màu câu trả lời SAI
@@ -259,6 +281,7 @@ function sendResultEmail(data, answersObj, answersText, essayText) {
   var exam = data.exam || '';
   var score = data.score || '0';
   var timestamp = data.timestamp || new Date().toLocaleString('vi-VN');
+  var fullscreenExitCount = normalizeFullscreenExitCount_(data.fullscreenExitCount);
 
   var subjectLine = '[Kết quả] ' + name + ' - ' + studentClass + ' - ' + exam;
 
@@ -289,6 +312,7 @@ function sendResultEmail(data, answersObj, answersText, essayText) {
         '<tr><td style="padding:4px 12px"><b>Đề</b></td><td style="padding:4px 12px">' + escapeHtmlGas(exam) + '</td></tr>' +
         '<tr><td style="padding:4px 12px"><b>Thời gian nộp</b></td><td style="padding:4px 12px">' + escapeHtmlGas(timestamp) + '</td></tr>' +
         '<tr><td style="padding:4px 12px"><b>Điểm (tự động)</b></td><td style="padding:4px 12px;font-size:18px;color:#2e7d32"><b>' + escapeHtmlGas(String(score)) + '</b></td></tr>' +
+        '<tr><td style="padding:4px 12px"><b>Thoát fullscreen</b></td><td style="padding:4px 12px">' + fullscreenExitCount + ' lần</td></tr>' +
       '</table>' +
       '<h3>📝 Chi tiết câu trả lời</h3>' +
       '<table style="border-collapse:collapse;width:100%">' +
@@ -597,7 +621,7 @@ function doGet(e) {
     if (lastRow < 2) return jsonOutput_({ status: 'success', rows: [] });
 
     // Dùng getDisplayValues để thời gian và điểm giữ đúng cách hiển thị trong Sheet.
-    var values = sheet.getRange(2, 1, lastRow - 1, 13).getDisplayValues();
+    var values = sheet.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
     var rows = values.map(function(r, index) {
       return {
         rowNumber: index + 2,
@@ -613,7 +637,8 @@ function doGet(e) {
         explanations: r[9],
         images: r[10],
         essays: r[11],
-        correctAnswers: r[12]
+        correctAnswers: r[12],
+        fullscreenExitCount: r[14] || '0'
       };
     });
 
@@ -710,6 +735,9 @@ function testQuyenDrive() {
 // Cột J: Giải thích
 // Cột K: Hình ảnh (hiển thị hình thật)
 // Cột L: Tự luận
+// Cột M: Đáp án đúng (JSON)
+// Cột N: Ảnh preview (=IMAGE)
+// Cột O: Số lần thoát fullscreen
 
 // ===== LƯU Ý =====
 // - Hình ảnh base64 quá lớn có thể gây lỗi

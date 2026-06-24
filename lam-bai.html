@@ -563,6 +563,9 @@ function updateProgress(){
 // ====== TỰ ĐỘNG LƯU & KHÔI PHỤC BÀI LÀM ======
 // Mỗi bài làm dở lưu riêng theo đề + học sinh, để refresh/mất mạng không mất bài.
 let submitted = false;
+let fullscreenExitCount = 0;
+let fullscreenWasActive = false;
+let fullscreenListenersBound = false;
 function progressKey(){
   let who = 'guest';
   try { const s = (window.KiroAuth && KiroAuth.getStudent && KiroAuth.getStudent()); if (s) who = s.name + '|' + s.class; } catch(e){}
@@ -579,7 +582,7 @@ function collectAnswers(){
 function saveProgress(){
   if (submitted) return;
   try {
-    const payload = { savedAt: Date.now(), timeLeft: time, answers: collectAnswers() };
+    const payload = { savedAt: Date.now(), timeLeft: time, answers: collectAnswers(), fullscreenExitCount };
     localStorage.setItem(progressKey(), JSON.stringify(payload));
   } catch(e){ /* hết dung lượng -> bỏ qua */ }
 }
@@ -622,6 +625,9 @@ function restoreProgress(){
     if (typeof p.timeLeft === 'number' && p.timeLeft > 0 && p.timeLeft <= EXAM_TIME_MINUTES*60){
       time = p.timeLeft;
     }
+    if (typeof p.fullscreenExitCount === 'number' && p.fullscreenExitCount >= 0){
+      fullscreenExitCount = Math.floor(p.fullscreenExitCount);
+    }
     updateProgress();
   } catch(e){ /* bỏ qua */ }
 }
@@ -649,6 +655,13 @@ function enterFullscreen(){
   if (el.requestFullscreen) el.requestFullscreen();
   else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
 }
+function currentFullscreenElement(){
+  return document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement ||
+    null;
+}
 function cancelExam(){ window.location.href = 'index.html'; }
 function confirmStartExam(){
   document.getElementById('startModal').style.display = 'none';
@@ -661,15 +674,37 @@ function confirmStartExam(){
   enterFullscreen();
   startTimer();
   examStarted = true;
-  document.addEventListener('fullscreenchange', handleFSChange);
+  if (!fullscreenListenersBound){
+    document.addEventListener('fullscreenchange', handleFSChange);
+    document.addEventListener('webkitfullscreenchange', handleFSChange);
+    document.addEventListener('mozfullscreenchange', handleFSChange);
+    document.addEventListener('MSFullscreenChange', handleFSChange);
+    fullscreenListenersBound = true;
+  }
+  setTimeout(handleFSChange, 500);
 }
 function handleFSChange(){
-  const fs = document.fullscreenElement || document.webkitFullscreenElement;
-  if (examStarted && !fs) document.getElementById('fullscreenWarning').style.display = 'flex';
+  const fs = !!currentFullscreenElement();
+  if (!examStarted || submitted){
+    fullscreenWasActive = fs;
+    return;
+  }
+  if (fs){
+    fullscreenWasActive = true;
+    document.getElementById('fullscreenWarning').style.display = 'none';
+    return;
+  }
+  if (fullscreenWasActive){
+    fullscreenExitCount += 1;
+    fullscreenWasActive = false;
+    saveProgress();
+  }
+  document.getElementById('fullscreenWarning').style.display = 'flex';
 }
 function returnToFullscreen(){
   document.getElementById('fullscreenWarning').style.display = 'none';
   enterFullscreen();
+  setTimeout(handleFSChange, 500);
 }
 
 // ====== TIMER ======
@@ -812,7 +847,8 @@ async function submitSecureExam(name, cls, btn){
         attemptToken,
         answers,
         student: { name, class: cls },
-        essayImages: essayImageStore
+        essayImages: essayImageStore,
+        fullscreenExitCount
       })
     });
     const data = await res.json();
