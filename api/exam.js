@@ -1,4 +1,4 @@
-const { findExamById } = require('./_lib/exam-list-store');
+const { findExamByIdAsync } = require('./_lib/exam-list-store');
 const { createAttemptToken, sanitizeExam } = require('./_lib/exam-core');
 const { allowMethods, sendJson } = require('./_lib/http');
 
@@ -8,7 +8,7 @@ module.exports = async function handler(req, res) {
   try {
     const url = new URL(req.url, 'http://localhost');
     const id = url.searchParams.get('id') || '';
-    const exam = id ? findExamById(id) : null;
+    const exam = id ? await findExamByIdAsync(id) : null;
     if (!exam || !Array.isArray(exam.items)) {
       return sendJson(res, 404, { ok: false, error: 'Exam not found.' });
     }

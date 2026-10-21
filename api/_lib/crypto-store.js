@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const { readBlobFile } = require('./admin-store');
 
 function loadLocalEnv() {
   const envPath = path.join(__dirname, '..', '..', '.env.local');
@@ -22,23 +23,88 @@ function getSecret(name) {
 }
 
 function decryptJsonFile(filePath, secretName) {
-  const payload = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  if (payload.alg !== 'aes-256-gcm') throw new Error('Unsupported encrypted payload');
+  let payload;
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    payload = JSON.parse(content);
+  } catch (e) {
+    // File không tồn tại → return empty (bank sẽ được init trống)
+    return [];
+  }
 
-  const key = crypto.createHash('sha256').update(getSecret(secretName)).digest();
-  const decipher = crypto.createDecipheriv(
-    'aes-256-gcm',
-    key,
-    Buffer.from(payload.iv, 'base64')
-  );
-  decipher.setAuthTag(Buffer.from(payload.tag, 'base64'));
+  if (payload.alg !== 'aes-256-gcm') {
+    console.warn('Bank file has unsupported format, starting with empty bank');
+    return [];
+  }
 
-  const plain = Buffer.concat([
-    decipher.update(Buffer.from(payload.data, 'base64')),
-    decipher.final()
-  ]).toString('utf8');
+  try {
+    const key = crypto.createHash('sha256').update(getSecret(secretName)).digest();
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      key,
+      Buffer.from(payload.iv, 'base64')
+    );
+    decipher.setAuthTag(Buffer.from(payload.tag, 'base64'));
 
-  return JSON.parse(plain);
+    const plain = Buffer.concat([
+      decipher.update(Buffer.from(payload.data, 'base64')),
+      decipher.final()
+    ]).toString('utf8');
+
+    return JSON.parse(plain);
+  } catch (e) {
+    // Secret khác → không giải mã được. Return empty để bắt đầu lại
+    console.warn('Decrypt failed with current secret, starting with empty bank:', e.message);
+    return [];
+  }
+}
+
+async function decryptJsonFileAsync(filePath, secretName) {
+  let content;
+
+  // Thử Blob trước (Vercel)
+  if (readBlobFile) {
+    const blob = await readBlobFile(filePath);
+    if (blob) content = blob;
+  }
+
+  // Fallback local
+  if (!content) {
+    try {
+      content = fs.readFileSync(filePath, 'utf8');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(content);
+  } catch (e) {
+    return [];
+  }
+
+  if (payload.alg !== 'aes-256-gcm') return [];
+
+  try {
+    const key = crypto.createHash('sha256').update(getSecret(secretName)).digest();
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      key,
+      Buffer.from(payload.iv, 'base64')
+    );
+    decipher.setAuthTag(Buffer.from(payload.tag, 'base64'));
+
+    const plain = Buffer.concat([
+      decipher.update(Buffer.from(payload.data, 'base64')),
+      decipher.final()
+    ]).toString('utf8');
+
+    return JSON.parse(plain);
+  } catch (e) {
+    console.warn('Async decrypt failed:', e.message);
+    return [];
+  }
 }
 
 function encryptJsonPayload(value, secretName) {
@@ -95,4 +161,4 @@ function verifyPayload(token) {
   return JSON.parse(Buffer.from(body, 'base64url').toString('utf8'));
 }
 
-module.exports = { decryptJsonFile, encryptJsonPayload, signPayload, verifyPayload };
+module.exports = { decryptJsonFile, decryptJsonFileAsync, encryptJsonPayload, signPayload, verifyPayload };

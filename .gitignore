@@ -56,3 +56,6 @@ node_modules/
 *TOKEN*
 github-token.txt
 secret*.js
+
+.vercel
+.env*

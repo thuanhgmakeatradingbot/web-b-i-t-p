@@ -1,4 +1,4 @@
-const { getQuestionBank } = require('./_lib/bank-store');
+const { getQuestionBankAsync } = require('./_lib/bank-store');
 const {
   createAttemptToken,
   getSubjectKeys,
@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = await readJson(req);
-    const bank = getQuestionBank();
+    const bank = await getQuestionBankAsync();
     const subject = String(body.subject || '');
     const subjectName = String(body.subjectName || subject);
     const grade = String(body.grade || '');

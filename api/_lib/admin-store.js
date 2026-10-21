@@ -3,6 +3,15 @@ const path = require('path');
 const crypto = require('crypto');
 const { sendJson } = require('./http');
 
+// Try to use Vercel Blob if available
+let BlobClient = null;
+try {
+  const { put, get, del } = require('@vercel/blob');
+  BlobClient = { put, get, del };
+} catch (e) {
+  // Not deployed to Vercel yet
+}
+
 const DEFAULT_REPO = {
   owner: 'thuanhgmakeatradingbot',
   repo: 'web-b-i-t-p',
@@ -142,16 +151,40 @@ async function putGithubFile(filePath, content, message, cfg) {
 }
 
 async function saveTextFile(filePath, content, message) {
+  // Ưu tiên 1: Vercel Blob (nếu có token)
+  if (BlobClient && process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
+      await BlobClient.put(filePath, content, {
+        access: 'public',
+        allowOverwrite: true,
+        contentType: 'application/json'
+      });
+      return { mode: 'blob', path: filePath };
+    } catch (e) {
+      console.error('Blob save failed:', e.message);
+      throw new Error('Blob save failed: ' + e.message);
+    }
+  }
+
+  // Ưu tiên 2: GitHub (nếu có token)
   const cfg = repoConfig();
   if (cfg.token) {
     await putGithubFile(filePath, content, message, cfg);
     return { mode: 'github', path: filePath };
   }
 
-  const target = path.join(process.cwd(), filePath);
-  fs.mkdirSync(path.dirname(target), { recursive: true });
-  fs.writeFileSync(target, content, 'utf8');
-  return { mode: 'local', path: target };
+  // Fallback 3: Local (chỉ dev, không có Blob/GitHub)
+  try {
+    const target = path.join(process.cwd(), filePath);
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, content, 'utf8');
+    return { mode: 'local', path: target };
+  } catch (e) {
+    if (e.code === 'EROFS') {
+      throw new Error('Không có storage backend. Vui lòng enable Vercel Blob trong Dashboard: Project > Storage > Create Blob Store.');
+    }
+    throw e;
+  }
 }
 
 function publicExamList(examList) {
@@ -178,10 +211,30 @@ window.EXAM_LIST = `;
   return header + JSON.stringify(publicExamList(examList), null, 2) + ';\n';
 }
 
+async function readBlobFile(filePath) {
+  if (!BlobClient || !process.env.BLOB_READ_WRITE_TOKEN) return null;
+  try {
+    // Cần list để lấy URL vì Blob storage tạo URL riêng
+    const { list } = require('@vercel/blob');
+    const result = await list({ prefix: filePath, limit: 100 });
+    const match = (result.blobs || []).find(b => b.pathname === filePath);
+    if (!match) return null;
+
+    const res = await fetch(match.url);
+    if (!res.ok) return null;
+    return await res.text();
+  } catch (e) {
+    console.error('Blob read failed:', e.message);
+    return null;
+  }
+}
+
 module.exports = {
   buildPublicExamListText,
   createAdminToken,
   requireAdmin,
   saveTextFile,
-  verifyAdminToken
+  readBlobFile,
+  verifyAdminToken,
+  BlobClient
 };

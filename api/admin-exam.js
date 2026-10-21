@@ -1,5 +1,5 @@
 const { encryptJsonPayload } = require('./_lib/crypto-store');
-const { getExamList, resetExamListCache } = require('./_lib/exam-list-store');
+const { getExamListAsync, resetExamListCache } = require('./_lib/exam-list-store');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 const { buildPublicExamListText, requireAdmin, saveTextFile } = require('./_lib/admin-store');
 const { validateExamList } = require('./_lib/question-validation');
@@ -31,20 +31,23 @@ module.exports = async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      return sendJson(res, 200, { ok: true, examList: getExamList() });
+      const examList = await getExamListAsync();
+      return sendJson(res, 200, { ok: true, examList });
     }
 
     const body = await readJson(req);
     let examList;
     let removed = 0;
     if (body.deleteRef) {
-      const result = deleteExam(JSON.parse(JSON.stringify(getExamList())), String(body.deleteRef));
+      const current = await getExamListAsync();
+      const result = deleteExam(JSON.parse(JSON.stringify(current)), String(body.deleteRef));
       examList = result.examList;
       removed = result.removed;
     } else if (body.examList && typeof body.examList === 'object') {
       examList = body.examList;
     } else if (body.exam && typeof body.exam === 'object') {
-      examList = upsertExam(JSON.parse(JSON.stringify(getExamList())), body.exam);
+      const current = await getExamListAsync();
+      examList = upsertExam(JSON.parse(JSON.stringify(current)), body.exam);
     } else {
       return sendJson(res, 400, { ok: false, error: 'Missing exam or examList.' });
     }

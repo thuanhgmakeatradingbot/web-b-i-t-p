@@ -1,6 +1,6 @@
 const crypto = require('crypto');
-const { getQuestionByIdMap } = require('./_lib/bank-store');
-const { findExamById } = require('./_lib/exam-list-store');
+const { getQuestionByIdMapAsync } = require('./_lib/bank-store');
+const { findExamByIdAsync } = require('./_lib/exam-list-store');
 const { readAttemptToken, scoreExamItems } = require('./_lib/exam-core');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 
@@ -41,13 +41,13 @@ function recordFailure(key) {
   }
 }
 
-function resolveItems(payload) {
+async function resolveItems(payload) {
   if (payload.source === 'bank') {
-    const map = getQuestionByIdMap();
+    const map = await getQuestionByIdMapAsync();
     return (payload.questionIds || []).map(id => map.get(id)).filter(Boolean);
   }
   if (payload.source === 'exam') {
-    const exam = findExamById(payload.examId);
+    const exam = await findExamByIdAsync(payload.examId);
     return exam && Array.isArray(exam.items) ? exam.items : [];
   }
   return [];
@@ -78,7 +78,7 @@ module.exports = async function handler(req, res) {
     }
 
     const payload = readAttemptToken(body.attemptToken);
-    const items = resolveItems(payload);
+    const items = await resolveItems(payload);
     if (!items.length) {
       return sendJson(res, 404, { ok: false, error: 'Khong tim thay cau hoi cua bai thi.' });
     }

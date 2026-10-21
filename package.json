@@ -1,0 +1,13 @@
+{
+  "name": "web-b-i-t-p",
+  "version": "1.0.0",
+  "description": "Web-based exam platform",
+  "private": true,
+  "dependencies": {
+    "@vercel/blob": "^0.23.4"
+  },
+  "scripts": {
+    "dev": "node dev-server.js",
+    "deploy": "vercel deploy --prod"
+  }
+}

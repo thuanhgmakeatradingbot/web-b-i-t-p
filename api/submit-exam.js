@@ -1,5 +1,5 @@
-const { getQuestionByIdMap } = require('./_lib/bank-store');
-const { findExamById } = require('./_lib/exam-list-store');
+const { getQuestionByIdMapAsync } = require('./_lib/bank-store');
+const { findExamByIdAsync } = require('./_lib/exam-list-store');
 const { readAttemptToken, scoreExamItems } = require('./_lib/exam-core');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 
@@ -7,13 +7,13 @@ const submissions = new Map();
 const SUBMIT_WINDOW_MS = 10 * 60 * 1000;
 const MAX_SUBMITS_PER_WINDOW = 8;
 
-function resolveItems(payload) {
+async function resolveItems(payload) {
   if (payload.source === 'bank') {
-    const map = getQuestionByIdMap();
+    const map = await getQuestionByIdMapAsync();
     return (payload.questionIds || []).map(id => map.get(id)).filter(Boolean);
   }
   if (payload.source === 'exam') {
-    const exam = findExamById(payload.examId);
+    const exam = await findExamByIdAsync(payload.examId);
     return exam && Array.isArray(exam.items) ? exam.items : [];
   }
   return [];
@@ -90,7 +90,7 @@ module.exports = async function handler(req, res) {
       fullscreenExitCount: normalizeExitCount(body.fullscreenExitCount)
     };
 
-    const items = resolveItems(payload);
+    const items = await resolveItems(payload);
     if (!items.length) return sendJson(res, 404, { ok: false, error: 'Attempt questions not found.' });
 
     const score = scoreExamItems(items, answers);
