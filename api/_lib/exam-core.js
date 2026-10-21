@@ -49,6 +49,7 @@ function sanitizeExam(exam) {
     grade: exam.grade,
     title: exam.title || '',
     timeMinutes: parseInt(exam.timeMinutes, 10) || 45,
+    note: exam.note || '',
     items: (exam.items || []).map(sanitizeQuestion)
   };
 }
@@ -74,14 +75,21 @@ function trueFalseRawScore(wrongCount) {
   return TRUEFALSE_SCORE_BY_WRONG[safeWrongCount] || 0;
 }
 
+// Điểm của 1 câu: lấy q.points nếu đề có ghi (vd trả lời ngắn Toán 0,5đ),
+// không có thì dùng mức mặc định của loại câu.
+function itemPoint(q, fallback) {
+  const p = parseFloat(q.points);
+  return p > 0 ? p : fallback;
+}
+
 function scoreExamItems(items, answers) {
   let essayPoints = 0;
   let rawMax = 0;
   for (const q of items) {
     if (q.type === 'essay') essayPoints += parseFloat(q.points) || 1;
-    else if (q.type === 'truefalse' && (q.subItems || []).length) rawMax += TRUEFALSE_RAW_POINT;
-    else if (q.type === 'mc') rawMax += MC_RAW_POINT;
-    else if (q.type === 'short') rawMax += SHORT_RAW_POINT;
+    else if (q.type === 'truefalse' && (q.subItems || []).length) rawMax += itemPoint(q, TRUEFALSE_RAW_POINT);
+    else if (q.type === 'mc') rawMax += itemPoint(q, MC_RAW_POINT);
+    else if (q.type === 'short') rawMax += itemPoint(q, SHORT_RAW_POINT);
   }
 
   const autoPortion = rawMax > 0 ? Math.max(0, 10 - essayPoints) : 0;
@@ -121,8 +129,8 @@ function scoreExamItems(items, answers) {
       const ok = !!picked && picked === q.answer;
       if (ok) {
         result.correctCount++;
-        result.breakdown.mc.rawScore += MC_RAW_POINT;
-        result.rawTotal += MC_RAW_POINT;
+        result.breakdown.mc.rawScore += itemPoint(q, MC_RAW_POINT);
+        result.rawTotal += itemPoint(q, MC_RAW_POINT);
       } else {
         result.wrongCount++;
       }
@@ -161,7 +169,7 @@ function scoreExamItems(items, answers) {
           student: picked
         });
       }
-      const rawScore = subItems.length ? trueFalseRawScore(wrongSubItems) : 0;
+      const rawScore = subItems.length ? itemPoint(q, TRUEFALSE_RAW_POINT) * trueFalseRawScore(wrongSubItems) : 0;
       result.breakdown.truefalse.rawScore += rawScore;
       result.rawTotal += rawScore;
       result.questionsDetail.push({
@@ -183,8 +191,8 @@ function scoreExamItems(items, answers) {
       const ok = picked !== '' && accepts.map(normalizeShort).includes(normalizeShort(picked));
       if (ok) {
         result.correctCount++;
-        result.breakdown.short.rawScore += SHORT_RAW_POINT;
-        result.rawTotal += SHORT_RAW_POINT;
+        result.breakdown.short.rawScore += itemPoint(q, SHORT_RAW_POINT);
+        result.rawTotal += itemPoint(q, SHORT_RAW_POINT);
       } else {
         result.wrongCount++;
       }

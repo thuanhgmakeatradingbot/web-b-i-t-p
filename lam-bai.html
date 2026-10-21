@@ -320,6 +320,10 @@ function renderExam(ex){
   const es = items.filter(q => q.type === 'essay');
 
   let qIndex = 0; // chỉ số toàn cục để tạo name duy nhất
+  // Đánh số phần theo các phần đề thật sự có (đề không có trả lời ngắn thì tự luận là phần III)
+  const ROMAN = ['I','II','III','IV'];
+  let partNo = 0;
+  const nextPart = () => ROMAN[partNo++];
   let html = '';
 
   // Start modal
@@ -368,12 +372,13 @@ function renderExam(ex){
         Họ và tên: <input type="text" id="studentName" style="border:none;border-bottom:1px solid #333;width:200px;margin:5px" required>
         Lớp: <input type="text" id="studentClass" style="border:none;border-bottom:1px solid #333;width:80px" required>
       </div>
+      ${ex.note ? `<div class="question-content" style="text-align:left;margin-top:12px;font-size:11pt">${textToHtml(ex.note)}</div>` : ''}
     </div>
     <form id="examForm">`;
 
   // ---- PHẦN I: Trắc nghiệm 4 đáp án ----
   if (mc.length){
-    html += `<div class="section-title">PHẦN I. Trắc nghiệm nhiều phương án lựa chọn (${mc.length} câu)</div>`;
+    html += `<div class="section-title">PHẦN ${nextPart()}. Trắc nghiệm nhiều phương án lựa chọn (${mc.length} câu)</div>`;
     mc.forEach((q, i) => {
       qIndex++;
       const name = 'q' + qIndex;
@@ -395,7 +400,7 @@ function renderExam(ex){
 
   // ---- PHẦN II: Đúng / Sai ----
   if (tf.length){
-    html += `<div class="section-title">PHẦN II. Trắc nghiệm đúng sai (${tf.length} câu)</div>`;
+    html += `<div class="section-title">PHẦN ${nextPart()}. Trắc nghiệm đúng sai (${tf.length} câu)</div>`;
     tf.forEach((q, i) => {
       const letters = ['a','b','c','d','e','f'];
       let group = '';
@@ -425,7 +430,7 @@ function renderExam(ex){
 
   // ---- PHẦN III: Trả lời ngắn ----
   if (sh.length){
-    html += `<div class="section-title">PHẦN III. Trắc nghiệm trả lời ngắn (${sh.length} câu)</div>`;
+    html += `<div class="section-title">PHẦN ${nextPart()}. Trắc nghiệm trả lời ngắn (${sh.length} câu)</div>`;
     sh.forEach((q, i) => {
       qIndex++;
       const name = 'q' + qIndex;
@@ -441,7 +446,7 @@ function renderExam(ex){
 
   // ---- PHẦN IV: Tự luận ----
   if (es.length){
-    html += `<div class="section-title">PHẦN IV. Tự luận (${es.length} câu)</div>`;
+    html += `<div class="section-title">PHẦN ${nextPart()}. Tự luận (${es.length} câu)</div>`;
     es.forEach((q, i) => {
       qIndex++;
       const name = 'q' + qIndex;

@@ -25,6 +25,58 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
+  // Khối các dòng liên tiếp dạng "| a | b |" -> <table>. Ô bắt đầu bằng
+  // {cs=N} gộp N cột; ô "^^" gộp vào ô phía trên (rowspan); " <br> " trong ô
+  // là xuống dòng. Bảng viết trên 1 dòng HTML để bước xuống dòng không chen <br>.
+  function renderTables(text) {
+    var lines = text.split('\n');
+    var out = [];
+    var i = 0;
+    var isRow = function (l) { return /^\s*\|.*\|\s*$/.test(l); };
+    while (i < lines.length) {
+      if (!isRow(lines[i])) { out.push(lines[i]); i++; continue; }
+      var rows = [];
+      while (i < lines.length && isRow(lines[i])) {
+        var raw = lines[i].trim().slice(1, -1).split('|');
+        rows.push(raw.map(function (c) {
+          var cell = { text: c.trim(), cs: 1, rs: 1 };
+          var m = cell.text.match(/^\{cs=(\d+)\}/);
+          if (m) { cell.cs = +m[1]; cell.text = cell.text.slice(m[0].length).trim(); }
+          return cell;
+        }));
+        i++;
+      }
+      // Gộp ô "^^" vào ô cùng cột ở dòng trên
+      var owner = [];
+      rows.forEach(function (row) {
+        var col = 0;
+        row.forEach(function (cell) {
+          if (cell.text === '^^' && owner[col]) { owner[col].rs++; cell.skip = true; }
+          else {
+            if (cell.text === '^^') cell.text = '';
+            owner[col] = cell;
+          }
+          for (var k = 1; k < cell.cs; k++) owner[col + k] = null;
+          col += cell.cs;
+        });
+      });
+      var html = '<table style="border-collapse:collapse;margin:6px 0;max-width:100%">';
+      rows.forEach(function (row) {
+        html += '<tr>';
+        row.forEach(function (cell) {
+          if (cell.skip) return;
+          html += '<td style="border:1px solid #999;padding:4px 8px;vertical-align:top"' +
+            (cell.cs > 1 ? ' colspan="' + cell.cs + '"' : '') +
+            (cell.rs > 1 ? ' rowspan="' + cell.rs + '"' : '') + '>' +
+            cell.text.replace(/\s*&lt;br&gt;\s*/g, '<br>') + '</td>';
+        });
+        html += '</tr>';
+      });
+      out.push(html + '</table>');
+    }
+    return out.join('\n');
+  }
+
   // Đổi **đậm** / *nghiêng* -> HTML; xuống dòng -> <br>.
   // Bảo vệ các đoạn công thức ($...$ và \(...\)) để dấu * trong công thức
   // (vd $a*b$) không bị hiểu nhầm thành in nghiêng, và để MathJax render sau.
@@ -38,14 +90,21 @@
     text = text.replace(/\$[^$\n]+\$/g, stash);        // $...$ trên một dòng
     text = text.replace(/\\\([\s\S]+?\\\)/g, stash);   // \(...\)
 
-    // 2) Xuống dòng
+    // 2) Bảng (các dòng "| ô | ô |") và ảnh chèn [img:images/x.png w=300]
+    text = renderTables(text);
+    text = text.replace(/\[img:(images\/[A-Za-z0-9._-]+)(?: w=(\d{1,4}))?\]/g, function (_, src, w) {
+      var size = w ? 'width:' + w + 'px;' : '';
+      return '<img src="' + src + '" alt="hình" style="' + size + 'max-width:100%;height:auto;vertical-align:middle">';
+    });
+
+    // 3) Xuống dòng
     text = text.replace(/\n/g, '<br>');
 
-    // 3) Đậm trước, nghiêng sau (để **...** không bị * nuốt mất)
+    // 4) Đậm trước, nghiêng sau (để **...** không bị * nuốt mất)
     text = text.replace(/\*\*([^\n]+?)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
 
-    // 4) Trả lại các đoạn math nguyên văn
+    // 5) Trả lại các đoạn math nguyên văn
     text = text.replace(new RegExp(TK + '(\\d+)' + TK, 'g'), function (_, i) { return math[+i]; });
     return text;
   }
