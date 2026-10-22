@@ -589,12 +589,32 @@
                     <div class="bulk-hint">Tích mà để trống = các đề đã chọn dùng mật khẩu xem đáp án chung.</div>
                 </div>
                 <div class="bulk-section">📝 Tên đề</div>
+                <label for="bk_titleTemplate">Đổi toàn bộ tên theo mẫu</label>
+                <div style="display:flex; gap:8px">
+                    <input id="bk_titleTemplate" maxlength="200" placeholder="VD: KHTN 9 - GK1 - {X}" oninput="updateTitlePreview()">
+                    <button type="button" class="admin-btn edit" style="white-space:nowrap" onclick="insertX()">Chèn {X}</button>
+                </div>
+                <div class="bulk-hint">{X} được thay bằng số theo <b>thứ tự thầy bấm chọn</b>: đề chọn đầu tiên nhận số bắt đầu, mỗi đề sau cộng thêm bước nhảy. Viết liền cũng được, VD "Năm học 202{X}" → 2021, 2022...</div>
+                <div class="meta-row">
+                    <div>
+                        <label for="bk_xStart">X bắt đầu từ</label>
+                        <input id="bk_xStart" type="number" step="1" value="1" oninput="updateTitlePreview()">
+                    </div>
+                    <div>
+                        <label for="bk_xStep">Bước nhảy</label>
+                        <input id="bk_xStep" type="number" step="1" value="1" oninput="updateTitlePreview()">
+                    </div>
+                </div>
                 <label for="bk_titlePrefix">Thêm vào đầu tên</label>
-                <input id="bk_titlePrefix" maxlength="100" placeholder="VD: [Giữa kì I]">
+                <input id="bk_titlePrefix" maxlength="100" placeholder="VD: [Giữa kì I]" oninput="updateTitlePreview()">
                 <label for="bk_titleSuffix">Thêm vào cuối tên</label>
-                <input id="bk_titleSuffix" maxlength="100" placeholder="VD: – năm học 2026-2027">
+                <input id="bk_titleSuffix" maxlength="100" placeholder="VD: – năm học 2026-2027" oninput="updateTitlePreview()">
                 <label for="bk_titleRemove">Bỏ cụm chữ khỏi tên</label>
-                <input id="bk_titleRemove" maxlength="100" placeholder="VD: [Giữa kì I]">
+                <input id="bk_titleRemove" maxlength="100" placeholder="VD: [Giữa kì I]" oninput="updateTitlePreview()">
+                <div id="bk_titlePreviewBox" style="display:none; margin-top:10px">
+                    <div style="font-weight:600; font-size:10.5pt; margin-bottom:5px">Xem trước tên mới:</div>
+                    <div class="bulk-list" id="bk_titlePreview" style="max-height:170px"></div>
+                </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn cancel" onclick="closeBulkModal()">Hủy</button>
                     <button type="submit" class="modal-btn confirm" id="bulkSaveBtn">💾 Áp dụng</button>
@@ -986,7 +1006,51 @@
         }
 
         function selectedExams() {
-            return Object.values(examData).flat().filter(e => e && selectedIds.has(e.id));
+            const all = Object.values(examData).flat();
+            return [...selectedIds].map(id => all.find(e => e && e.id === id)).filter(Boolean);
+        }
+
+        // ---- Tên mới cho từng đề (giống cách máy chủ xử lý) ----
+        function xAt(i) {
+            const start = parseInt(document.getElementById('bk_xStart').value, 10);
+            const step = parseInt(document.getElementById('bk_xStep').value, 10);
+            return (isNaN(start) ? 1 : start) + i * (isNaN(step) ? 1 : step);
+        }
+        function titleTemplate() { return document.getElementById('bk_titleTemplate').value.trim(); }
+        function newTitleFor(exam, i) {
+            const val = id => document.getElementById(id).value.trim();
+            const tpl = titleTemplate();
+            let title = tpl ? tpl.replace(/\{x\}/gi, String(xAt(i))) : String(exam.title || '');
+            const remove = val('bk_titleRemove'), prefix = val('bk_titlePrefix'), suffix = val('bk_titleSuffix');
+            if (remove) title = title.split(remove).join(' ').replace(/\s{2,}/g, ' ').trim();
+            if (prefix && !title.startsWith(prefix)) title = prefix + ' ' + title;
+            if (suffix && !title.endsWith(suffix)) title = title + ' ' + suffix;
+            return title.trim().slice(0, 200);
+        }
+        function titleChanging() {
+            return !!(titleTemplate() || ['bk_titlePrefix', 'bk_titleSuffix', 'bk_titleRemove'].some(id => document.getElementById(id).value.trim()));
+        }
+        function updateTitlePreview() {
+            const box = document.getElementById('bk_titlePreviewBox');
+            const list = document.getElementById('bk_titlePreview');
+            box.style.display = titleChanging() ? 'block' : 'none';
+            if (!titleChanging()) return;
+            list.innerHTML = '';
+            selectedExams().forEach((e, i) => {
+                const div = document.createElement('div');
+                const t = newTitleFor(e, i);
+                div.textContent = (i + 1) + '. ' + e.title + '  →  ' + (t || '(trống!)');
+                if (!t) div.style.color = '#c62828';
+                list.appendChild(div);
+            });
+        }
+        function insertX() {
+            const el = document.getElementById('bk_titleTemplate');
+            const pos = el.selectionStart == null ? el.value.length : el.selectionStart;
+            el.value = el.value.slice(0, pos) + '{X}' + el.value.slice(el.selectionEnd == null ? pos : el.selectionEnd);
+            el.focus();
+            el.selectionStart = el.selectionEnd = pos + 3;
+            updateTitlePreview();
         }
 
         function updateBulkBar() {
@@ -1007,13 +1071,16 @@
                 document.getElementById('bk_on_' + k).checked = false;
                 document.getElementById('bk_' + k).value = '';
             });
-            ['titlePrefix', 'titleSuffix', 'titleRemove'].forEach(k => { document.getElementById('bk_' + k).value = ''; });
+            ['titlePrefix', 'titleSuffix', 'titleRemove', 'titleTemplate'].forEach(k => { document.getElementById('bk_' + k).value = ''; });
+            document.getElementById('bk_xStart').value = '1';
+            document.getElementById('bk_xStep').value = '1';
+            updateTitlePreview();
             document.getElementById('bulkModalCount').textContent = '(' + exams.length + ' đề)';
             const list = document.getElementById('bulkList');
             list.innerHTML = '';
-            exams.forEach(e => {
+            exams.forEach((e, i) => {
                 const div = document.createElement('div');
-                div.textContent = '• ' + e.title;
+                div.textContent = (i + 1) + '. ' + e.title;
                 list.appendChild(div);
             });
             document.getElementById('bulkModal').classList.add('show');
@@ -1035,8 +1102,16 @@
                 titleSuffix: val('bk_titleSuffix'),
                 titleRemove: val('bk_titleRemove')
             };
-            if (!Object.keys(set).length && !change.titlePrefix.trim() && !change.titleSuffix.trim() && !change.titleRemove.trim()) {
+            if (!Object.keys(set).length && !titleChanging()) {
                 return alert('Chưa chọn mục nào để sửa. Hãy tích vào mục cần đổi hoặc nhập chữ cho tên đề.');
+            }
+            const tpl = titleTemplate();
+            if (tpl) {
+                change.titles = {};
+                exams.forEach((e, i) => { change.titles[e.id] = tpl.replace(/\{x\}/gi, String(xAt(i))); });
+                if (exams.some((e, i) => !newTitleFor(e, i))) return alert('Có đề sẽ bị trống tên. Kiểm tra lại mẫu tên.');
+                if (exams.length > 1 && !/\{x\}/i.test(tpl) &&
+                    !confirm('Mẫu tên không có {X} nên ' + exams.length + ' đề sẽ có CÙNG một tên. Vẫn tiếp tục?')) return;
             }
             if (!confirm('Áp dụng thay đổi cho ' + exams.length + ' đề đã chọn?')) return;
             const btn = document.getElementById('bulkSaveBtn');

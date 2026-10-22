@@ -80,11 +80,13 @@ function checkIds(ids) {
   return new Set(ids.map(String));
 }
 
-// Sửa hàng loạt: change.set = các mục đặt cùng giá trị; tên đề thì thêm/bỏ chữ.
+// Sửa hàng loạt: change.set = các mục đặt cùng giá trị; change.titles = tên mới riêng
+// từng đề (đổi toàn bộ tên theo mẫu {X}, trang chủ đã đánh số); sau đó thêm/bỏ chữ.
 function bulkUpdateMeta(examList, ids, change) {
   const idSet = checkIds(ids);
   const set = change.set && typeof change.set === 'object' ? { ...change.set } : {};
   delete set.title;
+  const titles = change.titles && typeof change.titles === 'object' ? change.titles : {};
   const prefix = text(change.titlePrefix, 100);
   const suffix = text(change.titleSuffix, 100);
   const remove = text(change.titleRemove, 100);
@@ -93,7 +95,7 @@ function bulkUpdateMeta(examList, ids, change) {
     for (const exam of examList[subject] || []) {
       if (!idSet.has(exam.id)) continue;
       applyMeta(exam, set);
-      let title = String(exam.title || '');
+      let title = titles[exam.id] !== undefined ? text(titles[exam.id], 200) : String(exam.title || '');
       if (remove) title = title.split(remove).join(' ').replace(/\s{2,}/g, ' ').trim();
       if (prefix && !title.startsWith(prefix)) title = prefix + ' ' + title;
       if (suffix && !title.endsWith(suffix)) title = title + ' ' + suffix;
