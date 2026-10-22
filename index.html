@@ -303,6 +303,10 @@
         .meta-row { display: flex; gap: 12px; }
         .meta-row > div { flex: 1; }
         .meta-box .modal-buttons { margin-top: 22px; }
+        .meta-pw { margin-top: 18px; padding: 12px 14px 14px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 9px; }
+        .meta-pw-title { font-weight: 700; color: #6d4c00; font-size: 10.5pt; }
+        .meta-pw-note { font-size: 9.5pt; color: #8a6d00; margin-top: 6px; min-height: 1em; }
+        .lock-badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 10pt; margin: 10px 8px 0 0; background: #fff3e0; color: #e65100; font-weight: 600; }
         .meta-box .modal-btn { padding: 12px 28px; }
 
         .grade-bar {
@@ -524,6 +528,14 @@
                 <input id="metaTopics" maxlength="500">
                 <label for="metaDifficulty">Mức độ</label>
                 <input id="metaDifficulty" maxlength="500" placeholder="VD: Hỗn hợp: Nhận biết → Vận dụng cao">
+                <div class="meta-pw">
+                    <div class="meta-pw-title">🔒 Mật khẩu riêng của đề (không bắt buộc)</div>
+                    <label for="metaExamPassword">Mật khẩu làm đề</label>
+                    <input id="metaExamPassword" maxlength="100" autocomplete="off" placeholder="Để trống = học sinh vào làm không cần mật khẩu">
+                    <label for="metaReviewPassword">Mật khẩu xem đáp án</label>
+                    <input id="metaReviewPassword" maxlength="100" autocomplete="off" placeholder="Để trống = dùng mật khẩu xem đáp án chung">
+                    <div id="metaPwStatus" class="meta-pw-note"></div>
+                </div>
                 <div class="modal-buttons">
                     <button type="button" class="modal-btn cancel" onclick="closeMetaModal()">Hủy</button>
                     <button type="submit" class="modal-btn confirm" id="metaSaveBtn">💾 Lưu</button>
@@ -675,7 +687,7 @@
                         <div class="exam-info"><strong>Số câu hỏi:</strong> ${escHtml(exam.questions)}</div>
                         <div class="exam-info"><strong>Thời gian:</strong> ${escHtml(exam.time)}</div>
                         <div class="exam-info"><strong>Chủ đề:</strong> ${escHtml(exam.topics)}</div>
-                        ${gradeBadge}<span class="difficulty">${escHtml(exam.difficulty)}</span>
+                        ${exam.hasPassword ? '<span class="lock-badge">🔒 Cần mật khẩu</span>' : ''}${gradeBadge}<span class="difficulty">${escHtml(exam.difficulty)}</span>
                         <br>
                         <button class="start-btn" onclick="event.stopPropagation(); window.location.href='${target}'">Bắt đầu làm bài →</button>
                         ${adminBtns}
@@ -753,8 +765,27 @@
             set('metaGrade', getExamGrade(exam) || '');
             set('metaTopics', exam.topics);
             set('metaDifficulty', exam.difficulty);
+            set('metaExamPassword', '');
+            set('metaReviewPassword', '');
+            const pwInputs = ['metaExamPassword', 'metaReviewPassword'].map(id => document.getElementById(id));
+            const status = document.getElementById('metaPwStatus');
+            const saveBtn = document.getElementById('metaSaveBtn');
+            pwInputs.forEach(el => { el.disabled = true; });
+            saveBtn.disabled = true;
+            status.textContent = '⏳ Đang tải mật khẩu hiện tại...';
             document.getElementById('metaModal').classList.add('show');
             document.getElementById('metaTitle').focus();
+            adminFetch('/api/admin-exam?meta=1').then(data => {
+                const full = Object.values(data.examList || {}).flat().find(e => e.id === exam.id) || {};
+                set('metaExamPassword', full.examPassword || '');
+                set('metaReviewPassword', full.reviewPassword || '');
+                pwInputs.forEach(el => { el.disabled = false; });
+                saveBtn.disabled = false;
+                status.textContent = '';
+            }).catch(e => {
+                saveBtn.disabled = false;
+                status.textContent = '❌ Không tải được mật khẩu hiện tại (' + e.message + '). Lưu lúc này sẽ giữ nguyên mật khẩu cũ.';
+            });
         }
 
         function closeMetaModal() {
@@ -777,11 +808,19 @@
                         timeMinutes: val('metaTime'),
                         grade: val('metaGrade'),
                         topics: val('metaTopics'),
-                        difficulty: val('metaDifficulty')
+                        difficulty: val('metaDifficulty'),
+                        // Ô mật khẩu còn khoá (chưa tải được mật khẩu cũ) thì không gửi -> giữ nguyên
+                        examPassword: document.getElementById('metaExamPassword').disabled ? undefined : val('metaExamPassword'),
+                        reviewPassword: document.getElementById('metaReviewPassword').disabled ? undefined : val('metaReviewPassword')
                     } })
                 });
                 const exam = findExamByRef(val('metaId'));
-                if (exam && data.exam) Object.assign(exam, data.exam);
+                if (exam && data.exam) {
+                    Object.assign(exam, data.exam);
+                    exam.hasPassword = !!data.exam.examPassword;
+                    delete exam.examPassword;
+                    delete exam.reviewPassword;
+                }
                 closeMetaModal();
                 displayExams(currentSubject);
             } catch (e) {

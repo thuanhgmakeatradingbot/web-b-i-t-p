@@ -251,13 +251,65 @@ function showExamNotFound(message){
     + '<a href="index.html" class="back-btn">Quay ve Menu</a></div>';
 }
 
+// Hộp nhập mật khẩu làm đề. Trả về mật khẩu, hoặc null nếu học sinh bấm Quay lại.
+function askExamPassword(title, errorText){
+  return new Promise(resolve => {
+    const box = document.createElement('div');
+    box.className = 'result-modal';
+    box.style.display = 'flex';
+    box.style.zIndex = '2200';
+    box.innerHTML =
+      '<div class="result-content" style="max-width:430px;padding:35px">' +
+        '<h2>🔒 Đề này cần mật khẩu</h2>' +
+        '<p class="exam-pw-title" style="margin-top:10px;color:#444;font-weight:600"></p>' +
+        '<p style="margin-top:6px;color:#666;font-size:10.5pt">Mật khẩu do giáo viên cung cấp.</p>' +
+        '<input type="password" class="answer-password-input" autocomplete="off" placeholder="Mật khẩu làm đề">' +
+        '<div class="answer-password-error"></div>' +
+        '<button type="button" class="back-btn exam-pw-ok" style="background:#1565c0">Vào làm bài</button>' +
+        '<button type="button" class="back-btn exam-pw-cancel" style="background:#666">Quay lại</button>' +
+      '</div>';
+    box.querySelector('.exam-pw-title').textContent = title || '';
+    box.querySelector('.answer-password-error').textContent = errorText || '';
+    const input = box.querySelector('input');
+    const done = value => { box.remove(); resolve(value); };
+    const ok = () => { if (input.value.trim()) done(input.value.trim()); };
+    box.querySelector('.exam-pw-ok').onclick = ok;
+    box.querySelector('.exam-pw-cancel').onclick = () => done(null);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') ok(); });
+    document.body.appendChild(box);
+    input.focus();
+  });
+}
+
 async function loadExamFromApi(id){
-  const res = await fetch('/api/exam?id=' + encodeURIComponent(id), { cache: 'no-store' });
-  const data = await res.json();
-  if (!res.ok || !data.ok) throw new Error(data.error || 'Khong tai duoc de.');
-  secureMode = true;
-  attemptToken = data.attemptToken || '';
-  return data.exam;
+  const pwKey = 'EXAM_PW|' + id;
+  let password = '';
+  try { password = sessionStorage.getItem(pwKey) || ''; } catch(e){}
+  for (;;) {
+    const res = password
+      ? await fetch('/api/exam', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+          body: JSON.stringify({ id, password })
+        })
+      : await fetch('/api/exam?id=' + encodeURIComponent(id), { cache: 'no-store' });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      // Nhớ mật khẩu trong phiên này để tải lại trang không phải nhập lại
+      if (password) { try { sessionStorage.setItem(pwKey, password); } catch(e){} }
+      secureMode = true;
+      attemptToken = data.attemptToken || '';
+      return data.exam;
+    }
+    if (!data.needPassword) throw new Error(data.error || 'Khong tai duoc de.');
+    try { sessionStorage.removeItem(pwKey); } catch(e){}
+    password = await askExamPassword(data.title, password || res.status === 429 ? data.error : '');
+    if (password === null) {
+      window.location.href = 'index.html';
+      return new Promise(() => {});
+    }
+  }
 }
 
 async function bootExam(){

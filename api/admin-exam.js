@@ -46,6 +46,13 @@ function updateExamMeta(examList, id, meta) {
       exam.timeMinutes = minutes;
       exam.time = minutes + ' phút';
     }
+    // Mật khẩu riêng của đề: để trống = bỏ mật khẩu
+    for (const key of ['examPassword', 'reviewPassword']) {
+      if (meta[key] === undefined) continue;
+      const value = text(meta[key], 100);
+      if (value) exam[key] = value;
+      else delete exam[key];
+    }
     if (meta.grade !== undefined) {
       const grade = parseInt(meta.grade, 10);
       if (!(grade >= 1 && grade <= 12)) {
@@ -65,6 +72,14 @@ module.exports = async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       const examList = await getExamListAsync();
+      // ?meta=1: chỉ thông tin + mật khẩu từng đề (cho hộp Sửa thông tin), không kèm câu hỏi
+      if (new URL(req.url, 'http://localhost').searchParams.get('meta') === '1') {
+        const metaList = {};
+        for (const subject of Object.keys(examList || {})) {
+          metaList[subject] = (examList[subject] || []).map(({ items, ...meta }) => meta);
+        }
+        return sendJson(res, 200, { ok: true, examList: metaList });
+      }
       return sendJson(res, 200, { ok: true, examList });
     }
 

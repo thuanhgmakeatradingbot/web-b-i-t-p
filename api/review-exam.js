@@ -57,11 +57,6 @@ module.exports = async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) return;
 
   try {
-    const expectedPassword = process.env.ANSWER_REVIEW_PASSWORD || '';
-    if (!expectedPassword) {
-      return sendJson(res, 500, { ok: false, error: 'Chua cau hinh mat khau xem dap an.' });
-    }
-
     const key = clientKey(req);
     const state = loginState(key);
     if (state.lockedUntil && Date.now() < state.lockedUntil) {
@@ -72,12 +67,23 @@ module.exports = async function handler(req, res) {
     }
 
     const body = await readJson(req, { maxBytes: 256 * 1024 });
+    // Giáo viên thường đưa mật khẩu khi cả lớp làm xong -> cho xem đáp án trong 7 ngày
+    const payload = readAttemptToken(body.attemptToken, 7 * 24 * 60 * 60 * 1000);
+
+    // Đề có mật khẩu xem đáp án riêng thì chỉ mật khẩu đó mở được; không có thì dùng mật khẩu chung
+    let expectedPassword = process.env.ANSWER_REVIEW_PASSWORD || '';
+    if (payload.source === 'exam') {
+      const exam = await findExamByIdAsync(payload.examId);
+      if (exam && exam.reviewPassword) expectedPassword = exam.reviewPassword;
+    }
+    if (!expectedPassword) {
+      return sendJson(res, 500, { ok: false, error: 'Chua cau hinh mat khau xem dap an.' });
+    }
     if (!safeEqual(body.password, expectedPassword)) {
       recordFailure(key);
       return sendJson(res, 401, { ok: false, error: 'Mat khau xem dap an khong dung.' });
     }
 
-    const payload = readAttemptToken(body.attemptToken);
     const items = await resolveItems(payload);
     if (!items.length) {
       return sendJson(res, 404, { ok: false, error: 'Khong tim thay cau hoi cua bai thi.' });

@@ -241,10 +241,11 @@ function createAttemptToken(payload) {
   });
 }
 
-function readAttemptToken(token) {
+// graceMs: cho phép dùng token đã hết hạn thêm một khoảng (xem đáp án sau khi cả lớp làm xong)
+function readAttemptToken(token, graceMs = 0) {
   const payload = verifyPayload(token);
   if (!payload || payload.v !== 1) throw new Error('Invalid attempt token');
-  if (!payload.exp || Date.now() > payload.exp) throw new Error('Attempt token expired');
+  if (!payload.exp || Date.now() > payload.exp + graceMs) throw new Error('Attempt token expired');
   return payload;
 }
 

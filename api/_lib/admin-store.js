@@ -191,7 +191,8 @@ function publicExamList(examList) {
   const out = {};
   for (const subject of Object.keys(examList || {})) {
     out[subject] = (examList[subject] || []).map(exam => {
-      const { items, answer, answers, correctAnswers, explanations, ...meta } = exam;
+      const { items, answer, answers, correctAnswers, explanations, examPassword, reviewPassword, ...meta } = exam;
+      if (examPassword) meta.hasPassword = true; // chỉ cho biết đề có khoá, không lộ mật khẩu
       return meta;
     });
   }
