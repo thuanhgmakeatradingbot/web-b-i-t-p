@@ -763,6 +763,12 @@
         }
         
         // Hiển thị đề thi
+        // Đề hiện theo tên A→Z, hiểu tiếng Việt và hiểu số ("Đề 2" trước "Đề 10")
+        const titleCollator = new Intl.Collator('vi', { numeric: true, sensitivity: 'base' });
+        function sortExamsByTitle(list) {
+            return list.slice().sort((a, b) => titleCollator.compare(String(a.title || ''), String(b.title || '')));
+        }
+
         function displayExams(subject) {
             currentSubject = subject;
             const container = document.getElementById('examContainer');
@@ -774,7 +780,8 @@
             if (currentGrade !== null) {
                 exams = exams.filter(e => getExamGrade(e) === currentGrade);
             }
-            
+            exams = sortExamsByTitle(exams);
+
             if (exams.length === 0) {
                 const gradeText = currentGrade !== null ? (' lớp ' + currentGrade) : '';
                 container.innerHTML = `
@@ -987,9 +994,9 @@
 
         // Các đề đang hiện theo môn + lớp đang xem
         function visibleSelectableIds() {
-            return (examData[currentSubject] || [])
+            return sortExamsByTitle((examData[currentSubject] || [])
                 .filter(e => e.id && !e._local)
-                .filter(e => currentGrade === null || getExamGrade(e) === currentGrade)
+                .filter(e => currentGrade === null || getExamGrade(e) === currentGrade))
                 .map(e => e.id);
         }
 
