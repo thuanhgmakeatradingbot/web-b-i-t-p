@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { createAdminToken } = require('./_lib/admin-store');
+const { createAdminToken, verifyAdminToken } = require('./_lib/admin-store');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 
 const failures = new Map();
@@ -50,8 +50,23 @@ function recordFailure(key) {
   }
 }
 
+// GET: kiểm tra phiên admin hiện tại (trước đây là api/admin-me.js — gộp lại vì gói
+// Vercel Hobby giới hạn 12 hàm máy chủ). POST: đăng nhập.
+function checkSession(req, res) {
+  try {
+    const auth = req.headers.authorization || req.headers.Authorization || '';
+    const match = String(auth).match(/^Bearer\s+(.+)$/i);
+    const payload = verifyAdminToken(match ? match[1] : '');
+    if (!payload) return sendJson(res, 401, { ok: false, admin: false });
+    sendJson(res, 200, { ok: true, admin: true, expiresAt: payload.exp });
+  } catch (error) {
+    sendJson(res, 500, { ok: false, error: error.message });
+  }
+}
+
 module.exports = async function handler(req, res) {
-  if (!allowMethods(req, res, ['POST'])) return;
+  if (!allowMethods(req, res, ['GET', 'POST'])) return;
+  if (req.method === 'GET') return checkSession(req, res);
 
   try {
     const key = clientKey(req);

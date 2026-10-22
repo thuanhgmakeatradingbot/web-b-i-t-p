@@ -79,7 +79,7 @@ const KiroAuth = {
       return false;
     }
     try {
-      const res = await fetch('/api/admin-me', {
+      const res = await fetch('/api/admin-login', {
         method: 'GET',
         headers: this.adminHeaders(),
         cache: 'no-store'
