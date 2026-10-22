@@ -214,13 +214,17 @@ window.EXAM_LIST = `;
 async function readBlobFile(filePath) {
   if (!BlobClient || !process.env.BLOB_READ_WRITE_TOKEN) return null;
   try {
-    // Cần list để lấy URL vì Blob storage tạo URL riêng
+    // Mỗi lần lưu, Blob tạo 1 file mới có đuôi ngẫu nhiên (vd exam-list.enc-AbC1.json)
+    // nên không lọc được bằng prefix là tên đầy đủ: liệt kê cả thư mục, lấy bản mới nhất.
     const { list } = require('@vercel/blob');
-    const result = await list({ prefix: filePath, limit: 100 });
-    const match = (result.blobs || []).find(b => b.pathname === filePath);
+    const dir = filePath.slice(0, filePath.lastIndexOf('/') + 1);
+    const result = await list({ prefix: dir, limit: 1000 });
+    const match = (result.blobs || [])
+      .filter(b => b.pathname === filePath)
+      .sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt))[0];
     if (!match) return null;
 
-    const res = await fetch(match.url);
+    const res = await fetch(match.url, { cache: 'no-store' });
     if (!res.ok) return null;
     return await res.text();
   } catch (e) {
@@ -231,6 +235,7 @@ async function readBlobFile(filePath) {
 
 module.exports = {
   buildPublicExamListText,
+  publicExamList,
   createAdminToken,
   requireAdmin,
   saveTextFile,

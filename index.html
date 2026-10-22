@@ -268,6 +268,43 @@
             background: #ffcdd2;
         }
         
+        /* Hộp sửa tên & thông tin đề (chỉ admin) */
+        .meta-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .meta-modal.show { display: flex; }
+        .meta-box {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            width: 100%;
+            max-width: 560px;
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+        .meta-box h2 { font-size: 15pt; margin-bottom: 15px; color: #1a1a1a; }
+        .meta-box label { display: block; font-weight: 600; font-size: 10.5pt; color: #444; margin: 12px 0 5px; }
+        .meta-box input, .meta-box textarea {
+            width: 100%;
+            padding: 9px 11px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font: inherit;
+            font-size: 11pt;
+        }
+        .meta-box textarea { min-height: 60px; resize: vertical; }
+        .meta-row { display: flex; gap: 12px; }
+        .meta-row > div { flex: 1; }
+        .meta-box .modal-buttons { margin-top: 22px; }
+        .meta-box .modal-btn { padding: 12px 28px; }
+
         .grade-bar {
             display: flex;
             gap: 10px;
@@ -463,6 +500,37 @@
 
         <div id="gradeBar" class="grade-bar"></div>
 
+        <div id="metaModal" class="meta-modal" onclick="if (event.target === this) closeMetaModal()">
+            <form class="meta-box" onsubmit="event.preventDefault(); saveExamMeta()">
+                <h2>✏️ Sửa tên và thông tin đề</h2>
+                <input type="hidden" id="metaId">
+                <label for="metaTitle">Tên đề</label>
+                <input id="metaTitle" maxlength="200" required>
+                <label for="metaContent">Nội dung</label>
+                <textarea id="metaContent" maxlength="500"></textarea>
+                <label for="metaQuestions">Số câu hỏi</label>
+                <input id="metaQuestions" maxlength="500" placeholder="VD: 12 trắc nghiệm, 4 đúng/sai, 6 tự luận">
+                <div class="meta-row">
+                    <div>
+                        <label for="metaTime">Thời gian (phút)</label>
+                        <input id="metaTime" type="number" min="1" max="240" required>
+                    </div>
+                    <div>
+                        <label for="metaGrade">Lớp</label>
+                        <input id="metaGrade" type="number" min="1" max="12" required>
+                    </div>
+                </div>
+                <label for="metaTopics">Chủ đề</label>
+                <input id="metaTopics" maxlength="500">
+                <label for="metaDifficulty">Mức độ</label>
+                <input id="metaDifficulty" maxlength="500" placeholder="VD: Hỗn hợp: Nhận biết → Vận dụng cao">
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn cancel" onclick="closeMetaModal()">Hủy</button>
+                    <button type="submit" class="modal-btn confirm" id="metaSaveBtn">💾 Lưu</button>
+                </div>
+            </form>
+        </div>
+
         <div id="examContainer">
             <!-- Đề thi sẽ được hiển thị ở đây -->
         </div>
@@ -595,19 +663,19 @@
                 // CHỈ ADMIN: mọi đề đều có nút Xóa; nút Sửa chỉ cho đề tạo bằng công cụ.
                 const ref = exam.id;
                 const adminBtns = KiroAuth.isAdmin() ? `
-                        <div style="margin-top:12px; display:flex; gap:10px;">
-                            ${(exam._local && exam.id) ? `<button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>` : ''}
+                        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+                            ${(exam._local && exam.id) ? `<button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>` : `<button class="admin-btn edit" onclick="event.stopPropagation(); openMetaModal('${encodeURIComponent(ref)}')">✏️ Sửa thông tin</button>`}
                             <button class="admin-btn delete" onclick="event.stopPropagation(); deleteExamCard('${encodeURIComponent(ref)}')">🗑️ Xóa</button>
                         </div>` : '';
                 const gradeBadge = getExamGrade(exam) ? `<span class="difficulty" style="background:#e3f2fd;color:#1565c0;margin-right:8px">Lớp ${getExamGrade(exam)}</span>` : '';
                 html += `
                     <div class="exam-card" onclick="window.location.href='${target}'">
-                        <h2>📝 ${exam.title}</h2>
-                        <div class="exam-info"><strong>Nội dung:</strong> ${exam.content || ''}</div>
-                        <div class="exam-info"><strong>Số câu hỏi:</strong> ${exam.questions || ''}</div>
-                        <div class="exam-info"><strong>Thời gian:</strong> ${exam.time || ''}</div>
-                        <div class="exam-info"><strong>Chủ đề:</strong> ${exam.topics || ''}</div>
-                        ${gradeBadge}<span class="difficulty">${exam.difficulty || ''}</span>
+                        <h2>📝 ${escHtml(exam.title)}</h2>
+                        <div class="exam-info"><strong>Nội dung:</strong> ${escHtml(exam.content)}</div>
+                        <div class="exam-info"><strong>Số câu hỏi:</strong> ${escHtml(exam.questions)}</div>
+                        <div class="exam-info"><strong>Thời gian:</strong> ${escHtml(exam.time)}</div>
+                        <div class="exam-info"><strong>Chủ đề:</strong> ${escHtml(exam.topics)}</div>
+                        ${gradeBadge}<span class="difficulty">${escHtml(exam.difficulty)}</span>
                         <br>
                         <button class="start-btn" onclick="event.stopPropagation(); window.location.href='${target}'">Bắt đầu làm bài →</button>
                         ${adminBtns}
@@ -667,6 +735,80 @@
             });
         }
 
+        function escHtml(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ===== SỬA TÊN & THÔNG TIN ĐỀ (CHỈ ADMIN) =====
+        function openMetaModal(refEnc) {
+            const exam = findExamByRef(decodeURIComponent(refEnc));
+            if (!exam) return alert('Không tìm thấy đề.');
+            const set = (id, v) => { document.getElementById(id).value = v == null ? '' : v; };
+            set('metaId', exam.id);
+            set('metaTitle', exam.title);
+            set('metaContent', exam.content);
+            set('metaQuestions', exam.questions);
+            set('metaTime', parseInt(exam.timeMinutes, 10) || parseInt(exam.time, 10) || 45);
+            set('metaGrade', getExamGrade(exam) || '');
+            set('metaTopics', exam.topics);
+            set('metaDifficulty', exam.difficulty);
+            document.getElementById('metaModal').classList.add('show');
+            document.getElementById('metaTitle').focus();
+        }
+
+        function closeMetaModal() {
+            document.getElementById('metaModal').classList.remove('show');
+        }
+
+        async function saveExamMeta() {
+            const val = id => document.getElementById(id).value;
+            const btn = document.getElementById('metaSaveBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Đang lưu...';
+            try {
+                const data = await adminFetch('/api/admin-exam', {
+                    method: 'POST',
+                    body: JSON.stringify({ updateMeta: {
+                        id: val('metaId'),
+                        title: val('metaTitle'),
+                        content: val('metaContent'),
+                        questions: val('metaQuestions'),
+                        timeMinutes: val('metaTime'),
+                        grade: val('metaGrade'),
+                        topics: val('metaTopics'),
+                        difficulty: val('metaDifficulty')
+                    } })
+                });
+                const exam = findExamByRef(val('metaId'));
+                if (exam && data.exam) Object.assign(exam, data.exam);
+                closeMetaModal();
+                displayExams(currentSubject);
+            } catch (e) {
+                alert('Lỗi khi lưu: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Lưu';
+            }
+        }
+
+        // Lấy danh sách đề mới nhất từ máy chủ (đề sửa/xóa trên web hiện ngay);
+        // lỗi mạng thì giữ danh sách trong danh-sach-de.js.
+        async function loadServerExamList() {
+            try {
+                const res = await fetch('/api/exam-list', { cache: 'no-store' });
+                const data = await res.json();
+                if (!res.ok || !data.ok || !data.examList) return;
+                Object.keys(data.examList).forEach(k => {
+                    const local = (examData[k] || []).filter(e => e._local);
+                    const ids = new Set((data.examList[k] || []).map(e => e.id));
+                    examData[k] = data.examList[k].concat(local.filter(e => !ids.has(e.id)));
+                });
+            } catch (e) {
+                console.warn('Không tải được danh sách đề mới nhất:', e);
+            }
+        }
+
         function editLocalExam(id) {
             // Chuyển sang trình tạo đề, mở sẵn đề cần sửa
             window.location.href = 'tao-de.html?edit=' + encodeURIComponent(id);
@@ -703,7 +845,7 @@
         }
         
         (async function initHome(){
-            await setupRole();
+            await Promise.all([setupRole(), loadServerExamList()]);
             renderGradeBar('khtn');
             displayExams('khtn');
         })();

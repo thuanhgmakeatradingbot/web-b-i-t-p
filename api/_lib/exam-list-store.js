@@ -2,6 +2,10 @@ const path = require('path');
 const { decryptJsonFile, decryptJsonFileAsync } = require('./crypto-store');
 
 let examListCache = null;
+let examListLoadedAt = 0;
+// Đề sửa trên web được lưu vào Vercel Blob; mỗi máy chủ Vercel giữ bản đệm riêng,
+// nên đọc lại sau một lúc để mọi máy chủ thấy thay đổi.
+const CACHE_MS = 15 * 1000;
 
 const EMPTY_LIST = { khtn: [], toan: [], hoa: [], sinh: [], vatly: [] };
 
@@ -21,10 +25,11 @@ function getExamList() {
 }
 
 async function getExamListAsync() {
-  if (!examListCache) {
+  if (!examListCache || Date.now() - examListLoadedAt > CACHE_MS) {
     const filePath = 'api/_data/exam-list.enc.json';
     const data = await decryptJsonFileAsync(filePath, 'QUESTION_BANK_SECRET');
     examListCache = normalizeList(data);
+    examListLoadedAt = Date.now();
   }
   return examListCache;
 }
@@ -49,6 +54,7 @@ async function findExamByIdAsync(id) {
 
 function resetExamListCache(nextList) {
   examListCache = nextList || null;
+  examListLoadedAt = nextList ? Date.now() : 0;
 }
 
 module.exports = {
