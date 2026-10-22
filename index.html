@@ -306,6 +306,37 @@
         .meta-pw { margin-top: 18px; padding: 12px 14px 14px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 9px; }
         .meta-pw-title { font-weight: 700; color: #6d4c00; font-size: 10.5pt; }
         .meta-pw-note { font-size: 9.5pt; color: #8a6d00; margin-top: 6px; min-height: 1em; }
+        /* Chọn nhiều đề & sửa hàng loạt (chỉ admin) */
+        .exam-card.selectable { position: relative; padding-left: 62px; }
+        .exam-card.selected { outline: 3px solid #1565c0; background: #f3f8ff; }
+        .sel-box {
+            position: absolute; left: 18px; top: 22px; width: 28px; height: 28px;
+            border: 2px solid #1565c0; border-radius: 6px; background: white;
+            color: white; font-weight: bold; display: flex; align-items: center; justify-content: center;
+        }
+        .exam-card.selected .sel-box { background: #1565c0; }
+        .bulk-bar {
+            display: none; position: fixed; left: 0; right: 0; bottom: 18px; margin: 0 auto; width: fit-content;
+            z-index: 9000; background: #1a1a1a; color: white; border-radius: 12px;
+            padding: 10px 14px; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.35); max-width: calc(100vw - 24px);
+        }
+        .bulk-bar.show { display: flex; }
+        .bulk-bar .bulk-count { font-weight: bold; margin-right: 6px; }
+        .bulk-bar button {
+            border: none; border-radius: 7px; padding: 9px 13px; font-weight: bold;
+            cursor: pointer; font-size: 10pt; background: #424242; color: white;
+        }
+        .bulk-bar button.primary { background: #1565c0; }
+        .bulk-bar button.danger { background: #c62828; }
+        .bulk-bar button:disabled { opacity: 0.4; cursor: not-allowed; }
+        body.select-mode-on .main-content { padding-bottom: 110px; }
+        .bulk-row { margin-top: 10px; }
+        .bulk-row > label { display: flex; align-items: center; gap: 8px; margin: 0 0 5px; cursor: pointer; }
+        .bulk-row > label input { width: auto; }
+        .bulk-hint { font-size: 9.5pt; color: #777; margin-top: 3px; }
+        .bulk-list { max-height: 110px; overflow-y: auto; font-size: 10pt; color: #444; background: #f5f5f5; border-radius: 7px; padding: 8px 12px; }
+        .bulk-section { margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; font-weight: 700; color: #1a1a1a; }
         .lock-badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 10pt; margin: 10px 8px 0 0; background: #fff3e0; color: #e65100; font-weight: 600; }
         .meta-box .modal-btn { padding: 12px 28px; }
 
@@ -493,6 +524,7 @@
         </div>
         
         <div id="adminBar" style="text-align:right; margin-bottom:20px; display:none;">
+            <button id="selectModeBtn" onclick="toggleSelectMode()" style="display:inline-block; padding:12px 25px; background:#455a64; color:white; border:none; border-radius:8px; font-weight:bold; margin-right:8px; cursor:pointer; font-size:11pt;">☑️ Chọn nhiều đề</button>
             <a href="ket-qua.html" style="display:inline-block; padding:12px 25px; background:#1565c0; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">📊 Xem kết quả học sinh</a>
             <a href="ngan-hang.html" style="display:inline-block; padding:12px 25px; background:#7b1fa2; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">🏦 Ngân hàng câu hỏi</a>
             <a href="tao-de.html" style="display:inline-block; padding:12px 25px; background:#4CAF50; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">➕ Tạo đề mới (không cần code)</a>
@@ -503,6 +535,72 @@
         </div>
 
         <div id="gradeBar" class="grade-bar"></div>
+
+        <div id="bulkBar" class="bulk-bar">
+            <span class="bulk-count" id="bulkCount">Đã chọn 0 đề</span>
+            <button onclick="selectAllVisible()">Chọn tất cả đang hiện</button>
+            <button onclick="clearSelection()">Bỏ chọn</button>
+            <button class="primary" id="bulkEditBtn" onclick="openBulkModal()">✏️ Sửa hàng loạt</button>
+            <button class="danger" id="bulkDeleteBtn" onclick="bulkDeleteExams()">🗑️ Xoá</button>
+            <button onclick="toggleSelectMode()">✖ Thoát</button>
+        </div>
+
+        <div id="bulkModal" class="meta-modal" onclick="if (event.target === this) closeBulkModal()">
+            <form class="meta-box" onsubmit="event.preventDefault(); saveBulkEdit()">
+                <h2>✏️ Sửa hàng loạt <span id="bulkModalCount"></span></h2>
+                <div class="bulk-list" id="bulkList"></div>
+                <p class="bulk-hint" style="margin-top:8px">Tích vào mục nào thì mục đó được đặt <b>cùng một giá trị</b> cho mọi đề đã chọn. Mục không tích giữ nguyên.</p>
+                
+                <div class="bulk-row">
+                    <label><input type="checkbox" id="bk_on_timeMinutes"> Thời gian (phút)</label>
+                    <input id="bk_timeMinutes" type="number" min="1" max="240" oninput="bkOn('timeMinutes')">
+                </div>
+                
+                <div class="bulk-row">
+                    <label><input type="checkbox" id="bk_on_grade"> Lớp</label>
+                    <input id="bk_grade" type="number" min="1" max="12" oninput="bkOn('grade')">
+                </div>
+                
+                <div class="bulk-row">
+                    <label><input type="checkbox" id="bk_on_content"> Nội dung</label>
+                    <textarea id="bk_content" maxlength="500" oninput="bkOn('content')"></textarea>
+                </div>
+                
+                <div class="bulk-row">
+                    <label><input type="checkbox" id="bk_on_topics"> Chủ đề</label>
+                    <input id="bk_topics" maxlength="500" oninput="bkOn('topics')">
+                </div>
+                
+                <div class="bulk-row">
+                    <label><input type="checkbox" id="bk_on_difficulty"> Mức độ</label>
+                    <input id="bk_difficulty" maxlength="500" oninput="bkOn('difficulty')">
+                </div>
+                <div class="bulk-section">🔒 Mật khẩu riêng của đề</div>
+                
+                <div class="bulk-row">
+                    <label><input type="checkbox" id="bk_on_examPassword"> Mật khẩu làm đề</label>
+                    <input id="bk_examPassword" maxlength="100" autocomplete="off" oninput="bkOn('examPassword')">
+                    <div class="bulk-hint">Tích mà để trống = gỡ mật khẩu làm đề của các đề đã chọn.</div>
+                </div>
+                
+                <div class="bulk-row">
+                    <label><input type="checkbox" id="bk_on_reviewPassword"> Mật khẩu xem đáp án</label>
+                    <input id="bk_reviewPassword" maxlength="100" autocomplete="off" oninput="bkOn('reviewPassword')">
+                    <div class="bulk-hint">Tích mà để trống = các đề đã chọn dùng mật khẩu xem đáp án chung.</div>
+                </div>
+                <div class="bulk-section">📝 Tên đề</div>
+                <label for="bk_titlePrefix">Thêm vào đầu tên</label>
+                <input id="bk_titlePrefix" maxlength="100" placeholder="VD: [Giữa kì I]">
+                <label for="bk_titleSuffix">Thêm vào cuối tên</label>
+                <input id="bk_titleSuffix" maxlength="100" placeholder="VD: – năm học 2026-2027">
+                <label for="bk_titleRemove">Bỏ cụm chữ khỏi tên</label>
+                <input id="bk_titleRemove" maxlength="100" placeholder="VD: [Giữa kì I]">
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn cancel" onclick="closeBulkModal()">Hủy</button>
+                    <button type="submit" class="modal-btn confirm" id="bulkSaveBtn">💾 Áp dụng</button>
+                </div>
+            </form>
+        </div>
 
         <div id="metaModal" class="meta-modal" onclick="if (event.target === this) closeMetaModal()">
             <form class="meta-box" onsubmit="event.preventDefault(); saveExamMeta()">
@@ -680,8 +778,14 @@
                             <button class="admin-btn delete" onclick="event.stopPropagation(); deleteExamCard('${encodeURIComponent(ref)}')">🗑️ Xóa</button>
                         </div>` : '';
                 const gradeBadge = getExamGrade(exam) ? `<span class="difficulty" style="background:#e3f2fd;color:#1565c0;margin-right:8px">Lớp ${getExamGrade(exam)}</span>` : '';
+                const selectable = selectMode && !exam._local;
+                const isSel = selectable && selectedIds.has(exam.id);
+                const cardClick = selectable
+                    ? `toggleSelect('${encodeURIComponent(exam.id)}')`
+                    : `window.location.href='${target}'`;
                 html += `
-                    <div class="exam-card" onclick="window.location.href='${target}'">
+                    <div class="exam-card${selectable ? ' selectable' : ''}${isSel ? ' selected' : ''}" onclick="${cardClick}">
+                        ${selectable ? `<div class="sel-box">${isSel ? '✔' : ''}</div>` : ''}
                         <h2>📝 ${escHtml(exam.title)}</h2>
                         <div class="exam-info"><strong>Nội dung:</strong> ${escHtml(exam.content)}</div>
                         <div class="exam-info"><strong>Số câu hỏi:</strong> ${escHtml(exam.questions)}</div>
@@ -689,8 +793,8 @@
                         <div class="exam-info"><strong>Chủ đề:</strong> ${escHtml(exam.topics)}</div>
                         ${exam.hasPassword ? '<span class="lock-badge">🔒 Cần mật khẩu</span>' : ''}${gradeBadge}<span class="difficulty">${escHtml(exam.difficulty)}</span>
                         <br>
-                        <button class="start-btn" onclick="event.stopPropagation(); window.location.href='${target}'">Bắt đầu làm bài →</button>
-                        ${adminBtns}
+                        ${selectMode ? '' : `<button class="start-btn" onclick="event.stopPropagation(); window.location.href='${target}'">Bắt đầu làm bài →</button>
+                        ${adminBtns}`}
                     </div>
                 `;
             });
@@ -831,6 +935,150 @@
             }
         }
 
+        // Thay danh sách đề bằng bản của máy chủ, giữ các đề tạo trên máy này (_local)
+        function applyServerList(list) {
+            Object.keys(list || {}).forEach(k => {
+                const local = (examData[k] || []).filter(e => e._local);
+                const ids = new Set((list[k] || []).map(e => e.id));
+                examData[k] = list[k].concat(local.filter(e => !ids.has(e.id)));
+            });
+        }
+
+        // ===== CHỌN NHIỀU ĐỀ & SỬA HÀNG LOẠT (CHỈ ADMIN) =====
+        let selectMode = false;
+        const selectedIds = new Set();
+
+        function toggleSelectMode() {
+            selectMode = !selectMode;
+            if (!selectMode) selectedIds.clear();
+            document.body.classList.toggle('select-mode-on', selectMode);
+            document.getElementById('selectModeBtn').textContent = selectMode ? '✖ Thoát chọn nhiều' : '☑️ Chọn nhiều đề';
+            updateBulkBar();
+            displayExams(currentSubject);
+        }
+
+        function toggleSelect(idEnc) {
+            const id = decodeURIComponent(idEnc);
+            if (selectedIds.has(id)) selectedIds.delete(id);
+            else selectedIds.add(id);
+            updateBulkBar();
+            displayExams(currentSubject);
+        }
+
+        // Các đề đang hiện theo môn + lớp đang xem
+        function visibleSelectableIds() {
+            return (examData[currentSubject] || [])
+                .filter(e => e.id && !e._local)
+                .filter(e => currentGrade === null || getExamGrade(e) === currentGrade)
+                .map(e => e.id);
+        }
+
+        function selectAllVisible() {
+            visibleSelectableIds().forEach(id => selectedIds.add(id));
+            updateBulkBar();
+            displayExams(currentSubject);
+        }
+
+        function clearSelection() {
+            selectedIds.clear();
+            updateBulkBar();
+            displayExams(currentSubject);
+        }
+
+        function selectedExams() {
+            return Object.values(examData).flat().filter(e => e && selectedIds.has(e.id));
+        }
+
+        function updateBulkBar() {
+            const n = selectedExams().length;
+            document.getElementById('bulkBar').classList.toggle('show', selectMode);
+            document.getElementById('bulkCount').textContent = 'Đã chọn ' + n + ' đề';
+            document.getElementById('bulkEditBtn').disabled = !n;
+            document.getElementById('bulkDeleteBtn').disabled = !n;
+        }
+
+        const BULK_FIELDS = ['timeMinutes', 'grade', 'content', 'topics', 'difficulty', 'examPassword', 'reviewPassword'];
+        function bkOn(key) { document.getElementById('bk_on_' + key).checked = true; }
+
+        function openBulkModal() {
+            const exams = selectedExams();
+            if (!exams.length) return;
+            BULK_FIELDS.forEach(k => {
+                document.getElementById('bk_on_' + k).checked = false;
+                document.getElementById('bk_' + k).value = '';
+            });
+            ['titlePrefix', 'titleSuffix', 'titleRemove'].forEach(k => { document.getElementById('bk_' + k).value = ''; });
+            document.getElementById('bulkModalCount').textContent = '(' + exams.length + ' đề)';
+            const list = document.getElementById('bulkList');
+            list.innerHTML = '';
+            exams.forEach(e => {
+                const div = document.createElement('div');
+                div.textContent = '• ' + e.title;
+                list.appendChild(div);
+            });
+            document.getElementById('bulkModal').classList.add('show');
+        }
+
+        function closeBulkModal() {
+            document.getElementById('bulkModal').classList.remove('show');
+        }
+
+        async function saveBulkEdit() {
+            const exams = selectedExams();
+            const val = id => document.getElementById(id).value;
+            const set = {};
+            BULK_FIELDS.forEach(k => { if (document.getElementById('bk_on_' + k).checked) set[k] = val('bk_' + k); });
+            const change = {
+                ids: exams.map(e => e.id),
+                set,
+                titlePrefix: val('bk_titlePrefix'),
+                titleSuffix: val('bk_titleSuffix'),
+                titleRemove: val('bk_titleRemove')
+            };
+            if (!Object.keys(set).length && !change.titlePrefix.trim() && !change.titleSuffix.trim() && !change.titleRemove.trim()) {
+                return alert('Chưa chọn mục nào để sửa. Hãy tích vào mục cần đổi hoặc nhập chữ cho tên đề.');
+            }
+            if (!confirm('Áp dụng thay đổi cho ' + exams.length + ' đề đã chọn?')) return;
+            const btn = document.getElementById('bulkSaveBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Đang lưu...';
+            try {
+                const data = await adminFetch('/api/admin-exam', { method: 'POST', body: JSON.stringify({ bulkUpdate: change }) });
+                applyServerList(data.examList);
+                closeBulkModal();
+                updateBulkBar();
+                displayExams(currentSubject);
+                alert('Đã sửa ' + (data.count || 0) + ' đề.');
+            } catch (e) {
+                alert('Lỗi khi lưu: ' + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Áp dụng';
+            }
+        }
+
+        async function bulkDeleteExams() {
+            const exams = selectedExams();
+            if (!exams.length) return;
+            const names = exams.slice(0, 10).map(e => '- ' + e.title).join('\n') + (exams.length > 10 ? '\n... và ' + (exams.length - 10) + ' đề khác' : '');
+            const typed = prompt('Bạn sắp XOÁ VĨNH VIỄN ' + exams.length + ' đề:\n' + names + '\n\nGõ XOA (viết hoa, không dấu) để xác nhận:');
+            if (typed === null) return;
+            if (typed.trim() !== 'XOA') return alert('Chưa xoá: chữ xác nhận không đúng.');
+            try {
+                const data = await adminFetch('/api/admin-exam', {
+                    method: 'POST',
+                    body: JSON.stringify({ bulkDelete: { ids: exams.map(e => e.id), confirm: 'XOA' } })
+                });
+                applyServerList(data.examList);
+                selectedIds.clear();
+                updateBulkBar();
+                displayExams(currentSubject);
+                alert('Đã xoá ' + (data.removed || 0) + ' đề.');
+            } catch (e) {
+                alert('Lỗi khi xoá: ' + e.message);
+            }
+        }
+
         // Lấy danh sách đề mới nhất từ máy chủ (đề sửa/xóa trên web hiện ngay);
         // lỗi mạng thì giữ danh sách trong danh-sach-de.js.
         async function loadServerExamList() {
@@ -838,11 +1086,7 @@
                 const res = await fetch('/api/exam-list', { cache: 'no-store' });
                 const data = await res.json();
                 if (!res.ok || !data.ok || !data.examList) return;
-                Object.keys(data.examList).forEach(k => {
-                    const local = (examData[k] || []).filter(e => e._local);
-                    const ids = new Set((data.examList[k] || []).map(e => e.id));
-                    examData[k] = data.examList[k].concat(local.filter(e => !ids.has(e.id)));
-                });
+                applyServerList(data.examList);
             } catch (e) {
                 console.warn('Không tải được danh sách đề mới nhất:', e);
             }
