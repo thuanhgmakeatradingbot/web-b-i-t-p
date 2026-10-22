@@ -570,6 +570,39 @@ function updateProgress(){
 let submitted = false;
 let fullscreenExitCount = 0;
 let fullscreenWasActive = false;
+// Lượt làm do máy chủ ghi (Google Sheet): giờ bắt đầu thật + số lần thoát fullscreen
+let sessionToken = '';
+let deadlineMs = 0;   // hạn nộp theo đồng hồ máy chủ (0 = chưa có, dùng đồng hồ máy học sinh)
+let clockOffset = 0;  // giờ máy chủ - giờ máy học sinh
+
+async function startServerAttempt(){
+  try {
+    const s = getStudentInfoAny() || {};
+    const name = s.name || (document.getElementById('studentName') || {}).value || '';
+    const cls = s.class || (document.getElementById('studentClass') || {}).value || '';
+    const res = await fetch('/api/attempt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'start', attemptToken, student: { name, class: cls } })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok || !data.tracked) return;
+    sessionToken = data.sessionToken;
+    clockOffset = Number(data.serverNow) - Date.now();
+    deadlineMs = Number(data.startedAt) + Number(data.timeMinutes) * 60 * 1000;
+    fullscreenExitCount = Math.max(fullscreenExitCount, Number(data.exits) || 0);
+  } catch(e){ /* mất mạng -> tạm dùng đồng hồ máy học sinh */ }
+}
+
+function reportExitToServer(){
+  if (!sessionToken) return;
+  fetch('/api/attempt', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'exit', sessionToken }),
+    keepalive: true
+  }).catch(() => {});
+}
 let fullscreenListenersBound = false;
 function progressKey(){
   let who = 'guest';
@@ -679,6 +712,7 @@ function confirmStartExam(){
   enterFullscreen();
   startTimer();
   examStarted = true;
+  if (secureMode && attemptToken) startServerAttempt();
   if (!fullscreenListenersBound){
     document.addEventListener('fullscreenchange', handleFSChange);
     document.addEventListener('webkitfullscreenchange', handleFSChange);
@@ -703,6 +737,7 @@ function handleFSChange(){
     fullscreenExitCount += 1;
     fullscreenWasActive = false;
     saveProgress();
+    reportExitToServer();
   }
   document.getElementById('fullscreenWarning').style.display = 'flex';
 }
@@ -722,10 +757,12 @@ function startTimer(){
   const timerEl = document.getElementById('timer');
   let tick = 0;
   timerInterval = setInterval(() => {
+    // Có giờ máy chủ thì tính lại từ hạn nộp mỗi giây (sửa localStorage / đổi giờ máy không có tác dụng)
+    if (deadlineMs) time = Math.max(0, Math.ceil((deadlineMs - (Date.now() + clockOffset)) / 1000));
     const m = Math.floor(time / 60), s = time % 60;
     timerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
-    if (time <= 0){ clearInterval(timerInterval); submitExam(); }
-    time--;
+    if (time <= 0){ clearInterval(timerInterval); submitExam(); return; }
+    if (!deadlineMs) time--;
     // Lưu thời gian còn lại định kỳ (mỗi 5 giây) để khôi phục chính xác
     if ((++tick % 5) === 0) saveProgress();
   }, 1000);
@@ -853,7 +890,8 @@ async function submitSecureExam(name, cls, btn){
         answers,
         student: { name, class: cls },
         essayImages: essayImageStore,
-        fullscreenExitCount
+        fullscreenExitCount,
+        sessionToken
       })
     });
     const data = await res.json();

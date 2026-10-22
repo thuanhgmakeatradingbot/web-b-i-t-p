@@ -2,6 +2,7 @@ const { getQuestionByIdMapAsync } = require('./_lib/bank-store');
 const { findExamByIdAsync } = require('./_lib/exam-list-store');
 const { readAttemptToken, scoreExamItems } = require('./_lib/exam-core');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
+const { examKeyOf, readSessionToken } = require('./_lib/attempt-store');
 
 const submissions = new Map();
 const SUBMIT_WINDOW_MS = 10 * 60 * 1000;
@@ -44,6 +45,8 @@ async function saveToGoogleSheets(payload, student, answers, score, meta) {
     explanations: JSON.stringify({ v: 1, q: score.questionsDetail || [] }),
     fullscreenExitCount: normalizeExitCount(meta && meta.fullscreenExitCount)
   };
+  // Có mã lượt làm -> Apps Script tự lấy số lần thoát & thời gian làm đã ghi ở trang "Lượt làm"
+  if (meta && meta.attemptId) data.attemptId = meta.attemptId;
 
   if (student.essayImages && Object.keys(student.essayImages).length) {
     data.essayImages = JSON.stringify(student.essayImages);
@@ -89,6 +92,14 @@ module.exports = async function handler(req, res) {
     const meta = {
       fullscreenExitCount: normalizeExitCount(body.fullscreenExitCount)
     };
+    if (body.sessionToken) {
+      try {
+        const session = readSessionToken(body.sessionToken);
+        if (session.examKey === examKeyOf(payload)) meta.attemptId = session.attemptId;
+      } catch (e) {
+        // lượt làm không hợp lệ -> vẫn nhận bài, chỉ không có dữ liệu máy chủ
+      }
+    }
 
     const items = await resolveItems(payload);
     if (!items.length) return sendJson(res, 404, { ok: false, error: 'Attempt questions not found.' });

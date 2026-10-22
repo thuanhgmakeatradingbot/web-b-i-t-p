@@ -7,6 +7,11 @@ Sinh-10/
 # Answer documents are not needed in the public deployment.
 *.docx
 
+# Internal docs and scripts (LOGIC.md lists Apps Script deployment ids).
+*.md
+*.bat
+web-b-i-t-p/
+
 # Local secrets stay on this machine only.
 .env
 .env.local

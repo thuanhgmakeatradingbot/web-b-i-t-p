@@ -144,12 +144,17 @@ const KiroAuth = {
       return false;
     }
 
+    // Ẩn trang cho tới khi máy chủ xác nhận phiên (token giả không thấy được gì)
+    const root = document.documentElement;
+    root.style.visibility = 'hidden';
     const self = this;
     self.verifyAdmin().then(function(ok){
       if (!ok) {
         alert('Phien admin khong hop le hoac da het han. Vui long dang nhap lai.');
         window.location.href = 'login.html';
+        return;
       }
+      root.style.visibility = '';
     });
     return true;
   }

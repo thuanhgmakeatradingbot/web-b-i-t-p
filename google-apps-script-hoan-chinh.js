@@ -53,12 +53,126 @@ function ensureResultsColumns_(sheet) {
   var headers = [
     { col: 13, name: 'Đáp án đúng (JSON)' },
     { col: 14, name: 'Ảnh preview' },
-    { col: 15, name: 'Thoát fullscreen' }
+    { col: 15, name: 'Thoát fullscreen' },
+    { col: 16, name: 'Thời gian làm' }
   ];
   headers.forEach(function(item) {
     var cell = sheet.getRange(1, item.col);
     if (!cell.getValue()) cell.setValue(item.name);
   });
+}
+
+// ===== LƯỢT LÀM BÀI (máy chủ tự ghi giờ bắt đầu & số lần thoát fullscreen) =====
+// Vercel hỏi ?action=version trước khi dùng các action dưới đây, nên bản script cũ
+// không bao giờ nhận nhầm chúng thành bài nộp.
+var SCRIPT_VERSION = 2;
+var ATTEMPTS_SHEET_NAME = 'Lượt làm';
+var ATTEMPT_HEADERS = ['Mã lượt', 'Bắt đầu (ms)', 'Bắt đầu', 'Họ tên', 'Lớp', 'Đề', 'Khoá đề',
+  'Số phút', 'Thoát fullscreen', 'Lần thoát cuối', 'Đã nộp lúc'];
+var A_ID = 1, A_START = 2, A_KEY = 7, A_EXITS = 9, A_LAST_EXIT = 10, A_SUBMITTED = 11;
+
+function getAttemptsSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName(ATTEMPTS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(ATTEMPTS_SHEET_NAME);
+    sheet.appendRow(ATTEMPT_HEADERS);
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function nowText_() {
+  return new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+}
+
+function findAttemptRow_(sheet, attemptId) {
+  if (!attemptId) return 0;
+  var cell = sheet.getRange('A:A').createTextFinder(String(attemptId)).matchEntireCell(true).findNext();
+  return cell ? cell.getRow() : 0;
+}
+
+function attemptInfo_(sheet, row) {
+  var v = sheet.getRange(row, 1, 1, ATTEMPT_HEADERS.length).getValues()[0];
+  return {
+    attemptId: String(v[A_ID - 1]),
+    startedAt: Number(v[A_START - 1]) || 0,
+    timeMinutes: Number(v[7]) || 0,
+    exits: Number(v[A_EXITS - 1]) || 0,
+    submitted: !!v[A_SUBMITTED - 1]
+  };
+}
+
+// Bắt đầu (hoặc tiếp tục) lượt làm. Cùng học sinh + cùng đề mà chưa nộp thì dùng lại
+// lượt cũ, nên tải lại trang / mở lại đề không được tính lại giờ từ đầu.
+function startAttempt_(data) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sheet = getAttemptsSheet_();
+    var key = [data.examKey, data.name, data.class].map(function(s) {
+      return String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    }).join('|');
+    var last = sheet.getLastRow();
+    var from = Math.max(2, last - 3000);
+    if (last >= 2) {
+      var rows = sheet.getRange(from, 1, last - from + 1, ATTEMPT_HEADERS.length).getValues();
+      for (var i = rows.length - 1; i >= 0; i--) {
+        if (rows[i][A_KEY - 1] === key && !rows[i][A_SUBMITTED - 1]) {
+          var found = attemptInfo_(sheet, from + i);
+          return jsonOutput_({ status: 'success', resumed: true, attemptId: found.attemptId,
+            startedAt: found.startedAt, exits: found.exits });
+        }
+      }
+    }
+    var attemptId = Utilities.getUuid();
+    var startedAt = Date.now();
+    sheet.appendRow([attemptId, startedAt, nowText_(), data.name || '', data.class || '',
+      data.exam || '', key, Number(data.timeMinutes) || 0, 0, '', '']);
+    return jsonOutput_({ status: 'success', resumed: false, attemptId: attemptId,
+      startedAt: startedAt, exits: 0 });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function attemptExit_(data) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sheet = getAttemptsSheet_();
+    var row = findAttemptRow_(sheet, data.attemptId);
+    if (!row) return jsonOutput_({ status: 'error', message: 'Không tìm thấy lượt làm.' });
+    var info = attemptInfo_(sheet, row);
+    if (info.submitted) return jsonOutput_({ status: 'success', exits: info.exits });
+    sheet.getRange(row, A_EXITS).setValue(info.exits + 1);
+    sheet.getRange(row, A_LAST_EXIT).setValue(nowText_());
+    return jsonOutput_({ status: 'success', exits: info.exits + 1 });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// Khi nộp bài: lấy số lần thoát & thời gian làm do máy chủ ghi, đánh dấu lượt đã nộp.
+function finishAttempt_(attemptId, clientExits) {
+  var result = { exits: normalizeFullscreenExitCount_(clientExits), duration: '' };
+  if (!attemptId) return result;
+  var lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    var sheet = getAttemptsSheet_();
+    var row = findAttemptRow_(sheet, attemptId);
+    if (!row) return result;
+    var info = attemptInfo_(sheet, row);
+    result.exits = Math.max(info.exits, result.exits);
+    var minutes = Math.max(0, Math.round((Date.now() - info.startedAt) / 60000));
+    result.duration = minutes + '/' + info.timeMinutes + ' phút';
+    if (info.timeMinutes && minutes > info.timeMinutes + 1) result.duration += ' ⚠️ quá giờ';
+    sheet.getRange(row, A_SUBMITTED).setValue(nowText_());
+    return result;
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 // ===== LẤY (HOẶC TẠO) THƯ MỤC ẢNH TRÊN DRIVE =====
@@ -112,9 +226,6 @@ function doPost(e) {
   try {
     // [DEBUG] Log raw request
     Logger.log('=== RAW REQUEST ===');
-    Logger.log('e: ' + JSON.stringify(e));
-    Logger.log('e.postData: ' + JSON.stringify(e.postData));
-    Logger.log('e.postData.contents: ' + e.postData.contents);
     
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var mainSheet = ss.getSheetByName('Kết quả') || ss.getActiveSheet();
@@ -144,7 +255,6 @@ function doPost(e) {
     }
     
     Logger.log('=== PARSED DATA ===');
-    Logger.log('data: ' + JSON.stringify(data));
 
     // Mọi request ghi/xóa đều phải có khóa bí mật do Vercel gửi.
     if (!isResultsAuthorized_(data.secret)) {
@@ -158,6 +268,15 @@ function doPost(e) {
     if (data.action === 'deleteResults') {
       return deleteResults_(data);
     }
+    if (data.action === 'startAttempt') {
+      return startAttempt_(data);
+    }
+    if (data.action === 'attemptExit') {
+      return attemptExit_(data);
+    }
+    if (data.action) {
+      return jsonOutput_({ status: 'error', message: 'Action không hợp lệ: ' + data.action });
+    }
     
     // Chuẩn bị dữ liệu cơ bản
     var timestamp = data.timestamp || new Date().toLocaleString('vi-VN');
@@ -168,7 +287,9 @@ function doPost(e) {
     var correct = data.correct || 0;
     var wrong = data.wrong || 0;
     var score = data.score || 0;
-    var fullscreenExitCount = normalizeFullscreenExitCount_(data.fullscreenExitCount);
+    // Số lần thoát & thời gian làm lấy từ trang "Lượt làm" (máy chủ ghi), không tin trình duyệt
+    var attempt = finishAttempt_(data.attemptId, data.fullscreenExitCount);
+    var fullscreenExitCount = attempt.exits;
     
     // Parse answers
     var answersObj = {};
@@ -217,7 +338,8 @@ function doPost(e) {
       essayText,
       data.correctAnswers || '',  // Cột M: đáp án đúng (JSON) - dùng cho trang kết quả
       '',                         // Cột N: ảnh preview bằng =IMAGE()
-      fullscreenExitCount         // Cột O: số lần thoát fullscreen
+      fullscreenExitCount,        // Cột O: số lần thoát fullscreen
+      attempt.duration            // Cột P: thời gian làm (máy chủ tính)
     ]);
     
     // Tô màu câu trả lời SAI
@@ -608,6 +730,12 @@ function createDetailSheet(ss, data, answersObj) {
 function doGet(e) {
   var params = (e && e.parameter) || {};
 
+  if (String(params.action || '') === 'version') {
+    if (!isResultsAuthorized_(params.secret)) {
+      return jsonOutput_({ status: 'error', message: 'Không có quyền truy cập.' });
+    }
+    return jsonOutput_({ status: 'success', version: SCRIPT_VERSION });
+  }
   if (String(params.action || '') !== 'results') {
     return ContentService.createTextOutput('Google Apps Script đang hoạt động! ✅');
   }
@@ -621,7 +749,7 @@ function doGet(e) {
     if (lastRow < 2) return jsonOutput_({ status: 'success', rows: [] });
 
     // Dùng getDisplayValues để thời gian và điểm giữ đúng cách hiển thị trong Sheet.
-    var values = sheet.getRange(2, 1, lastRow - 1, 15).getDisplayValues();
+    var values = sheet.getRange(2, 1, lastRow - 1, 16).getDisplayValues();
     var rows = values.map(function(r, index) {
       return {
         rowNumber: index + 2,
@@ -638,7 +766,8 @@ function doGet(e) {
         images: r[10],
         essays: r[11],
         correctAnswers: r[12],
-        fullscreenExitCount: r[14] || '0'
+        fullscreenExitCount: r[14] || '0',
+        duration: r[15] || ''
       };
     });
 
