@@ -1,9 +1,10 @@
+const crypto = require('crypto');
 const { readAttemptToken } = require('./_lib/exam-core');
 const { callScript, createSessionToken, examKeyOf, readSessionToken, trackingEnabled } = require('./_lib/attempt-store');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 
 // POST {action:'start', attemptToken, student:{name,class}}
-//   -> giờ bắt đầu do máy chủ ghi (tiếp tục lượt cũ nếu cùng học sinh + đề chưa nộp)
+//   -> giờ bắt đầu do máy chủ ghi; mỗi lần mở đề là 1 lượt mới, đủ giờ
 // POST {action:'exit', sessionToken} -> ghi thêm 1 lần thoát fullscreen
 module.exports = async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) return;
@@ -19,8 +20,10 @@ module.exports = async function handler(req, res) {
       const text = v => String(v == null ? '' : v).trim().slice(0, 100);
       const examKey = examKeyOf(payload);
       const timeMinutes = parseInt(payload.timeMinutes, 10) || 45;
+      // Mỗi lần mở đề là 1 lượt mới, đủ giờ (giáo viên không muốn nối tiếp lượt cũ):
+      // thêm mã ngẫu nhiên vào khoá để Apps Script không tìm thấy lượt dở nào trùng.
       const data = await callScript('startAttempt', {
-        examKey,
+        examKey: examKey + '#' + crypto.randomBytes(6).toString('hex'),
         exam: text(payload.title),
         name: text(student.name),
         class: text(student.class),

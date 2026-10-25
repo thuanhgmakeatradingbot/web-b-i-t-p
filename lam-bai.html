@@ -74,7 +74,6 @@ body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;line-height:1.6;bac
 input,textarea{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
 .notfound{max-width:700px;margin:80px auto;background:white;padding:50px;border-radius:12px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.1)}
 /* Banner khôi phục bài làm dở */
-.resume-banner{max-width:1000px;margin:15px auto 0;background:#fff8e1;border:1px solid #ffb300;border-left:5px solid #ffb300;color:#7a5b00;padding:12px 18px;border-radius:8px;font-size:11pt}
 /* Xem lại đáp án sau khi nộp */
 .option.opt-correct{background:#e8f5e9;border-color:#4CAF50}
 .option.opt-wrong-pick{background:#ffebee;border-color:#f44336}
@@ -177,14 +176,12 @@ function handleEssayImage(input, name){
       wrap.innerHTML = `<img src="${dataUrl}" style="max-width:220px;max-height:220px;border:1px solid #ddd;border-radius:8px"><br>
         <span style="font-size:10pt;color:#2e7d32">✅ Đã đính kèm ảnh</span>`;
     }
-    saveProgress();
   }).catch(() => {
     // Nếu nén lỗi thì đọc thẳng
     const r = new FileReader();
     r.onload = e => {
       essayImageStore[name] = e.target.result;
       if (wrap) wrap.innerHTML = `<img src="${e.target.result}" style="max-width:220px;max-height:220px;border:1px solid #ddd;border-radius:8px"><br><span style="font-size:10pt;color:#2e7d32">✅ Đã đính kèm ảnh</span>`;
-      saveProgress();
     };
     r.readAsDataURL(file);
   });
@@ -410,9 +407,6 @@ function renderExam(ex){
   <div class="timer" id="timer">${EXAM_TIME_MINUTES}:00</div>
 
   <div class="container">
-    <div id="resumeBanner" class="resume-banner" style="display:none">
-      💾 Đã khôi phục bài làm dở của bạn (câu trả lời và thời gian còn lại). Bạn có thể làm tiếp.
-    </div>
     <div class="header">
       <div class="teacher-tag">
         <div>TOÁN-HÓA-SINH-KHTN | Nguyễn Phú Thuận</div>
@@ -597,7 +591,6 @@ function attachHandlers(){
         optEl.classList.add('selected');
       }
       updateProgress();
-      saveProgress();
     }
   });
   form.addEventListener('input', e => {
@@ -605,10 +598,6 @@ function attachHandlers(){
       const q = e.target.closest('.question');
       if (q){ q.classList.toggle('answered', e.target.value.trim() !== ''); }
       updateProgress();
-    }
-    // Lưu cả khi gõ trả lời ngắn / tự luận
-    if (e.target.classList && (e.target.classList.contains('short-answer-input') || e.target.classList.contains('essay-textarea'))){
-      saveProgress();
     }
   });
 }
@@ -656,12 +645,6 @@ function reportExitToServer(){
   }).catch(() => {});
 }
 let fullscreenListenersBound = false;
-function progressKey(){
-  let who = 'guest';
-  try { const s = (window.KiroAuth && KiroAuth.getStudent && KiroAuth.getStudent()); if (s) who = s.name + '|' + s.class; } catch(e){}
-  const eid = examId || (exam && exam.id) || 'random';
-  return 'PROGRESS|' + eid + '|' + who;
-}
 function collectAnswers(){
   const data = {};
   document.querySelectorAll('#examForm input[type=radio]:checked').forEach(r => { data[r.name] = r.value; });
@@ -669,58 +652,14 @@ function collectAnswers(){
   document.querySelectorAll('#examForm textarea.essay-textarea').forEach(t => { if (t.value.trim() !== '') data[t.name] = t.value; });
   return data;
 }
-function saveProgress(){
-  if (submitted) return;
-  try {
-    const payload = { savedAt: Date.now(), timeLeft: time, answers: collectAnswers(), fullscreenExitCount };
-    localStorage.setItem(progressKey(), JSON.stringify(payload));
-  } catch(e){ /* hết dung lượng -> bỏ qua */ }
-}
+// Không tự lưu bài làm dở. Hàm này chỉ dọn bài làm dở mà bản web cũ (có tự lưu)
+// đã để lại trong trình duyệt.
 function clearProgress(){
-  try { localStorage.removeItem(progressKey()); } catch(e){}
-}
-function hasSavedProgress(){
   try {
-    const raw = localStorage.getItem(progressKey());
-    if (!raw) return false;
-    const p = JSON.parse(raw);
-    return p && p.answers && Object.keys(p.answers).length > 0;
-  } catch(e){ return false; }
+    Object.keys(localStorage).filter(k => k.startsWith('PROGRESS|')).forEach(k => localStorage.removeItem(k));
+  } catch(e){}
 }
-// Đổ dữ liệu đã lưu vào form
-function restoreProgress(){
-  try {
-    const raw = localStorage.getItem(progressKey());
-    if (!raw) return;
-    const p = JSON.parse(raw);
-    if (!p || !p.answers) return;
-    Object.keys(p.answers).forEach(name => {
-      const val = p.answers[name];
-      // radio
-      const radio = document.querySelector(`#examForm input[type=radio][name="${name}"][value="${val}"]`);
-      if (radio){
-        radio.checked = true;
-        const q = radio.closest('.question'); if (q) q.classList.add('answered');
-        const optEl = radio.closest('.option'); if (optEl) optEl.classList.add('selected');
-        return;
-      }
-      // text / textarea
-      const field = document.querySelector(`#examForm [name="${name}"]`);
-      if (field){
-        field.value = val;
-        const q = field.closest('.question'); if (q && val.trim() !== '') q.classList.add('answered');
-      }
-    });
-    // Khôi phục thời gian còn lại (nếu hợp lệ)
-    if (typeof p.timeLeft === 'number' && p.timeLeft > 0 && p.timeLeft <= EXAM_TIME_MINUTES*60){
-      time = p.timeLeft;
-    }
-    if (typeof p.fullscreenExitCount === 'number' && p.fullscreenExitCount >= 0){
-      fullscreenExitCount = Math.floor(p.fullscreenExitCount);
-    }
-    updateProgress();
-  } catch(e){ /* bỏ qua */ }
-}
+clearProgress();
 
 // ====== BẢO MẬT ======
 document.addEventListener('contextmenu', e => { e.preventDefault(); return false; });
@@ -729,10 +668,9 @@ document.addEventListener('keydown', e => {
   if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','C'].includes(e.key)) || (e.ctrlKey && e.key === 'u')) { e.preventDefault(); return false; }
 });
 
-// Cảnh báo khi lỡ thoát/refresh giữa chừng (bài đã được tự lưu nên không mất)
+// Cảnh báo khi lỡ thoát/refresh giữa chừng: bài làm dở KHÔNG được lưu, tải lại là làm lại từ đầu
 window.addEventListener('beforeunload', e => {
   if (examStarted && !submitted){
-    saveProgress();
     e.preventDefault();
     e.returnValue = '';
     return '';
@@ -755,12 +693,6 @@ function currentFullscreenElement(){
 function cancelExam(){ window.location.href = 'index.html'; }
 function confirmStartExam(){
   document.getElementById('startModal').style.display = 'none';
-  // Khôi phục bài làm dở (nếu có) trước khi chạy giờ
-  if (hasSavedProgress()){
-    restoreProgress(); // có thể đặt lại biến time
-    const banner = document.getElementById('resumeBanner');
-    if (banner) banner.style.display = 'block';
-  }
   enterFullscreen();
   startTimer();
   examStarted = true;
@@ -788,7 +720,6 @@ function handleFSChange(){
   if (fullscreenWasActive){
     fullscreenExitCount += 1;
     fullscreenWasActive = false;
-    saveProgress();
     reportExitToServer();
   }
   document.getElementById('fullscreenWarning').style.display = 'flex';
@@ -807,7 +738,6 @@ function startTimer(){
   // Nếu chưa được khôi phục (time vẫn = 0) thì dùng thời gian đầy đủ của đề
   if (!time || time <= 0) time = EXAM_TIME_MINUTES * 60;
   const timerEl = document.getElementById('timer');
-  let tick = 0;
   timerInterval = setInterval(() => {
     // Có giờ máy chủ thì tính lại từ hạn nộp mỗi giây (sửa localStorage / đổi giờ máy không có tác dụng)
     if (deadlineMs) time = Math.max(0, Math.ceil((deadlineMs - (Date.now() + clockOffset)) / 1000));
@@ -815,8 +745,6 @@ function startTimer(){
     timerEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
     if (time <= 0){ clearInterval(timerInterval); submitExam(); return; }
     if (!deadlineMs) time--;
-    // Lưu thời gian còn lại định kỳ (mỗi 5 giây) để khôi phục chính xác
-    if ((++tick % 5) === 0) saveProgress();
   }, 1000);
 }
 
