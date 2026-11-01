@@ -337,6 +337,8 @@
         .bulk-hint { font-size: 9.5pt; color: #777; margin-top: 3px; }
         .bulk-list { max-height: 110px; overflow-y: auto; font-size: 10pt; color: #444; background: #f5f5f5; border-radius: 7px; padding: 8px 12px; }
         .bulk-section { margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; font-weight: 700; color: #1a1a1a; }
+        .pw-info { margin-top: 10px; padding: 8px 12px; background: #f3e5f5; border-radius: 8px; font-size: 10pt; color: #4a148c; line-height: 1.6; }
+        .pw-info code { background: white; padding: 1px 6px; border-radius: 4px; font-size: 10.5pt; }
         .lock-badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 10pt; margin: 10px 8px 0 0; background: #fff3e0; color: #e65100; font-weight: 600; }
         .meta-box .modal-btn { padding: 12px 28px; }
 
@@ -524,10 +526,12 @@
         </div>
         
         <div id="adminBar" style="text-align:right; margin-bottom:20px; display:none;">
+            <a id="teachersBtn" href="quan-ly-giao-vien.html" style="display:none; padding:12px 25px; background:#e65100; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">👥 Quản lý giáo viên</a>
+            <a id="changePwBtn" href="quan-ly-giao-vien.html#doi-mat-khau" style="display:none; padding:12px 25px; background:#6d4c41; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">🔑 Đổi mật khẩu</a>
             <button id="selectModeBtn" onclick="toggleSelectMode()" style="display:inline-block; padding:12px 25px; background:#455a64; color:white; border:none; border-radius:8px; font-weight:bold; margin-right:8px; cursor:pointer; font-size:11pt;">☑️ Chọn nhiều đề</button>
-            <a href="ket-qua.html" style="display:inline-block; padding:12px 25px; background:#1565c0; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">📊 Xem kết quả học sinh</a>
-            <a href="ngan-hang.html" style="display:inline-block; padding:12px 25px; background:#7b1fa2; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">🏦 Ngân hàng câu hỏi</a>
-            <a href="tao-de.html" style="display:inline-block; padding:12px 25px; background:#4CAF50; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">➕ Tạo đề mới (không cần code)</a>
+            <a id="resultsBtn" href="ket-qua.html" style="display:inline-block; padding:12px 25px; background:#1565c0; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">📊 Xem kết quả học sinh</a>
+            <a id="bankBtn" href="ngan-hang.html" style="display:inline-block; padding:12px 25px; background:#7b1fa2; color:white; text-decoration:none; border-radius:8px; font-weight:bold; margin-right:8px;">🏦 Ngân hàng câu hỏi</a>
+            <a id="createBtn" href="tao-de.html" style="display:inline-block; padding:12px 25px; background:#4CAF50; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">➕ Tạo đề mới (không cần code)</a>
         </div>
 
         <div style="margin-bottom:20px;">
@@ -748,7 +752,7 @@
         // Vẽ thanh chọn lớp cho môn hiện tại
         function renderGradeBar(subject) {
             const bar = document.getElementById('gradeBar');
-            const grades = GRADES_BY_SUBJECT[subject] || [];
+            const grades = (GRADES_BY_SUBJECT[subject] || []).filter(g => !KiroAuth.isStaff() || KiroAuth.allowedGrade(g));
             let html = `<div class="grade-tab ${currentGrade === null ? 'active' : ''}" onclick="selectGrade(null)">Tất cả</div>`;
             grades.forEach(g => {
                 html += `<div class="grade-tab ${currentGrade === g ? 'active' : ''}" onclick="selectGrade(${g})">Lớp ${g}</div>`;
@@ -773,8 +777,10 @@
             currentSubject = subject;
             const container = document.getElementById('examContainer');
             let exams = examData[subject] || [];
-            if (!KiroAuth.isAdmin()) {
-                exams = exams.filter(e => e.id);
+            exams = exams.filter(e => e.id);
+            // Giáo viên chỉ thấy đề thuộc môn/lớp admin giao
+            if (KiroAuth.isStaff() && !KiroAuth.isAdmin()) {
+                exams = exams.filter(e => KiroAuth.allowedSubject(e.subjectKey || subject) && KiroAuth.allowedGrade(getExamGrade(e)));
             }
             // Lọc theo lớp đang chọn
             if (currentGrade !== null) {
@@ -797,13 +803,17 @@
             exams.forEach(exam => {
                 if (!exam.id) return;
                 const target = `lam-bai.html?id=${encodeURIComponent(exam.id)}`;
-                // CHỈ ADMIN: mọi đề đều có nút Xóa; nút Sửa chỉ cho đề tạo bằng công cụ.
+                // Nút theo quyền: Sửa thông tin (sửa đề hoặc chỉ mật khẩu), Xóa. Máy chủ vẫn kiểm tra lại.
                 const ref = exam.id;
-                const adminBtns = KiroAuth.isAdmin() ? `
-                        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-                            ${(exam._local && exam.id) ? `<button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>` : `<button class="admin-btn edit" onclick="event.stopPropagation(); openMetaModal('${encodeURIComponent(ref)}')">✏️ Sửa thông tin</button>`}
-                            <button class="admin-btn delete" onclick="event.stopPropagation(); deleteExamCard('${encodeURIComponent(ref)}')">🗑️ Xóa</button>
-                        </div>` : '';
+                const canMeta = KiroAuth.can('editExams') || KiroAuth.can('editPasswords');
+                const editBtn = (exam._local && exam.id)
+                    ? (KiroAuth.can('createExams') ? `<button class="admin-btn edit" onclick="event.stopPropagation(); editLocalExam('${exam.id}')">✏️ Sửa</button>` : '')
+                    : (canMeta ? `<button class="admin-btn edit" onclick="event.stopPropagation(); openMetaModal('${encodeURIComponent(ref)}')">${KiroAuth.can('editExams') ? '✏️ Sửa thông tin' : '🔑 Sửa mật khẩu'}</button>` : '');
+                const delBtn = KiroAuth.can('deleteExams') ? `<button class="admin-btn delete" onclick="event.stopPropagation(); deleteExamCard('${encodeURIComponent(ref)}')">🗑️ Xóa</button>` : '';
+                const adminBtns = (editBtn || delBtn) ? `
+                        <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">${editBtn}${delBtn}</div>` : '';
+                const pw = examPasswords[exam.id];
+                const pwInfo = pw ? `<div class="pw-info">🔒 Mật khẩu làm đề: ${pw.examPassword ? '<code>' + escHtml(pw.examPassword) + '</code>' : '<i>không có</i>'}<br>👁️ Mật khẩu xem đáp án: ${pw.reviewPassword ? '<code>' + escHtml(pw.reviewPassword) + '</code>' : '<i>dùng mật khẩu chung</i>'}</div>` : '';
                 const gradeBadge = getExamGrade(exam) ? `<span class="difficulty" style="background:#e3f2fd;color:#1565c0;margin-right:8px">Lớp ${getExamGrade(exam)}</span>` : '';
                 const selectable = selectMode && !exam._local;
                 const isSel = selectable && selectedIds.has(exam.id);
@@ -819,6 +829,7 @@
                         <div class="exam-info"><strong>Thời gian:</strong> ${escHtml(exam.time)}</div>
                         <div class="exam-info"><strong>Chủ đề:</strong> ${escHtml(exam.topics)}</div>
                         ${exam.hasPassword ? '<span class="lock-badge">🔒 Cần mật khẩu</span>' : ''}${gradeBadge}<span class="difficulty">${escHtml(exam.difficulty)}</span>
+                        ${pwInfo}
                         <br>
                         ${selectMode ? '' : `<button class="start-btn" onclick="event.stopPropagation(); window.location.href='${target}'">Bắt đầu làm bài →</button>
                         ${adminBtns}`}
@@ -827,6 +838,21 @@
             });
             html += '</div>';
             container.innerHTML = html;
+        }
+
+        // Mật khẩu từng đề theo id (chỉ tải khi có quyền "Xem đề và mật khẩu đề")
+        let examPasswords = {};
+        async function loadExamPasswords() {
+            if (!KiroAuth.can('viewExams')) return;
+            try {
+                const data = await adminFetch('/api/admin-exam?meta=1');
+                examPasswords = {};
+                Object.values(data.examList || {}).flat().forEach(e => {
+                    examPasswords[e.id] = { examPassword: e.examPassword || '', reviewPassword: e.reviewPassword || '' };
+                });
+            } catch (e) {
+                console.warn('Không tải được mật khẩu đề:', e);
+            }
         }
 
         // ===== XÓA ĐỀ NGAY Ở TRANG CHỦ (CHỈ ADMIN) =====
@@ -902,6 +928,10 @@
             const status = document.getElementById('metaPwStatus');
             const saveBtn = document.getElementById('metaSaveBtn');
             pwInputs.forEach(el => { el.disabled = true; });
+            const canInfo = KiroAuth.can('editExams');
+            ['metaTitle', 'metaContent', 'metaQuestions', 'metaTime', 'metaGrade', 'metaTopics', 'metaDifficulty']
+                .forEach(id => { document.getElementById(id).disabled = !canInfo; });
+            document.querySelector('#metaModal h2').textContent = canInfo ? '✏️ Sửa tên và thông tin đề' : '🔑 Sửa mật khẩu đề';
             saveBtn.disabled = true;
             status.textContent = '⏳ Đang tải mật khẩu hiện tại...';
             document.getElementById('metaModal').classList.add('show');
@@ -910,9 +940,9 @@
                 const full = Object.values(data.examList || {}).flat().find(e => e.id === exam.id) || {};
                 set('metaExamPassword', full.examPassword || '');
                 set('metaReviewPassword', full.reviewPassword || '');
-                pwInputs.forEach(el => { el.disabled = false; });
+                pwInputs.forEach(el => { el.disabled = !KiroAuth.can('editPasswords'); });
                 saveBtn.disabled = false;
-                status.textContent = '';
+                status.textContent = KiroAuth.can('editPasswords') ? '' : 'Bạn không có quyền sửa mật khẩu đề.';
             }).catch(e => {
                 saveBtn.disabled = false;
                 status.textContent = '❌ Không tải được mật khẩu hiện tại (' + e.message + '). Lưu lúc này sẽ giữ nguyên mật khẩu cũ.';
@@ -928,10 +958,12 @@
             const btn = document.getElementById('metaSaveBtn');
             btn.disabled = true;
             btn.textContent = '⏳ Đang lưu...';
+            const canInfo = KiroAuth.can('editExams');
             try {
                 const data = await adminFetch('/api/admin-exam', {
                     method: 'POST',
-                    body: JSON.stringify({ updateMeta: {
+                    // Mục nào không có quyền thì không gửi (undefined bị JSON bỏ qua) -> máy chủ giữ nguyên
+                    body: JSON.stringify({ updateMeta: canInfo ? {
                         id: val('metaId'),
                         title: val('metaTitle'),
                         content: val('metaContent'),
@@ -943,12 +975,19 @@
                         // Ô mật khẩu còn khoá (chưa tải được mật khẩu cũ) thì không gửi -> giữ nguyên
                         examPassword: document.getElementById('metaExamPassword').disabled ? undefined : val('metaExamPassword'),
                         reviewPassword: document.getElementById('metaReviewPassword').disabled ? undefined : val('metaReviewPassword')
+                    } : {
+                        id: val('metaId'),
+                        examPassword: document.getElementById('metaExamPassword').disabled ? undefined : val('metaExamPassword'),
+                        reviewPassword: document.getElementById('metaReviewPassword').disabled ? undefined : val('metaReviewPassword')
                     } })
                 });
                 const exam = findExamByRef(val('metaId'));
                 if (exam && data.exam) {
                     Object.assign(exam, data.exam);
                     exam.hasPassword = !!data.exam.examPassword;
+                    if (examPasswords[exam.id] || KiroAuth.can('viewExams')) {
+                        examPasswords[exam.id] = { examPassword: data.exam.examPassword || '', reviewPassword: data.exam.reviewPassword || '' };
+                    }
                     delete exam.examPassword;
                     delete exam.reviewPassword;
                 }
@@ -1074,6 +1113,9 @@
         function openBulkModal() {
             const exams = selectedExams();
             if (!exams.length) return;
+            ['examPassword', 'reviewPassword'].forEach(k => {
+                document.getElementById('bk_on_' + k).closest('.bulk-row').style.display = KiroAuth.can('editPasswords') ? '' : 'none';
+            });
             BULK_FIELDS.forEach(k => {
                 document.getElementById('bk_on_' + k).checked = false;
                 document.getElementById('bk_' + k).value = '';
@@ -1200,8 +1242,25 @@
             const label = document.getElementById('accountLabel');
             const adminOk = await KiroAuth.verifyAdmin();
             if (adminOk) {
-                label.textContent = 'Giao vien (Quan tri)';
+                const session = KiroAuth.getSession() || {};
+                label.textContent = KiroAuth.isAdmin() ? 'Admin (Quản trị)' : ('Giáo viên: ' + (session.name || session.username || ''));
                 document.getElementById('adminBar').style.display = 'block';
+                const show = (id, on) => { document.getElementById(id).style.display = on ? 'inline-block' : 'none'; };
+                show('teachersBtn', KiroAuth.isAdmin());
+                show('changePwBtn', !KiroAuth.isAdmin());
+                show('selectModeBtn', KiroAuth.can('editExams') || KiroAuth.can('deleteExams'));
+                show('resultsBtn', KiroAuth.can('viewResults'));
+                show('bankBtn', KiroAuth.can('bank'));
+                show('createBtn', KiroAuth.can('createExams'));
+                document.getElementById('bulkEditBtn').style.display = KiroAuth.can('editExams') ? '' : 'none';
+                document.getElementById('bulkDeleteBtn').style.display = KiroAuth.can('deleteExams') ? '' : 'none';
+                if (!KiroAuth.isAdmin()) {
+                    // Ẩn các môn không được giao, mở sẵn môn đầu tiên được giao
+                    document.querySelectorAll('.menu-item').forEach(item => {
+                        if (!KiroAuth.allowedSubject(item.getAttribute('data-subject'))) item.style.display = 'none';
+                    });
+                }
+                await loadExamPasswords();
             } else {
                 document.getElementById('adminBar').style.display = 'none';
                 const s = KiroAuth.getStudent();
@@ -1211,8 +1270,12 @@
         
         (async function initHome(){
             await Promise.all([setupRole(), loadServerExamList()]);
-            renderGradeBar('khtn');
-            displayExams('khtn');
+            const first = Array.from(document.querySelectorAll('.menu-item')).find(item => item.style.display !== 'none');
+            const subject = first ? first.getAttribute('data-subject') : 'khtn';
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.toggle('active', i === first));
+            currentSubject = subject;
+            renderGradeBar(subject);
+            displayExams(subject);
         })();
     </script>
 </body>

@@ -79,7 +79,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 <script src="auth.js"></script>
 <script src="rich-text.js"></script>
 <script>
-  if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }
+  if (!KiroAuth.requireAdmin('viewResults')) { throw new Error('not admin'); }
 </script>
 
 <div class="wrap">
@@ -151,6 +151,10 @@ async function loadResults(){
       KiroAuth.clearAdmin();
       window.location.href = 'login.html';
       return;
+    }
+    // Giáo viên chỉ xem (máy chủ chỉ trả bài của môn được giao); xoá kết quả chỉ admin
+    if (!KiroAuth.isAdmin()) {
+      ['deleteSelectedBtn', 'deleteAllBtn'].forEach(id => { const b = document.getElementById(id); if (b) b.style.display = 'none'; });
     }
     const res = await fetch('/api/results', {
       headers: KiroAuth.adminHeaders(),

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý giáo viên - Hệ Thống Ôn Tập</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f4f6f8;color:#222;padding:20px}
+.wrap{max-width:1000px;margin:0 auto}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.top h1{font-size:18pt}
+a.back{color:#1565c0;text-decoration:none;font-weight:bold}
+.card{background:white;border-radius:12px;padding:22px;box-shadow:0 2px 10px rgba(0,0,0,0.08);margin-bottom:20px}
+.card h2{font-size:14pt;margin-bottom:12px}
+.hint{color:#666;font-size:10pt;margin-top:4px}
+label{display:block;font-weight:600;margin:12px 0 5px;font-size:10.5pt}
+input[type=text],input[type=password]{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:11pt}
+input:focus{outline:none;border-color:#1a1a1a}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 18px}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:4px}
+.checks label{display:flex;align-items:center;gap:6px;font-weight:normal;margin:0;cursor:pointer}
+.perm-list{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:4px}
+.perm-list label{display:flex;align-items:center;gap:8px;font-weight:normal;margin:0;cursor:pointer}
+.btn{padding:10px 20px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:10.5pt;color:white;background:#1a1a1a}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.green{background:#2e7d32}.btn.red{background:#c62828}.btn.gray{background:#78909c}.btn.blue{background:#1565c0}
+.btn.small{padding:6px 12px;font-size:9.5pt}
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;font-size:10.5pt}
+th,td{padding:9px 8px;border-bottom:1px solid #eee;text-align:left;vertical-align:top}
+th{background:#fafafa}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:9pt;margin:1px 2px;background:#e3f2fd;color:#1565c0}
+.tag.off{background:#ffebee;color:#c62828}
+.tag.perm{background:#e8f5e9;color:#2e7d32}
+.msg{margin-top:12px;font-size:10.5pt}
+.hide{display:none}
+@media(max-width:700px){.grid,.perm-list{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<script src="auth.js"></script>
+<script>if (!KiroAuth.requireAdmin()) { throw new Error('not staff'); }</script>
+
+<div class="wrap">
+  <div class="top">
+    <h1 id="pageTitle">👥 Quản lý giáo viên</h1>
+    <a class="back" href="index.html">← Về trang chủ</a>
+  </div>
+
+  <!-- CHỈ ADMIN -->
+  <div id="adminArea" class="hide">
+    <div class="card">
+      <h2>Danh sách tài khoản giáo viên</h2>
+      <div id="teacherList">Đang tải...</div>
+      <div class="actions"><button class="btn green" onclick="openForm(null)">➕ Tạo tài khoản giáo viên</button></div>
+    </div>
+
+    <div class="card hide" id="formCard">
+      <h2 id="formTitle">Tạo tài khoản giáo viên</h2>
+      <div class="grid">
+        <div>
+          <label for="fUsername">Tên đăng nhập</label>
+          <input type="text" id="fUsername" maxlength="32" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="vd: co.lan">
+          <div class="hint">3–32 ký tự: chữ không dấu, số, dấu chấm, gạch dưới, gạch ngang. Không đổi được sau khi tạo.</div>
+        </div>
+        <div>
+          <label for="fName">Họ tên hiển thị</label>
+          <input type="text" id="fName" maxlength="100" placeholder="vd: Cô Nguyễn Thị Lan">
+        </div>
+        <div>
+          <label for="fPassword" id="fPasswordLabel">Mật khẩu</label>
+          <input type="password" id="fPassword" maxlength="100" autocomplete="new-password">
+          <div class="hint" id="fPasswordHint">Ít nhất 8 ký tự. Gửi riêng cho giáo viên; giáo viên tự đổi lại được.</div>
+        </div>
+        <div>
+          <label>Trạng thái</label>
+          <div class="checks"><label><input type="checkbox" id="fDisabled"> Khoá tài khoản (không đăng nhập được)</label></div>
+        </div>
+      </div>
+
+      <label>Môn được giao</label>
+      <div class="checks" id="fSubjects"></div>
+      <label>Lớp được giao</label>
+      <div class="checks" id="fGrades"></div>
+      <div class="hint">Không tích lớp nào = mọi lớp của các môn được giao.</div>
+
+      <label>Quyền</label>
+      <div class="perm-list" id="fPerms"></div>
+
+      <div class="actions">
+        <button class="btn green" id="saveBtn" onclick="saveForm()">💾 Lưu</button>
+        <button class="btn gray" onclick="closeForm()">Huỷ</button>
+      </div>
+      <div class="msg" id="formMsg"></div>
+    </div>
+  </div>
+
+  <!-- GIÁO VIÊN TỰ ĐỔI MẬT KHẨU -->
+  <div id="pwArea" class="card hide">
+    <h2 id="doi-mat-khau">🔑 Đổi mật khẩu của bạn</h2>
+    <label for="pCurrent">Mật khẩu hiện tại</label>
+    <input type="password" id="pCurrent" autocomplete="current-password">
+    <label for="pNew">Mật khẩu mới (ít nhất 8 ký tự)</label>
+    <input type="password" id="pNew" autocomplete="new-password">
+    <label for="pNew2">Nhập lại mật khẩu mới</label>
+    <input type="password" id="pNew2" autocomplete="new-password">
+    <div class="actions"><button class="btn blue" id="pwBtn" onclick="changePassword()">Đổi mật khẩu</button></div>
+    <div class="msg" id="pwMsg"></div>
+  </div>
+</div>
+
+<script>
+let META = { permissions: {}, defaultPerms: {}, subjects: {} };
+let teachers = [];
+let editingId = null;
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function api(url, options){
+  const opts = options || {};
+  opts.headers = Object.assign({ 'Content-Type': 'application/json' }, KiroAuth.adminHeaders(), opts.headers || {});
+  opts.cache = 'no-store';
+  const res = await fetch(url, opts);
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    KiroAuth.clearAdmin();
+    alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+    window.location.href = 'login.html';
+    throw new Error('401');
+  }
+  if (!res.ok || !data.ok) throw new Error(data.error || 'Lỗi máy chủ.');
+  return data;
+}
+
+function setMsg(id, text, ok){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.style.color = ok ? '#2e7d32' : '#c62828';
+}
+
+// ===== ADMIN =====
+async function loadTeachers(){
+  const data = await api('/api/admin-login?action=teachers');
+  META = data;
+  teachers = data.teachers || [];
+  renderList();
+}
+
+function renderList(){
+  const box = document.getElementById('teacherList');
+  if (!teachers.length) {
+    box.innerHTML = '<p style="color:#777">Chưa có tài khoản giáo viên nào.</p>';
+    return;
+  }
+  const subjName = k => (META.subjects[k] && META.subjects[k].name) || k;
+  box.innerHTML = '<table><tr><th>Giáo viên</th><th>Môn / lớp</th><th>Quyền</th><th></th></tr>' +
+    teachers.map(t => {
+      const perms = Object.keys(META.permissions).filter(k => t.perms && t.perms[k]);
+      return '<tr>' +
+        '<td><b>' + esc(t.name) + '</b><br><span style="color:#777">' + esc(t.username) + '</span>' +
+          (t.disabled ? '<br><span class="tag off">Đã khoá</span>' : '') + '</td>' +
+        '<td>' + ((t.subjects || []).map(k => '<span class="tag">' + esc(subjName(k)) + '</span>').join('') || '<span class="tag off">Chưa giao môn</span>') +
+          '<br><span style="color:#777;font-size:9.5pt">' + ((t.grades || []).length ? 'Lớp ' + t.grades.join(', ') : 'Mọi lớp') + '</span></td>' +
+        '<td>' + (perms.map(k => '<span class="tag perm">' + esc(META.permissions[k]) + '</span>').join('') || '<span style="color:#777">Không có quyền</span>') + '</td>' +
+        '<td style="white-space:nowrap"><button class="btn small blue" data-edit="' + esc(t.id) + '">✏️ Sửa</button> ' +
+          '<button class="btn small red" data-del="' + esc(t.id) + '">🗑️ Xoá</button></td>' +
+      '</tr>';
+    }).join('') + '</table>';
+  box.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openForm(b.getAttribute('data-edit')));
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => removeTeacher(b.getAttribute('data-del')));
+}
+
+function openForm(id){
+  editingId = id;
+  const t = id ? teachers.find(x => x.id === id) : null;
+  document.getElementById('formTitle').textContent = t ? 'Sửa tài khoản: ' + t.username : 'Tạo tài khoản giáo viên';
+  const u = document.getElementById('fUsername');
+  u.value = t ? t.username : '';
+  u.disabled = !!t;
+  document.getElementById('fName').value = t ? (t.name || '') : '';
+  document.getElementById('fPassword').value = '';
+  document.getElementById('fPasswordLabel').textContent = t ? 'Đặt lại mật khẩu (để trống = giữ nguyên)' : 'Mật khẩu';
+  document.getElementById('fPasswordHint').textContent = t
+    ? 'Đặt lại mật khẩu sẽ đăng xuất giáo viên khỏi mọi máy.'
+    : 'Ít nhất 8 ký tự. Gửi riêng cho giáo viên; giáo viên tự đổi lại được.';
+  document.getElementById('fDisabled').checked = !!(t && t.disabled);
+
+  const subjects = t ? (t.subjects || []) : [];
+  document.getElementById('fSubjects').innerHTML = Object.keys(META.subjects).map(k =>
+    '<label><input type="checkbox" name="subj" value="' + esc(k) + '"' + (subjects.indexOf(k) >= 0 ? ' checked' : '') + '> ' + esc(META.subjects[k].name) + '</label>'
+  ).join('');
+  const grades = t ? (t.grades || []) : [];
+  document.getElementById('fGrades').innerHTML = [6, 7, 8, 9, 10, 11, 12].map(g =>
+    '<label><input type="checkbox" name="grade" value="' + g + '"' + (grades.indexOf(g) >= 0 ? ' checked' : '') + '> Lớp ' + g + '</label>'
+  ).join('');
+  const perms = t ? (t.perms || {}) : META.defaultPerms;
+  document.getElementById('fPerms').innerHTML = Object.keys(META.permissions).map(k =>
+    '<label><input type="checkbox" name="perm" value="' + esc(k) + '"' + (perms[k] ? ' checked' : '') + '> ' + esc(META.permissions[k]) + '</label>'
+  ).join('');
+
+  setMsg('formMsg', '', true);
+  const card = document.getElementById('formCard');
+  card.classList.remove('hide');
+  card.scrollIntoView({ behavior: 'smooth' });
+}
+
+function closeForm(){
+  document.getElementById('formCard').classList.add('hide');
+  editingId = null;
+}
+
+const checked = name => Array.from(document.querySelectorAll('input[name="' + name + '"]:checked')).map(el => el.value);
+
+async function saveForm(){
+  const perms = {};
+  checked('perm').forEach(k => { perms[k] = true; });
+  const teacher = {
+    id: editingId || undefined,
+    username: document.getElementById('fUsername').value.trim(),
+    name: document.getElementById('fName').value.trim(),
+    password: document.getElementById('fPassword').value || undefined,
+    disabled: document.getElementById('fDisabled').checked,
+    subjects: checked('subj'),
+    grades: checked('grade').map(Number),
+    perms
+  };
+  if (!teacher.subjects.length && !confirm('Chưa giao môn nào: giáo viên sẽ không thấy đề nào. Vẫn lưu?')) return;
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  try {
+    await api('/api/admin-login', { method: 'POST', body: JSON.stringify({ action: 'saveTeacher', teacher }) });
+    closeForm();
+    await loadTeachers();
+  } catch (e) {
+    setMsg('formMsg', '❌ ' + e.message, false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function removeTeacher(id){
+  const t = teachers.find(x => x.id === id);
+  if (!t || !confirm('Xoá tài khoản "' + t.username + '"? Giáo viên này sẽ bị đăng xuất và không đăng nhập lại được.')) return;
+  try {
+    await api('/api/admin-login', { method: 'POST', body: JSON.stringify({ action: 'deleteTeacher', id }) });
+    if (editingId === id) closeForm();
+    await loadTeachers();
+  } catch (e) {
+    alert('Lỗi khi xoá: ' + e.message);
+  }
+}
+
+// ===== GIÁO VIÊN ĐỔI MẬT KHẨU =====
+async function changePassword(){
+  const current = document.getElementById('pCurrent').value;
+  const next = document.getElementById('pNew').value;
+  if (next !== document.getElementById('pNew2').value) return setMsg('pwMsg', '❌ Hai lần nhập mật khẩu mới không giống nhau.', false);
+  const btn = document.getElementById('pwBtn');
+  btn.disabled = true;
+  try {
+    const data = await api('/api/admin-login', { method: 'POST', body: JSON.stringify({ action: 'changePassword', currentPassword: current, newPassword: next }) });
+    KiroAuth.storeSession(data); // phiên cũ hết hiệu lực, dùng phiên mới
+    ['pCurrent', 'pNew', 'pNew2'].forEach(id => { document.getElementById(id).value = ''; });
+    setMsg('pwMsg', '✅ Đã đổi mật khẩu. Các máy khác đang đăng nhập tài khoản này đã bị đăng xuất.', true);
+  } catch (e) {
+    setMsg('pwMsg', '❌ ' + e.message, false);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+KiroAuth.ready.then(async function(ok){
+  if (!ok) return;
+  if (KiroAuth.isAdmin()) {
+    document.getElementById('adminArea').classList.remove('hide');
+    try { await loadTeachers(); }
+    catch (e) { document.getElementById('teacherList').textContent = '❌ ' + e.message; }
+  } else {
+    document.getElementById('pageTitle').textContent = '🔑 Tài khoản giáo viên';
+    document.getElementById('pwArea').classList.remove('hide');
+  }
+});
+</script>
+</body>
+</html>

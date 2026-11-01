@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { getQuestionBank } = require('./_lib/bank-store');
 const { getExamList } = require('./_lib/exam-list-store');
-const { requireAdmin } = require('./_lib/admin-store');
+const { requireStaff } = require('./_lib/staff-store');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 
 const DEFAULT_REPO = {
@@ -165,10 +165,18 @@ async function deleteImages(items) {
 
 module.exports = async function handler(req, res) {
   if (!allowMethods(req, res, ['POST'])) return;
-  if (!requireAdmin(req, res)) return;
+  const ctx = await requireStaff(req, res);
+  if (!ctx) return;
 
   try {
     const body = await readJson(req, { maxBytes: 8 * 1024 * 1024 });
+    // Giáo viên có quyền "Tải ảnh lên" chỉ được tải ảnh; dọn/xoá ảnh thừa chỉ admin.
+    if (body.action === 'upload' && !ctx.can('uploadImages')) {
+      return sendJson(res, 403, { ok: false, error: 'Bạn không có quyền tải ảnh lên.' });
+    }
+    if (body.action !== 'upload' && !ctx.isAdmin) {
+      return sendJson(res, 403, { ok: false, error: 'Chỉ admin được dọn/xoá ảnh.' });
+    }
     if (body.action === 'upload') {
       return sendJson(res, 200, { ok: true, ...(await uploadImage(body)) });
     }

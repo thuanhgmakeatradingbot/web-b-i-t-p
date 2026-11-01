@@ -31,7 +31,7 @@ h1{font-size:23pt;margin-bottom:5px}
 <body>
 <!-- Chỉ giáo viên -->
 <script src="auth.js"></script>
-<script>if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }</script>
+<script>if (!KiroAuth.requireAdmin('admin')) { throw new Error('not admin'); }</script>
 
 <div class="wrap">
   <h1>🧹 Dọn ảnh không dùng</h1>

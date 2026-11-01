@@ -60,7 +60,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 <!-- Bảo vệ: chỉ giáo viên (admin) mới được vào trang này -->
 <script src="auth.js"></script>
 <script>
-  if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }
+  if (!KiroAuth.requireAdmin('createExams')) { throw new Error('not admin'); }
 </script>
 <div class="wrap">
   <h1>➕ Tạo đề mới</h1>
@@ -226,8 +226,15 @@ function updateGradeOptions(keepValue){
   const sel = document.getElementById('grade');
   const old = keepValue != null ? keepValue : parseInt(sel.value, 10);
   sel.innerHTML = grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
+  KiroAuth.limitSelect(sel, 'grade');
   if (grades.indexOf(old) >= 0) sel.value = String(old);
 }
+
+// Giáo viên chỉ chọn được môn/lớp admin giao
+if (KiroAuth.ready) KiroAuth.ready.then(function(){
+  KiroAuth.limitSelect(document.getElementById('subject'), 'subject');
+  updateGradeOptions();
+});
 
 // Lưu danh sách đề mới vào bộ nhớ trình duyệt (để trang chủ hiện ngay)
 function saveLocal(){

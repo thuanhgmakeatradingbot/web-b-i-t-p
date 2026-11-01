@@ -45,7 +45,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 <body>
 <!-- Chỉ giáo viên -->
 <script src="auth.js"></script>
-<script>if (!KiroAuth.requireAdmin()) { throw new Error('not admin'); }</script>
+<script>if (!KiroAuth.requireAdmin('bank')) { throw new Error('not admin'); }</script>
 
 <div class="wrap">
   <h1>🏦 Ngân hàng câu hỏi</h1>
@@ -167,6 +167,7 @@ function updateGradeOptions(keep){
   const sel = document.getElementById('grade');
   const old = keep != null ? keep : parseInt(sel.value, 10);
   sel.innerHTML = grades.map(g => `<option value="${g}">Lớp ${g}</option>`).join('');
+  KiroAuth.limitSelect(sel, 'grade');
   if (grades.indexOf(old) >= 0) sel.value = String(old);
   // filter grade dùng full range
   const fg = document.getElementById('filterGrade');
@@ -407,7 +408,11 @@ async function pushAll(){
 
 // Khoi tao
 (async function init(){
+  if (KiroAuth.ready) await KiroAuth.ready;
   fillSubjects();
+  // Giáo viên chỉ thêm/sửa câu thuộc môn/lớp admin giao
+  KiroAuth.limitSelect(document.getElementById('subject'), 'subject');
+  KiroAuth.limitSelect(document.getElementById('filterSubject'), 'subject');
   updateGradeOptions();
   renderEditor();
   try {

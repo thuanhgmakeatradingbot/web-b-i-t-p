@@ -1,4 +1,5 @@
-const { requireAdmin } = require('./_lib/admin-store');
+const { requireStaff } = require('./_lib/staff-store');
+const { getExamListAsync } = require('./_lib/exam-list-store');
 const { allowMethods, readJson, sendJson } = require('./_lib/http');
 
 function resultsConfig() {
@@ -23,9 +24,33 @@ async function parseScriptResponse(response) {
   }
 }
 
+// Cột "Môn" trong Sheet là tên môn của đề (vd "Hóa học", "Khoa học tự nhiên", "KHTN - Hóa").
+function subjectKeyOfName(name) {
+  const n = String(name || '').normalize('NFD').replace(/\p{M}/gu, '').replace(/đ/gi, 'd').toLowerCase();
+  if (/khtn|khoa hoc tu nhien/.test(n)) return 'khtn';
+  if (/toan/.test(n)) return 'toan';
+  if (/hoa/.test(n)) return 'hoa';
+  if (/sinh/.test(n)) return 'sinh';
+  if (/vat ly|vat li|^ly|^li/.test(n)) return 'vatly';
+  return '';
+}
+
+async function filterRowsForTeacher(ctx, rows) {
+  const restrictedGrades = (ctx.teacher.grades || []).length > 0;
+  let titles = null;
+  if (restrictedGrades) {
+    // Giới hạn theo lớp: chỉ giữ bài của các đề thuộc phạm vi (so theo tên đề)
+    const list = await getExamListAsync();
+    titles = new Set(Object.values(list || {}).flat().filter(exam => ctx.examInScope(exam)).map(exam => String(exam.title || '')));
+  }
+  return rows.filter(row => ctx.subjectAllowed(subjectKeyOfName(row.subject)) && (!titles || titles.has(String(row.exam || ''))));
+}
+
 module.exports = async function handler(req, res) {
   if (!allowMethods(req, res, ['GET', 'DELETE'])) return;
-  if (!requireAdmin(req, res)) return;
+  // Xem kết quả: admin hoặc giáo viên có quyền (chỉ thấy môn/lớp được giao). Xoá kết quả: chỉ admin.
+  const ctx = await requireStaff(req, res, req.method === 'GET' ? 'viewResults' : 'admin');
+  if (!ctx) return;
 
   try {
     const { scriptUrl, secret } = resultsConfig();
@@ -44,6 +69,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      if (!ctx.isAdmin) data.rows = await filterRowsForTeacher(ctx, data.rows || []);
       return sendJson(res, 200, data);
     }
 

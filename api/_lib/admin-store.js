@@ -47,7 +47,8 @@ function signAdminPayload(payload) {
   return `${body}.${sig}`;
 }
 
-function verifyAdminToken(token) {
+// Kiểm tra chữ ký + hạn của phiên (admin hoặc giáo viên). Vai trò do nơi gọi tự xét.
+function verifySignedPayload(token) {
   try {
     const secret = adminSecret();
     if (!secret) throw new Error('Missing ADMIN_SESSION_SECRET on server.');
@@ -60,13 +61,18 @@ function verifyAdminToken(token) {
     if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
 
     const payload = JSON.parse(Buffer.from(parts[0], 'base64url').toString('utf8'));
-    if (payload.role !== 'admin') return null;
     if (!payload.exp || Date.now() > payload.exp) return null;
     return payload;
   } catch (error) {
     if (/Missing ADMIN_SESSION_SECRET/.test(error.message)) throw error;
     return null;
   }
+}
+
+// Chỉ phiên admin (mật khẩu ADMIN_PASSWORD); phiên giáo viên không qua được.
+function verifyAdminToken(token) {
+  const payload = verifySignedPayload(token);
+  return payload && payload.role === 'admin' ? payload : null;
 }
 
 function createAdminToken() {
@@ -238,7 +244,10 @@ module.exports = {
   buildPublicExamListText,
   publicExamList,
   createAdminToken,
+  getBearerToken,
   requireAdmin,
+  signAdminPayload,
+  verifySignedPayload,
   saveTextFile,
   readBlobFile,
   verifyAdminToken,

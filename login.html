@@ -48,10 +48,12 @@ input:focus{outline:none;border-color:#1a1a1a}
 
   <!-- FORM GIÁO VIÊN -->
   <div id="adminForm" class="hide">
-    <label>Mật khẩu giáo viên</label>
-    <input type="password" id="aPass" placeholder="Nhập mật khẩu..." onkeydown="if(event.key==='Enter')doAdminLogin()">
-    <button class="btn btn-admin" onclick="doAdminLogin()">Đăng nhập quản trị →</button>
-    <div class="err" id="aErr">Sai mật khẩu. Vui lòng thử lại.</div>
+    <label>Tên đăng nhập</label>
+    <input type="text" id="aUser" placeholder="Tên đăng nhập (admin: nhập admin)" autocomplete="username" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <label>Mật khẩu</label>
+    <input type="password" id="aPass" placeholder="Nhập mật khẩu..." autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <button class="btn btn-admin" id="aBtn" onclick="doAdminLogin()">Đăng nhập →</button>
+    <div class="err" id="aErr">Sai tên đăng nhập hoặc mật khẩu.</div>
   </div>
 
   <div class="teacher">📞 Zalo: 0944316329</div>
@@ -80,13 +82,28 @@ function doStudentLogin(){
 }
 
 async function doAdminLogin(){
+  const user = document.getElementById('aUser').value.trim();
   const pass = document.getElementById('aPass').value;
-  const ok = await KiroAuth.loginAdmin(pass);
-  if (ok){
-    window.location.href = 'index.html';
-  } else {
-    document.getElementById('aErr').style.display = 'block';
+  const err = document.getElementById('aErr');
+  const btn = document.getElementById('aBtn');
+  if (!user || !pass){
+    err.textContent = 'Vui lòng nhập tên đăng nhập và mật khẩu.';
+    err.style.display = 'block';
+    return;
   }
+  btn.disabled = true;
+  try {
+    const result = await KiroAuth.loginStaff(user, pass);
+    if (result.ok){
+      window.location.href = 'index.html';
+      return;
+    }
+    err.textContent = result.error;
+  } catch(e){
+    err.textContent = 'Không kết nối được máy chủ. Vui lòng thử lại.';
+  }
+  err.style.display = 'block';
+  btn.disabled = false;
 }
 
 // Nếu đã đăng nhập rồi thì vào thẳng trang chủ
