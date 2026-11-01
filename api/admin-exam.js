@@ -152,6 +152,7 @@ module.exports = async function handler(req, res) {
         for (const subject of Object.keys(examList || {})) {
           metaList[subject] = (examList[subject] || []).filter(exam => ctx.examInScope(exam)).map(({ items, ...meta }) => {
             if (!showPasswords) { delete meta.examPassword; delete meta.reviewPassword; }
+            if (!ctx.isAdmin) delete meta.createdBy; // chỉ admin xem ai đăng đề
             return meta;
           });
         }
@@ -198,6 +199,14 @@ module.exports = async function handler(req, res) {
     } else if (body.examList && typeof body.examList === 'object') {
       if (!ctx.isAdmin) throw forbidden(); // thay cả danh sách: chỉ admin
       examList = body.examList;
+      // Giữ người đăng đã lưu của từng đề
+      const current = await getExamListAsync();
+      for (const exam of Object.values(examList).flat()) {
+        if (!exam || typeof exam !== 'object') continue;
+        const old = findExam(current, exam.id);
+        if (old && old.createdBy) exam.createdBy = old.createdBy;
+        else delete exam.createdBy;
+      }
     } else if (body.exam && typeof body.exam === 'object') {
       const current = await getExamListAsync();
       const existing = body.exam.id ? findExam(current, String(body.exam.id)) : null;
@@ -210,7 +219,11 @@ module.exports = async function handler(req, res) {
         throw forbidden('Bạn không có quyền tạo đề mới.');
       }
       checkScope(ctx, [{ ...body.exam, subjectKey: body.exam.subjectKey || 'khtn' }]);
-      examList = upsertExam(JSON.parse(JSON.stringify(current)), body.exam);
+      // Người đăng đề do máy chủ ghi: đề mới = người đang đăng nhập, sửa đề cũ = giữ nguyên người đăng
+      const { createdBy, ...examIn } = body.exam;
+      if (existing && existing.createdBy) examIn.createdBy = existing.createdBy;
+      else if (!existing) examIn.createdBy = ctx.author();
+      examList = upsertExam(JSON.parse(JSON.stringify(current)), examIn);
     } else {
       return sendJson(res, 400, { ok: false, error: 'Missing exam or examList.' });
     }
@@ -229,7 +242,7 @@ module.exports = async function handler(req, res) {
     );
 
     resetExamListCache(examList);
-    const exam = updated && updated.id ? (({ items, ...meta }) => meta)(updated) : undefined;
+    const exam = updated && updated.id ? (({ items, createdBy, ...meta }) => (ctx.isAdmin ? { ...meta, createdBy } : meta))(updated) : undefined;
     const count = updated && updated.count;
     // Trả luôn danh sách công khai mới để trang chủ cập nhật ngay (không chờ bộ đệm máy chủ khác)
     sendJson(res, 200, { ok: true, removed, count, exam, examList: publicExamList(examList), saved: [savedEncrypted, savedPublic] });

@@ -337,6 +337,7 @@
         .bulk-hint { font-size: 9.5pt; color: #777; margin-top: 3px; }
         .bulk-list { max-height: 110px; overflow-y: auto; font-size: 10pt; color: #444; background: #f5f5f5; border-radius: 7px; padding: 8px 12px; }
         .bulk-section { margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; font-weight: 700; color: #1a1a1a; }
+        .owner-info { margin-top: 10px; font-size: 10pt; color: #e65100; }
         .pw-info { margin-top: 10px; padding: 8px 12px; background: #f3e5f5; border-radius: 8px; font-size: 10pt; color: #4a148c; line-height: 1.6; }
         .pw-info code { background: white; padding: 1px 6px; border-radius: 4px; font-size: 10.5pt; }
         .lock-badge { display: inline-block; padding: 6px 12px; border-radius: 6px; font-size: 10pt; margin: 10px 8px 0 0; background: #fff3e0; color: #e65100; font-weight: 600; }
@@ -813,6 +814,7 @@
                 const adminBtns = (editBtn || delBtn) ? `
                         <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">${editBtn}${delBtn}</div>` : '';
                 const pw = examPasswords[exam.id];
+                const owner = KiroAuth.isAdmin() && pw ? `<div class="owner-info">👤 Đăng bởi: <b>${escHtml(pw.createdBy ? (pw.createdBy.name || pw.createdBy.username) : 'Admin')}</b>${pw.createdBy && pw.createdBy.username !== 'admin' ? ' (' + escHtml(pw.createdBy.username) + ')' : ''}</div>` : '';
                 const pwInfo = pw ? `<div class="pw-info">🔒 Mật khẩu làm đề: ${pw.examPassword ? '<code>' + escHtml(pw.examPassword) + '</code>' : '<i>không có</i>'}<br>👁️ Mật khẩu xem đáp án: ${pw.reviewPassword ? '<code>' + escHtml(pw.reviewPassword) + '</code>' : '<i>dùng mật khẩu chung</i>'}</div>` : '';
                 const gradeBadge = getExamGrade(exam) ? `<span class="difficulty" style="background:#e3f2fd;color:#1565c0;margin-right:8px">Lớp ${getExamGrade(exam)}</span>` : '';
                 const selectable = selectMode && !exam._local;
@@ -829,7 +831,7 @@
                         <div class="exam-info"><strong>Thời gian:</strong> ${escHtml(exam.time)}</div>
                         <div class="exam-info"><strong>Chủ đề:</strong> ${escHtml(exam.topics)}</div>
                         ${exam.hasPassword ? '<span class="lock-badge">🔒 Cần mật khẩu</span>' : ''}${gradeBadge}<span class="difficulty">${escHtml(exam.difficulty)}</span>
-                        ${pwInfo}
+                        ${owner}${pwInfo}
                         <br>
                         ${selectMode ? '' : `<button class="start-btn" onclick="event.stopPropagation(); window.location.href='${target}'">Bắt đầu làm bài →</button>
                         ${adminBtns}`}
@@ -848,7 +850,7 @@
                 const data = await adminFetch('/api/admin-exam?meta=1');
                 examPasswords = {};
                 Object.values(data.examList || {}).flat().forEach(e => {
-                    examPasswords[e.id] = { examPassword: e.examPassword || '', reviewPassword: e.reviewPassword || '' };
+                    examPasswords[e.id] = { examPassword: e.examPassword || '', reviewPassword: e.reviewPassword || '', createdBy: e.createdBy || null };
                 });
             } catch (e) {
                 console.warn('Không tải được mật khẩu đề:', e);
@@ -986,7 +988,7 @@
                     Object.assign(exam, data.exam);
                     exam.hasPassword = !!data.exam.examPassword;
                     if (examPasswords[exam.id] || KiroAuth.can('viewExams')) {
-                        examPasswords[exam.id] = { examPassword: data.exam.examPassword || '', reviewPassword: data.exam.reviewPassword || '' };
+                        examPasswords[exam.id] = { examPassword: data.exam.examPassword || '', reviewPassword: data.exam.reviewPassword || '', createdBy: (examPasswords[exam.id] || {}).createdBy || null };
                     }
                     delete exam.examPassword;
                     delete exam.reviewPassword;

@@ -49,7 +49,7 @@ input:focus{outline:none;border-color:#1a1a1a}
   <!-- FORM GIÁO VIÊN -->
   <div id="adminForm" class="hide">
     <label>Tên đăng nhập</label>
-    <input type="text" id="aUser" placeholder="Tên đăng nhập (admin: nhập admin)" autocomplete="username" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    <input type="text" id="aUser" placeholder="Nhập tên đăng nhập..." autocomplete="username" autocapitalize="none" spellcheck="false" onkeydown="if(event.key==='Enter')doAdminLogin()">
     <label>Mật khẩu</label>
     <input type="password" id="aPass" placeholder="Nhập mật khẩu..." autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()">
     <button class="btn btn-admin" id="aBtn" onclick="doAdminLogin()">Đăng nhập →</button>

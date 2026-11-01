@@ -167,6 +167,12 @@ function buildContext(role, teacher) {
       const key = String((q && q.subjectKey) || '');
       return !!q && ctx.subjectAllowed(key.startsWith('khtn') ? 'khtn' : key) && ctx.gradeAllowed(q.grade);
     },
+    // Ghi người đăng đề / câu hỏi (máy chủ tự đặt, không tin dữ liệu trình duyệt gửi)
+    author() {
+      const at = new Date().toISOString();
+      if (role === 'admin') return { id: 'admin', username: 'admin', name: 'Admin', at };
+      return { id: teacher.id, username: teacher.username, name: teacher.name || teacher.username, at };
+    },
     session() {
       if (role === 'admin') return { role, name: 'Admin', username: 'admin' };
       return {

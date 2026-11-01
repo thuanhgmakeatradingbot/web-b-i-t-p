@@ -40,6 +40,8 @@ textarea{resize:vertical;min-height:65px}
 code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 .filter-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
 .filter-bar select{min-width:140px}
+.author-tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;font-size:9pt;background:#fff3e0;color:#e65100}
+.new-tag{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:10px;font-size:9pt;background:#e8f5e9;color:#2e7d32}
 </style>
 </head>
 <body>
@@ -108,7 +110,7 @@ code{background:#f0f0f0;padding:2px 6px;border-radius:4px}
 
 <div class="toolbar">
   <button class="btn btn-dark" onclick="pushAll()">Lưu mã hóa qua API</button>
-  <a class="btn btn-gray" href="don-anh.html">🧹 Dọn ảnh không dùng</a>
+  <a class="btn btn-gray" id="cleanImagesBtn" href="don-anh.html">🧹 Dọn ảnh không dùng</a>
   <span id="syncStatus" style="align-self:center;font-size:10.5pt;color:#666"></span>
   <a class="btn btn-gray" href="index.html">← Về trang chủ</a>
 </div>
@@ -125,6 +127,11 @@ const LOCAL_KEY = 'QUESTION_BANK_LOCAL';
 // Kho làm việc: gộp dữ liệu file + bản lưu cục bộ trên máy
 let bank = [];
 let editingId = null;
+// Mã các câu đã lưu trên máy chủ. Giáo viên chỉ được THÊM: câu đã lưu không sửa/xoá được,
+// câu mới thêm (chưa lưu) thì còn sửa/xoá được trước khi bấm Lưu.
+let savedIds = new Set();
+const canChange = q => KiroAuth.isAdmin() || !savedIds.has(q.id);
+const authorName = q => (q.createdBy && (q.createdBy.name || q.createdBy.username)) || 'Admin';
 
 async function adminFetch(url, options){
   if (!(await KiroAuth.verifyAdmin())) {
@@ -148,6 +155,7 @@ async function adminFetch(url, options){
 async function loadBank(){
   const data = await adminFetch('/api/admin-bank', { cache: 'no-store' });
   bank = Array.isArray(data.bank) ? data.bank : [];
+  savedIds = new Set(bank.map(q => q.id));
 }
 function saveLocal(){ try { localStorage.setItem(LOCAL_KEY, JSON.stringify(bank)); } catch(e){} }
 
@@ -290,6 +298,7 @@ function addQuestion(){
 
 function editQuestion(id){
   const q=bank.find(x=>x.id===id); if(!q) return;
+  if(!canChange(q)){ alert('Câu đã lưu trong kho: tài khoản giáo viên không được sửa.'); return; }
   editingId=id;
   document.getElementById('subject').value=q.subjectKey; updateGradeOptions(q.grade);
   document.getElementById('qType').value=q.type;
@@ -309,6 +318,8 @@ function cancelEdit(){
 }
 
 async function removeQuestion(id){
+  const q=bank.find(x=>x.id===id);
+  if(q && !canChange(q)){ alert('Câu đã lưu trong kho: tài khoản giáo viên không được xoá.'); return; }
   if(!confirm('Xoa cau hoi nay khoi kho dang chinh?')) return;
   bank = bank.filter(x => x.id !== id);
   saveLocal();
@@ -355,11 +366,13 @@ function renderList(){
     html+=`<div class="q-block">
       <div class="q-top">
         <span><span class="q-tag ${tagCls[q.type]}">${TYPES[q.type]}</span>
-        <span class="hint" style="margin-left:6px">${subName} • Lớp ${q.grade||'?'}${q.lesson?' • '+escapeHtml(q.lesson):''}</span></span>
-        <span>
+        <span class="hint" style="margin-left:6px">${subName} • Lớp ${q.grade||'?'}${q.lesson?' • '+escapeHtml(q.lesson):''}</span>
+        ${KiroAuth.isAdmin() ? '<span class="author-tag">👤 ' + escapeHtml(authorName(q)) + '</span>' : ''}
+        ${savedIds.has(q.id) ? '' : '<span class="new-tag">Mới – chưa lưu</span>'}</span>
+        ${canChange(q) ? `<span>
           <button class="btn btn-blue" onclick="editQuestion('${q.id}')">✏️ Sửa</button>
           <button class="btn btn-red" onclick="removeQuestion('${q.id}')">✕ Xóa</button>
-        </span>
+        </span>` : '<span class="hint">🔒 Đã lưu</span>'}
       </div>
       <div>${prev}</div><div class="hint">${detail}</div>
     </div>`;
@@ -394,10 +407,15 @@ function refreshLessonOptions(){
 async function pushAll(){
   setStatus('Dang luu ngan hang ma hoa...','#666');
   try {
+    // Giáo viên chỉ gửi các câu mới thêm; admin gửi cả kho
+    const added = bank.filter(q => !savedIds.has(q.id));
+    if (!KiroAuth.isAdmin() && !added.length) { setStatus('Chưa có câu mới nào để lưu.', '#666'); return; }
     const data = await adminFetch('/api/admin-bank', {
       method: 'POST',
-      body: JSON.stringify({ bank })
+      body: JSON.stringify(KiroAuth.isAdmin() ? { bank } : { addItems: added })
     });
+    await loadBank();
+    renderList();
     const mode = (data.saved && data.saved.mode) || 'server';
     setStatus('Da luu ma hoa ' + data.count + ' cau (' + mode + '). ' + (mode === 'blob' ? 'Luu tren Vercel Blob, co the truy cap ngay!' : 'Neu chay tren Vercel, web se cap nhat sau khi redeploy xong.'), '#2e7d32');
     try { localStorage.removeItem(LOCAL_KEY); } catch(e){}
@@ -413,6 +431,7 @@ async function pushAll(){
   // Giáo viên chỉ thêm/sửa câu thuộc môn/lớp admin giao
   KiroAuth.limitSelect(document.getElementById('subject'), 'subject');
   KiroAuth.limitSelect(document.getElementById('filterSubject'), 'subject');
+  if (!KiroAuth.isAdmin()) document.getElementById('cleanImagesBtn').style.display = 'none';
   updateGradeOptions();
   renderEditor();
   try {
